@@ -1,0 +1,24 @@
+# CMake related files
+CMakeCache.txt
+CMakeFiles
+CMakeLists.txt.user*
+CMakeModules
+CTestCustom.cmake
+cmake_install.cmake
+
+# Visual Studio related files
+.vs
+*.vcxproj.filters
+*.vcxproj
+*.vcxproj.user
+*.sln
+*.log
+*.tlog
+*.recipe
+
+# OpendTect
+*.alo
+*mod.h
+*deps.h
+*.pdb
+*.obj
