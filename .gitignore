@@ -5,6 +5,8 @@ CMakeLists.txt.user*
 CMakeModules
 CTestCustom.cmake
 cmake_install.cmake
+.cmake
+Makefile
 
 # Visual Studio related files
 .vs
