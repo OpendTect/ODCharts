@@ -7,6 +7,7 @@
 -*/
 
 #include "uichartsmod.h"
+#include "commondefs.h"
 
 class ODChart;
 namespace QtCharts { class QChart; }
