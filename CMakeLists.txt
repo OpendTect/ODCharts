@@ -11,6 +11,14 @@ project(ODCharts)
 
 set ( OpendTect_DIR "" CACHE PATH "OpendTect directory" )
 
+if( (NOT DEFINED OpendTect_DIR) OR (NOT OpendTect_DIR) OR
+     ("${OpendTect_DIR}" STREQUAL "") )
+    get_filename_component( PARENT_DIR "${CMAKE_SOURCE_DIR}" DIRECTORY )
+    get_filename_component( GRANDPARENT_DIR "${PARENT_DIR}" DIRECTORY )
+    set( OpendTect_DIR "${GRANDPARENT_DIR}" )
+    message( STATUS "Set OpendTect_DIR to: ${OpendTect_DIR}" )
+endif()
+
 #Setup output directory
 option ( OD_BUILD_LOCAL "Build in local directory" ON )
 
