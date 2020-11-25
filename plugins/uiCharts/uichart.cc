@@ -5,6 +5,7 @@
 -*/
 
 #include "uichart.h"
+#include "uichartseries.h"
 
 #include <QChart>
 
@@ -33,4 +34,11 @@ uiChart::uiChart()
 uiChart::~uiChart()
 {
     delete odchart_;
+}
+
+
+void uiChart::addSeries( uiChartSeries& series )
+{
+    odchart_->addSeries( series.getSeries() );
+    odchart_->createDefaultAxes();
 }

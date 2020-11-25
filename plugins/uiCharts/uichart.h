@@ -11,12 +11,15 @@
 
 class ODChart;
 namespace QtCharts { class QChart; }
+class uiChartSeries;
 
 mExpClass(uiCharts) uiChart
 {
 public:
 			uiChart();
 			~uiChart();
+
+    void		addSeries(uiChartSeries&);
 
     QtCharts::QChart*	getQChart()	{ return (QtCharts::QChart*)odchart_; }
 
