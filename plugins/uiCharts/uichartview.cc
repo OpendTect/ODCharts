@@ -20,6 +20,7 @@ public:
 ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
     : uiObjBodyImpl<uiChartView,QChartView>(hndle,p,nm)
 {
+    setInteractive( true );
 }
 
 
@@ -33,7 +34,6 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
 uiChartView::uiChartView( uiParent* p, const char* nm )
     : uiObject(p,nm,mkbody(p,nm))
 {
-    delete odchartview_->chart();
     uichart_ = new uiChart();
     odchartview_->setChart( uichart_->getQChart() );
 }
@@ -52,3 +52,16 @@ ODChartView& uiChartView::mkbody( uiParent* p, const char* nm )
     return *odchartview_;
 }
 
+
+void uiChartView::setZoomStyle( ZoomStyle style )
+{
+    QChartView::RubberBand rb = QChartView::NoRubberBand;
+    if ( style == VerticalZoom )
+	rb = QChartView::VerticalRubberBand;
+    if ( style == HorizontalZoom )
+	rb = QChartView::HorizontalRubberBand;
+    if ( style == RectangleZoom )
+	rb = QChartView::RectangleRubberBand;
+
+    odchartview_->setRubberBand( rb );
+}

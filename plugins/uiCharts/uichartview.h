@@ -19,6 +19,12 @@ public:
 				uiChartView(uiParent*,const char* nm);
 				~uiChartView();
 
+    uiChart&			chart()		{ return *uichart_; }
+
+    enum ZoomStyle		{ NoZoom, VerticalZoom, HorizontalZoom,
+				  RectangleZoom };
+    void			setZoomStyle(ZoomStyle);
+
 protected:
     ODChartView&		mkbody(uiParent*,const char*);
     ODChartView*		odchartview_;
