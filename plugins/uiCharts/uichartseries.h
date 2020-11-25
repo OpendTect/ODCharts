@@ -13,6 +13,7 @@ namespace QtCharts
 {
     class QAbstractSeries;
     class QLineSeries;
+    class QScatterSeries;
     class QXYSeries;
 }
 
@@ -36,6 +37,7 @@ mExpClass(uiCharts) uiXYSeries : public uiChartSeries
 public:
 			~uiXYSeries();
 
+    void		clear();
     void		add(float x,float y);
 
 protected:
@@ -53,4 +55,15 @@ public:
 
 protected:
     QtCharts::QLineSeries*	qlineseries_;
+};
+
+
+mExpClass(uiCharts) uiScatterSeries : public uiXYSeries
+{
+public:
+			uiScatterSeries();
+			~uiScatterSeries();
+
+protected:
+    QtCharts::QScatterSeries*	qscatterseries_;
 };

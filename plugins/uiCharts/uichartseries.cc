@@ -7,6 +7,7 @@
 #include "uichartseries.h"
 
 #include <QLineSeries>
+#include <QScatterSeries>
 
 using namespace QtCharts;
 
@@ -34,6 +35,12 @@ uiXYSeries::~uiXYSeries()
 }
 
 
+void uiXYSeries::clear()
+{
+    qxyseries_->clear();
+}
+
+
 void uiXYSeries::add( float x, float y )
 {
     qxyseries_->append( qreal(x), qreal(y) );
@@ -52,3 +59,15 @@ uiLineSeries::~uiLineSeries()
 {
 }
 
+
+// uiScatterSeries
+uiScatterSeries::uiScatterSeries()
+    : uiXYSeries(new QScatterSeries)
+{
+    qscatterseries_ = dynamic_cast<QScatterSeries*>(qxyseries_);
+}
+
+
+uiScatterSeries::~uiScatterSeries()
+{
+}
