@@ -22,12 +22,11 @@ public:
 			uiLogView(uiParent*,const char* nm);
 			~uiLogView();
 
-    void		setWellData(const Well::Data*);
-    void		addLog(const char* nm);
-    void		removeLog(const char* nm);
+    void		addLog(const Well::Data&,const char* lognm);
+    void		removeLog(const char* lognm);
 
 protected:
 
-    ConstRefMan<Well::Data>	welldata_;
+    ObjectSet<const Well::Data>	welldata_;
     ObjectSet<LogSeries>	logseries_;
 };

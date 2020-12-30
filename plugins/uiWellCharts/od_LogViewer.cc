@@ -12,12 +12,8 @@ ________________________________________________________________________
 #include "ioman.h"
 #include "moddepmgr.h"
 #include "prog.h"
-#include "welldata.h"
-#include "welllog.h"
-#include "welllogset.h"
-#include "wellman.h"
 
-#include "uilogview.h"
+#include "uilogviewwin.h"
 #include "uimainwin.h"
 #include "uimain.h"
 #include "uimsg.h"
@@ -41,19 +37,18 @@ int main( int argc, char** argv )
 	ExitProgram( 1 );
     }
 
-    const DBKey wellid( clp.keyedString("well") );
-    if ( wellid.isUdf() || !IOM().isUsable(wellid) )
+    const BufferString wellidstr = clp.keyedString("well");
+    if ( !wellidstr.isEmpty() )
     {
-	uiMSG().error( toUiString("No valid well ID given") );
-	ExitProgram( 1 );
+	const DBKey wellid( wellidstr );
+	if ( wellid.isUdf() || !IOM().isUsable(wellid) )
+	{
+	    uiMSG().error( toUiString("No valid well ID given") );
+	    ExitProgram( 1 );
+	}
     }
 
-    auto* logwin = new uiMainWin( nullptr, toUiString("Log Viewer") );
-    auto* logview = new uiLogView( logwin, "LogView 1" );
-    logview->setStretch( 2, 2 );
-
-    RefMan<Well::Data> wd = Well::MGR().get( wellid );
-    logview->setWellData( wd );
+    auto* logwin = new uiLogViewWin( nullptr );
     app.setTopLevel( logwin );
     logwin->show();
 

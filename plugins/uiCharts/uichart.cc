@@ -41,4 +41,6 @@ void uiChart::addSeries( uiChartSeries& series )
 {
     odchart_->addSeries( series.getSeries() );
     odchart_->createDefaultAxes();
+    // TODO: make separate function for reverting axes
+    odchart_->axes(Qt::Vertical).first()->setReverse();
 }

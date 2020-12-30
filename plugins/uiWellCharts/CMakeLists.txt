@@ -9,7 +9,9 @@ SET( OD_IS_PLUGIN yes )
 SET( OD_MODULE_SOURCES
 	logseries.cc
 	uilogview.cc
+	uilogviewwin.cc
 	uiwellchartspi.cc
+	uiwellinpgrp.cc
 )
 
 set( OD_MODULE_PROGS od_LogViewer.cc )

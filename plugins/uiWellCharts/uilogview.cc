@@ -24,37 +24,29 @@ uiLogView::uiLogView( uiParent* p, const char* nm )
 
 
 uiLogView::~uiLogView()
-{}
-
-
-void uiLogView::setWellData( const Well::Data* wd )
 {
-    welldata_ = wd;
-
-    BufferStringSet lognms;
-    welldata_->logs().getNames( lognms );
-    if ( lognms.isEmpty() )
-	return;
-
-
-    addLog( lognms.first()->buf() );
+    deepUnRef( welldata_ );
+    deepErase( logseries_ );
 }
 
 
-void uiLogView::addLog( const char* nm )
+void uiLogView::addLog( const Well::Data& wd, const char* nm )
 {
-    const Well::Log* log = welldata_ ? welldata_->logs().getLog( nm ) : nullptr;
+    const Well::Log* log = wd.logs().getLog( nm );
     if ( !log )
 	return;
 
+    wd.ref();
+    welldata_ += &wd;
     auto* series = new LogSeries;
     series->setWellLog( *log );
+    series->setName( BufferString(wd.name()," - ",log->name()) );
     logseries_ += series;
     chart().addSeries( *series );
 }
 
 
-void uiLogView::removeLog( const char* nm )
+void uiLogView::removeLog( const char* lognm )
 {
     pErrMsg( "Not implemented yet" );
 }
