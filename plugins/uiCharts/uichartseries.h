@@ -7,7 +7,8 @@
 -*/
 
 #include "uichartsmod.h"
-#include "commondefs.h"
+
+#include "bufstring.h"
 
 namespace QtCharts
 {
@@ -22,6 +23,9 @@ mExpClass(uiCharts) uiChartSeries
 {
 public:
 			~uiChartSeries();
+
+    void		setName(const char*);
+    BufferString	getName() const;
 
     QtCharts::QAbstractSeries*	getSeries()	{ return qabstractseries_; }
 

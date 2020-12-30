@@ -22,6 +22,19 @@ uiChartSeries::~uiChartSeries()
 }
 
 
+void uiChartSeries::setName( const char* nm )
+{
+    qabstractseries_->setName( nm );
+}
+
+
+BufferString uiChartSeries::getName() const
+{
+    BufferString str( qabstractseries_->name() );
+    return str;
+}
+
+
 // uiXYSeries
 uiXYSeries::uiXYSeries( QXYSeries* series )
     : uiChartSeries(series)
