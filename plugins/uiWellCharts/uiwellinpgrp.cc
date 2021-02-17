@@ -59,7 +59,7 @@ void uiWellInputGroup::wellSelChg( CallBacker* )
     {
 	const MultiID& key = wellkeys_.get( selidxs[idx] );
 	BufferStringSet lognms;
-	Well::MGR().getLogNames( key, lognms );
+	Well::MGR().getLogNamesByID( key, lognms );
 	if ( idx == 0 )
 	    alllognms = lognms;
 	else

@@ -1,14 +1,17 @@
-#_______________________Pmake___________________________________________________
+#_______________________CMake___________________________________________________
 #
-#	Makefile : 	Tutorial plugin
-# 	Jan 2012	A.H. Bril
-#	RCS :		$Id$
+#	Makefile : 	ODCharts plugin
+# 	Dec 2020	Nanne Hemstra
 #_______________________________________________________________________________
 
 
 cmake_minimum_required (VERSION 3.14)
 project(ODCharts)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+set ( OD_SUBSYSTEM "ODCharts" )
 set ( OpendTect_DIR "" CACHE PATH "OpendTect directory" )
 
 if( (NOT DEFINED OpendTect_DIR) OR (NOT OpendTect_DIR) OR

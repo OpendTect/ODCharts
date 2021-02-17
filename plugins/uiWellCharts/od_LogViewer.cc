@@ -19,11 +19,10 @@ ________________________________________________________________________
 #include "uimsg.h"
 
 
-int main( int argc, char** argv )
+int doMain( int argc, char** argv )
 {
     OD::SetRunContext( OD::UiProgCtxt );
     SetProgramArgs( argc, argv );
-    uiMain app( argc, argv );
 
     PIM().loadAuto( false );
     OD::ModDeps().ensureLoaded( "Well" );
@@ -34,7 +33,7 @@ int main( int argc, char** argv )
     if ( !res.isOK() )
     {
 	uiMSG().error( res );
-	ExitProgram( 1 );
+	return 1;
     }
 
     const BufferString wellidstr = clp.keyedString("well");
@@ -44,15 +43,15 @@ int main( int argc, char** argv )
 	if ( wellid.isUdf() || !IOM().isUsable(wellid) )
 	{
 	    uiMSG().error( toUiString("No valid well ID given") );
-	    ExitProgram( 1 );
+	    return 1;
 	}
     }
 
-    auto* logwin = new uiLogViewWin( nullptr );
+    uiMain app( argc, argv );
+
+    PtrMan<uiMainWin> logwin = new uiLogViewWin( nullptr );
     app.setTopLevel( logwin );
     logwin->show();
 
-    const int ret = app.exec();
-    delete logwin;
-    return ExitProgram( ret );
+    return app.exec();
 }
