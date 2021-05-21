@@ -1,7 +1,11 @@
 /*+
- * (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
- * AUTHOR   : Raman Singh
- * DATE     : June 2008
+________________________________________________________________________
+
+ (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
+ Author:	Nanne Hemstra
+ Date:		November 2020
+________________________________________________________________________
+
 -*/
 
 #include "uichartview.h"
@@ -34,8 +38,6 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
 uiChartView::uiChartView( uiParent* p, const char* nm )
     : uiObject(p,nm,mkbody(p,nm))
 {
-    uichart_ = new uiChart();
-    odchartview_->setChart( uichart_->getQChart() );
 }
 
 
@@ -43,6 +45,14 @@ uiChartView::~uiChartView()
 {
     odchartview_->setChart( nullptr );
     delete uichart_;
+}
+
+
+void uiChartView::setChart( uiChart* chart )
+{
+    uichart_ = chart;
+    if ( uichart_ )
+	odchartview_->setChart( uichart_->getQChart() );
 }
 
 

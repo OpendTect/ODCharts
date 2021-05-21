@@ -1,8 +1,12 @@
 #pragma once
 /*+
- * (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
- * AUTHOR   : Nanne Hemstra
- * DATE     : May 2021
+________________________________________________________________________
+
+ (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
+ Author:	Nanne Hemstra
+ Date:		May 2021
+________________________________________________________________________
+
 -*/
 
 #include "uichartsmod.h"
