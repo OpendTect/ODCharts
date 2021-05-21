@@ -3,13 +3,14 @@ ________________________________________________________________________
 
  (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
  Author:	Nanne Hemstra
- Date:		August 2020
+ Date:		November 2020
 ________________________________________________________________________
 
 -*/
 
 
 #include "uilogviewwin.h"
+#include "uilogchart.h"
 #include "uilogview.h"
 
 #include "uiscrollarea.h"
@@ -18,6 +19,7 @@ ________________________________________________________________________
 
 #include "welldata.h"
 #include "wellman.h"
+#include "welltrack.h"
 
 uiLogViewWin::uiLogViewWin( uiParent* p )
     : uiMainWin(p,toUiString("OpendTect - Log Viewer"))
@@ -51,21 +53,28 @@ void uiLogViewWin::addCB( CallBacker* )
     BufferStringSet lognms;
     inputgrp_->getSelection( wellkeys, lognms );
 
+    uiLogChart* chart = logviews_[0]->logChart();
+    chart->removeAllCurves();
+    Interval<float> zrange;
     for ( int widx=0; widx<wellkeys.size(); widx++ )
     {
-	RefMan<Well::Data> wd =
-		Well::MGR().get( wellkeys.get(widx), Well::Logs );
+	Well::LoadReqs lreq( Well::Trck );
+	RefMan<Well::Data> wd = Well::MGR().get( wellkeys[widx], lreq );
+	zrange.include( wd->track().zRange() );
 	for ( int lidx=0; lidx<lognms.size(); lidx++ )
-	{
-	    logviews_[0]->addLog( *wd, lognms.get(lidx) );
-	}
+	    chart->addLogCurve( wellkeys[widx], lognms.get(lidx) );
     }
+
+    chart->setZRange( zrange );
 }
 
 
 void uiLogViewWin::addViewer()
 {
     auto* vwr = new uiLogView( viewgrp_, "viewer 1" );
+    auto* chart = new uiLogChart;
+    vwr->setChart( chart );
+    chart->displayLegend( false );
     vwr->setStretch( 2, 2 );
     if ( !logviews_.isEmpty() )
 	vwr->attach( rightOf, logviews_.last() );

@@ -3,7 +3,7 @@ ________________________________________________________________________
 
  (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
  Author:	Nanne Hemstra
- Date:		August 2020
+ Date:		November 2020
 ________________________________________________________________________
 
 -*/
@@ -11,7 +11,7 @@ ________________________________________________________________________
 #include "uilogview.h"
 
 #include "uichart.h"
-#include "logseries.h"
+#include "uilogchart.h"
 #include "welldata.h"
 #include "welllog.h"
 #include "welllogset.h"
@@ -25,28 +25,17 @@ uiLogView::uiLogView( uiParent* p, const char* nm )
 
 uiLogView::~uiLogView()
 {
-    deepUnRef( welldata_ );
-    deepErase( logseries_ );
 }
 
 
-void uiLogView::addLog( const Well::Data& wd, const char* nm )
+void uiLogView::setLogChart( uiLogChart* newchart )
 {
-    const Well::Log* log = wd.logs().getLog( nm );
-    if ( !log )
-	return;
-
-    wd.ref();
-    welldata_ += &wd;
-    auto* series = new LogSeries;
-    series->setWellLog( *log );
-    series->setName( BufferString(wd.name()," - ",log->name()) );
-    logseries_ += series;
-    chart().addSeries( *series );
+    setChart( newchart );
 }
 
 
-void uiLogView::removeLog( const char* lognm )
+uiLogChart* uiLogView::logChart()
 {
-    pErrMsg( "Not implemented yet" );
+    uiChart* ch = chart();
+    return dynamic_cast<uiLogChart*>(ch);
 }

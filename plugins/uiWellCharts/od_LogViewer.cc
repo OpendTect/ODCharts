@@ -3,11 +3,12 @@ ________________________________________________________________________
 
  (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
  Author:	Nanne Hemstra
- Date:		December 2019
+ Date:		December 2020
 ________________________________________________________________________
 
 -*/
 
+#include "applicationdata.h"
 #include "commandlineparser.h"
 #include "ioman.h"
 #include "moddepmgr.h"
@@ -23,10 +24,10 @@ int doMain( int argc, char** argv )
 {
     OD::SetRunContext( OD::UiProgCtxt );
     SetProgramArgs( argc, argv );
+    uiMain app( argc, argv );
+    ApplicationData::setApplicationName( "OpendTect - LogViewer" );
 
-    PIM().loadAuto( false );
-    OD::ModDeps().ensureLoaded( "Well" );
-    PIM().loadAuto( true );
+    OD::ModDeps().ensureLoaded( "uiBase" );
 
     CommandLineParser clp( argc, argv );
     const uiRetVal res = IOM().setDataSource( clp );
@@ -47,10 +48,13 @@ int doMain( int argc, char** argv )
 	}
     }
 
-    uiMain app( argc, argv );
-
     PtrMan<uiMainWin> logwin = new uiLogViewWin( nullptr );
     app.setTopLevel( logwin );
+
+    PIM().loadAuto( false );
+    OD::ModDeps().ensureLoaded( "Well" );
+    PIM().loadAuto( true );
+
     logwin->show();
 
     return app.exec();
