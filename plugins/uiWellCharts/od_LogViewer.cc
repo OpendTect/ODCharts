@@ -48,11 +48,12 @@ int doMain( int argc, char** argv )
 	}
     }
 
+    OD::ModDeps().ensureLoaded( "Well" );
+
     PtrMan<uiMainWin> logwin = new uiLogViewWin( nullptr );
     app.setTopLevel( logwin );
 
     PIM().loadAuto( false );
-    OD::ModDeps().ensureLoaded( "Well" );
     PIM().loadAuto( true );
 
     logwin->show();
