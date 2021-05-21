@@ -7,7 +7,7 @@
 SET( OD_MODULE_DEPS uiCharts Well )
 SET( OD_IS_PLUGIN yes )
 SET( OD_MODULE_SOURCES
-	logseries.cc
+	uilogchart.cc
 	uilogview.cc
 	uilogviewwin.cc
 	uiwellchartspi.cc
