@@ -1,5 +1,4 @@
 #pragma once
-
 /*+
 ________________________________________________________________________
 
@@ -13,8 +12,7 @@ ________________________________________________________________________
 #include "uiwellchartsmod.h"
 #include "uichartview.h"
 
-class LogSeries;
-namespace Well { class Data; }
+class uiLogChart;
 
 mExpClass(uiWellCharts) uiLogView : public uiChartView
 {
@@ -22,11 +20,7 @@ public:
 			uiLogView(uiParent*,const char* nm);
 			~uiLogView();
 
-    void		addLog(const Well::Data&,const char* lognm);
-    void		removeLog(const char* lognm);
+    void		setLogChart(uiLogChart*);
+    uiLogChart*		logChart();
 
-protected:
-
-    ObjectSet<const Well::Data>	welldata_;
-    ObjectSet<LogSeries>	logseries_;
 };

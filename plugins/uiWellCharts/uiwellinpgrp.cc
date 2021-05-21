@@ -22,6 +22,7 @@ uiWellInputGroup::uiWellInputGroup( uiParent* p )
     wellsfld_ = new uiListBox( this, "Wells", OD::ChooseAtLeastOne );
     mAttachCB( wellsfld_->selectionChanged, uiWellInputGroup::wellSelChg );
     mAttachCB( wellsfld_->itemChosen, uiWellInputGroup::wellSelChg );
+
     logsfld_ = new uiListBox( this, "Logs", OD::ChooseAtLeastOne );
     logsfld_->attach( alignedBelow, wellsfld_ );
 
@@ -66,7 +67,7 @@ void uiWellInputGroup::wellSelChg( CallBacker* )
 	{
 	    for ( int lidx=alllognms.size()-1; lidx>=0; lidx-- )
 	    {
-		if (!lognms.isPresent(alllognms.get(lidx)) )
+		if ( !lognms.isPresent(alllognms.get(lidx)) )
 		    alllognms.removeSingle( lidx );
 	    }
 	}
