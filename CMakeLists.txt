@@ -29,6 +29,8 @@ option ( OD_BUILD_LOCAL "Build in local directory" ON )
 list(APPEND CMAKE_MODULE_PATH "${OpendTect_DIR}/CMakeModules")
 find_package( OpendTect )
 
+set( PROJECT_OUTPUT_DIR ${OD_BINARY_BASEDIR} )
+
 #Setup the modules
 set ( PLUGINS  uiCharts uiWellCharts )
 OD_ADD_MODULES( plugins ${PLUGINS} )
