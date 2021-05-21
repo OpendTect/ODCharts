@@ -21,6 +21,7 @@ namespace QtCharts
     class QValueAxis;
 }
 class QPen;
+class i_valueAxisMsgHandler;
 
 mGlobal(uiCharts) void			toQPen(QPen&,const OD::LineStyle&,
 					       bool usetransp=false,
@@ -78,8 +79,16 @@ public:
     void		setTickInterval(float);
     void		setTickCount(int);
 
+    void		setAxisLimits(const Interval<float>&,bool include=true);
+    void		setAxisLimits(float min,float max,bool include=true);
+    void		snapRange(float min,float max);
+
 protected:
     QtCharts::QValueAxis*	qvalueaxis_;
+    Interval<float>		axislimits_;
+
+private:
+    i_valueAxisMsgHandler*	msghandler_;
 };
 
 

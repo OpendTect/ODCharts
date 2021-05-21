@@ -12,6 +12,7 @@ ________________________________________________________________________
 #include "uichart.h"
 #include "uiobjbodyimpl.h"
 
+#include <QApplication>
 #include <QChart>
 #include <QChartView>
 
@@ -32,9 +33,89 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
 {
 }
 
+protected:
+    bool		panning_ = false;
+    QPointF		lastmousepos_;
+
+    void		mouseMoveEvent(QMouseEvent*) override;
+    void		mouseReleaseEvent(QMouseEvent*) override;
+    void		mousePressEvent(QMouseEvent*) override;
 };
 
 
+void ODChartView::mouseMoveEvent( QMouseEvent* ev )
+{
+    if ( panning_ )
+    {
+	auto dpos = ev->pos() - lastmousepos_;
+	if ( rubberBand()==VerticalRubberBand )
+	    chart()->scroll( 0, dpos.y() );
+	else if ( rubberBand()==HorizontalRubberBand )
+	    chart()->scroll( dpos.x(), 0 );
+	else
+	    chart()->scroll( dpos.x(), dpos.y() );
+
+	lastmousepos_ = ev->pos();
+	ev->accept();
+    }
+
+    QChartView::mouseMoveEvent( ev );
+}
+
+
+void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
+{
+    if ( ev->button() == Qt::MiddleButton )
+    {
+	panning_ = false;
+	auto dpos = ev->pos() - lastmousepos_;
+	if ( rubberBand() == VerticalRubberBand )
+	    chart()->scroll( 0, dpos.y() );
+	else if ( rubberBand() == HorizontalRubberBand )
+	    chart()->scroll( dpos.x(), 0 );
+	else
+	    chart()->scroll( dpos.x(), dpos.y() );
+
+	lastmousepos_ = ev->pos();
+	ev->accept();
+	QApplication::restoreOverrideCursor();
+    }
+    else if ( ev->button() == Qt::RightButton )
+    {
+	chart()->zoomReset();
+	ev->accept();
+    }
+    else
+	QChartView::mouseReleaseEvent( ev );
+}
+
+
+void ODChartView::mousePressEvent( QMouseEvent* ev )
+{
+    if ( ev->button() == Qt::MiddleButton )
+    {
+	if ( rubberBand() == VerticalRubberBand )
+	    QApplication::setOverrideCursor( QCursor(Qt::SizeVerCursor) );
+	else if ( rubberBand() == HorizontalRubberBand )
+	    QApplication::setOverrideCursor( QCursor(Qt::SizeHorCursor) );
+	else
+	    QApplication::setOverrideCursor( QCursor(Qt::SizeAllCursor) );
+
+	panning_ = true;
+	lastmousepos_ = ev->pos();
+	ev->accept();
+    }
+    else if ( ev->button() == Qt::RightButton )
+    {
+	chart()->zoomReset();
+	ev->accept();
+    }
+    else
+	QChartView::mousePressEvent( ev );
+}
+
+
+// uiChartView
 uiChartView::uiChartView( uiParent* p, const char* nm )
     : uiObject(p,nm,mkbody(p,nm))
 {

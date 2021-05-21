@@ -9,6 +9,7 @@ ________________________________________________________________________
 -*/
 
 #include "uichartaxes.h"
+#include "i_qchartaxes.h"
 
 #include <QLogValueAxis>
 #include <QValueAxis>
@@ -141,13 +142,16 @@ QAbstractAxis* uiChartAxis::getQAxis()
 // uiValueAxis
 uiValueAxis::uiValueAxis()
     : uiChartAxis(new QValueAxis)
+    , axislimits_(Interval<float>::udf())
 {
     qvalueaxis_ = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    msghandler_ = new i_valueAxisMsgHandler( this, qvalueaxis_ );
 }
 
 
 uiValueAxis::~uiValueAxis()
 {
+    delete msghandler_;
 }
 
 
@@ -180,6 +184,47 @@ void uiValueAxis::setTickInterval( float intv )
 void uiValueAxis::setTickCount( int count )
 {
     qvalueaxis_->setTickCount( count );
+}
+
+
+void uiValueAxis::setAxisLimits( const Interval<float>& range, bool include )
+{
+    if ( include )
+       axislimits_.include( range );
+    else
+       axislimits_ = range;
+
+    setRange( axislimits_.start, axislimits_.stop );
+}
+
+
+void uiValueAxis::setAxisLimits( float min, float max, bool include )
+{
+    const Interval<float> range( min, max );
+    setAxisLimits( range, include );
+}
+
+
+void uiValueAxis::snapRange( float min, float max )
+{
+    const Interval<float> range( min, max );
+    if ( axislimits_.isUdf() || axislimits_.includes(range) )
+	return;
+
+    const float width = range.width();
+    if ( min<axislimits_.start )
+    {
+	min = axislimits_.start;
+	max = min + width;
+    }
+
+    if ( max>axislimits_.stop )
+    {
+	max = axislimits_.stop;
+	min = max-width<axislimits_.start ? axislimits_.start : max-width;
+    }
+
+    setRange( min, max );
 }
 
 

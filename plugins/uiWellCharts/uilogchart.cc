@@ -86,6 +86,7 @@ void uiLogChart::addLogCurve( const Well::Log& log, const OD::LineStyle& lstyle,
     uiChartAxis* logaxis = makeLogAxis( logtitle, min, max, reverse );
     logaxis->setLineStyle( lstyle );
     addAxis( logaxis, OD::Top );
+    zaxis_->setAxisLimits( log.dahRange() );
 
     uiLineSeries* series = new uiLineSeries();
     for (int idx=0; idx<log.size(); idx++)
@@ -154,7 +155,8 @@ void uiLogChart::makeZaxis()
     zaxis_ = new uiValueAxis;
     zaxis_->setTickType( uiValueAxis::TicksDynamic );
     zaxis_->setTickInterval( ztype_==TWT ? 0.1 : 100 );
-    zaxis_->setMinorTickCount( 9 );
+    zaxis_->setMinorTickCount( 4 );
+    zaxis_->setLabelFormat( "%d" );
     zaxis_->setRange( 0, 1000 );
     zaxis_->setReverse( true );
     addAxis( zaxis_, OD::Left );
@@ -169,8 +171,9 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float min,
     {
 	uiValueAxis* vaxis = new uiValueAxis;
 	vaxis->setTickType( uiValueAxis::TicksFixed );
-	vaxis->setTickCount( 2 );
-	vaxis->setMinorTickCount( 9 );
+	vaxis->setTickCount( 5 );
+	vaxis->setMinorTickCount( 1 );
+	vaxis->setLabelFormat( "%d" );
 	vaxis->setRange( min, max );
 	vaxis->setReverse( reverse );
 	axis = vaxis;

@@ -7,6 +7,9 @@
 SET( OD_MODULE_DEPS uiBase )
 SET( OD_IS_PLUGIN yes )
 SET( OD_USEQT Charts )
+set( QT_MOC_HEADERS
+	i_qchartaxes.h
+)
 SET( OD_MODULE_SOURCES
 	uichartspi.cc
 	uichart.cc
