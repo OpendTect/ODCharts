@@ -24,3 +24,6 @@ Makefile
 *deps.h
 *.pdb
 *.obj
+
+# Qt
+moc_*
