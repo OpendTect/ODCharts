@@ -1,10 +1,15 @@
 /*+
- * (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
- * AUTHOR   : Raman Singh
- * DATE     : June 2008
+________________________________________________________________________
+
+ (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
+ Author:	Nanne Hemstra
+ Date:		November 2020
+________________________________________________________________________
+
 -*/
 
 #include "uichartseries.h"
+#include "uichartaxes.h"
 
 #include <QLineSeries>
 #include <QScatterSeries>
@@ -22,47 +27,71 @@ uiChartSeries::~uiChartSeries()
 }
 
 
+void uiChartSeries::attachAxis( uiChartAxis* axis )
+{
+    qabstractseries_->attachAxis( axis->getQAxis() );
+}
+
+
 void uiChartSeries::setName( const char* nm )
 {
     qabstractseries_->setName( nm );
 }
 
 
-BufferString uiChartSeries::getName() const
+BufferString uiChartSeries::name() const
 {
     BufferString str( qabstractseries_->name() );
     return str;
 }
 
 
-// uiXYSeries
-uiXYSeries::uiXYSeries( QXYSeries* series )
+QAbstractSeries* uiChartSeries::getQSeries()
+{
+    return qabstractseries_;
+}
+
+
+// uiXYChartSeries
+uiXYChartSeries::uiXYChartSeries( QXYSeries* series )
     : uiChartSeries(series)
 {
     qxyseries_ = dynamic_cast<QXYSeries*>(qabstractseries_);
 }
 
 
-uiXYSeries::~uiXYSeries()
+uiXYChartSeries::~uiXYChartSeries()
 {
 }
 
 
-void uiXYSeries::clear()
+void uiXYChartSeries::clear()
 {
     qxyseries_->clear();
 }
 
 
-void uiXYSeries::add( float x, float y )
+void uiXYChartSeries::add( float x, float y )
 {
     qxyseries_->append( qreal(x), qreal(y) );
 }
 
 
+int uiXYChartSeries::size() const
+{
+    return qxyseries_->count();
+}
+
+
+bool uiXYChartSeries::isEmpty() const
+{
+    return size() == 0;
+}
+
+
 // uiLineSeries
 uiLineSeries::uiLineSeries()
-    : uiXYSeries(new QLineSeries)
+    : uiXYChartSeries(new QLineSeries)
 {
     qlineseries_ = dynamic_cast<QLineSeries*>(qxyseries_);
 }
@@ -73,9 +102,37 @@ uiLineSeries::~uiLineSeries()
 }
 
 
+void uiLineSeries::append( float x, float y )
+{
+    qlineseries_->append( qreal(x), qreal(y) );
+}
+
+
+void uiLineSeries::append( int num, float* xarr, float* yarr )
+{
+
+    for ( float *px=xarr, *py=yarr; px<xarr+num; px++, py++ )
+	append( *px, *py );
+}
+
+
+void uiLineSeries::setLineStyle( const OD::LineStyle& ls, bool usetransp )
+{
+    QPen qpen;
+    toQPen( qpen, ls, usetransp, true );
+    qlineseries_->setPen( qpen );
+}
+
+
+OD::LineStyle uiLineSeries::lineStyle() const
+{
+    return fromQPen( qlineseries_->pen() );
+}
+
+
 // uiScatterSeries
 uiScatterSeries::uiScatterSeries()
-    : uiXYSeries(new QScatterSeries)
+    : uiXYChartSeries(new QScatterSeries)
 {
     qscatterseries_ = dynamic_cast<QScatterSeries*>(qxyseries_);
 }

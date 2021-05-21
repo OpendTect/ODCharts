@@ -1,7 +1,11 @@
 /*+
- * (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
- * AUTHOR   : Raman Singh
- * DATE     : June 2008
+________________________________________________________________________
+
+ (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
+ Author:	Nanne Hemstra
+ Date:		November 2020
+________________________________________________________________________
+
 -*/
 
 static const char* rcsID mUsedVar = "$Id$";
