@@ -10,6 +10,7 @@ SET( OD_USEQT Charts )
 SET( OD_MODULE_SOURCES
 	uichartspi.cc
 	uichart.cc
+	uichartaxes.cc
 	uichartseries.cc
 	uichartview.cc
 )
