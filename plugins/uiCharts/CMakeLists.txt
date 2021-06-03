@@ -9,8 +9,10 @@ SET( OD_IS_PLUGIN yes )
 SET( OD_USEQT Charts )
 set( QT_MOC_HEADERS
 	i_qchartaxes.h
+	i_qchartseries.h
 )
 SET( OD_MODULE_SOURCES
+	uicallout.cc
 	uichartspi.cc
 	uichart.cc
 	uichartaxes.cc
