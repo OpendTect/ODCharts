@@ -36,7 +36,6 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
     viewgrp_ = new uiGroup( this, "Viewer Group" );
     viewgrp_->attach( ensureRightOf, addbut );
 //    sa->setObject( viewgrp_->attachObj() );
-
     addViewer();
 }
 
@@ -75,6 +74,7 @@ void uiLogViewWin::addViewer()
     auto* chart = new uiLogChart;
     vwr->setChart( chart );
     chart->displayLegend( false );
+    vwr->setMinimumSize( 400, 800 );
     vwr->setStretch( 2, 2 );
     if ( !logviews_.isEmpty() )
 	vwr->attach( rightOf, logviews_.last() );

@@ -18,7 +18,7 @@ class uiToolButton;
 class uiWellInputGroup;
 
 mExpClass(uiWellCharts) uiLogViewWin : public uiMainWin
-{
+{ mODTextTranslationClass(uiLogViewWin);
 public:
 				uiLogViewWin(uiParent*);
 				~uiLogViewWin();
