@@ -104,6 +104,13 @@ OD::LineStyle uiChartAxis::minorGridStyle() const
 }
 
 
+OD::Orientation uiChartAxis::orientation() const
+{
+    return qabstractaxis_->orientation()==Qt::Vertical ? OD::Vertical
+						       : OD::Horizontal;
+}
+
+
 void uiChartAxis::setRange( float min, float max )
 {
     qabstractaxis_->setRange( min, max );

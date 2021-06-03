@@ -9,7 +9,11 @@ ________________________________________________________________________
 -*/
 
 #include "uichartseries.h"
+#include "i_qchartseries.h"
+#include "uicallout.h"
 #include "uichartaxes.h"
+#include "uimain.h"
+#include "uimainwin.h"
 
 #include <QLineSeries>
 #include <QScatterSeries>
@@ -55,13 +59,24 @@ QAbstractSeries* uiChartSeries::getQSeries()
 // uiXYChartSeries
 uiXYChartSeries::uiXYChartSeries( QXYSeries* series )
     : uiChartSeries(series)
+    , clicked(this)
+    , doubleClicked(this)
+    , hoverOn(this)
+    , hoverOff(this)
+    , callouttxt_("X: %1\nY:%2")
 {
     qxyseries_ = dynamic_cast<QXYSeries*>(qabstractseries_);
+    msghandler_ = new i_xySeriesMsgHandler( this, qxyseries_ );
+    mAttachCB( this->hoverOn, uiXYChartSeries::showCallout );
+    mAttachCB( this->hoverOff, uiXYChartSeries::hideCallout );
 }
 
 
 uiXYChartSeries::~uiXYChartSeries()
 {
+    detachAllNotifiers();
+    delete callout_;
+    delete msghandler_;
 }
 
 
@@ -86,6 +101,35 @@ int uiXYChartSeries::size() const
 bool uiXYChartSeries::isEmpty() const
 {
     return size() == 0;
+}
+
+
+void uiXYChartSeries::setCalloutTxt( const char* txt, int nrdecx, int nrdecy )
+{
+    callouttxt_ = txt;
+    nrdecx_ = nrdecx;
+    nrdecy_ = nrdecy;
+}
+
+
+void uiXYChartSeries::showCallout( CallBacker* cb )
+{
+    if ( !callout_ )
+	callout_ = new uiCallout( this );
+
+    mCBCapsuleUnpack(const Geom::PointF&,pos,cb);
+    callout_->setText(tr(callouttxt_).arg(pos.x,nrdecx_).arg(pos.y,nrdecy_));
+    callout_->setAnchor( pos, this );
+    callout_->setZValue( 11 );
+    callout_->update();
+    callout_->show();
+}
+
+
+void uiXYChartSeries::hideCallout( CallBacker* )
+{
+    if ( callout_ )
+	callout_->hide();
 }
 
 

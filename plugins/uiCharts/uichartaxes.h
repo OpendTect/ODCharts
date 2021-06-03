@@ -13,6 +13,7 @@ ________________________________________________________________________
 
 #include "bufstring.h"
 #include "draw.h"
+#include "oduicommon.h"
 
 namespace QtCharts
 {
@@ -48,6 +49,8 @@ public:
     OD::LineStyle	lineStyle() const;
     OD::LineStyle	gridStyle() const;
     OD::LineStyle	minorGridStyle() const;
+
+    OD::Orientation	orientation() const;
 
     void		setRange(float min,float max);
     void		setReverse(bool yn);

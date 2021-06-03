@@ -66,6 +66,24 @@ void uiChart::displayLegend( bool yn )
 }
 
 
+Geom::PointF uiChart::mapToPosition( const Geom::PointF& value,
+				     uiChartSeries* series )
+{
+    const QPointF qpos = odchart_->mapToPosition( QPoint(value.x, value.y),
+			series ? series->getQSeries() : nullptr );
+    return Geom::PointF( qpos.x(), qpos.y() );
+}
+
+
+Geom::PointF uiChart::mapToValue( const Geom::PointF& pos,
+				  uiChartSeries* series )
+{
+    const QPointF qpos = odchart_->mapToValue( QPoint(pos.x, pos.y),
+			series ? series->getQSeries() : nullptr );
+    return Geom::PointF( qpos.x(), qpos.y() );
+}
+
+
 void uiChart::removeAllAxes( OD::Orientation orient, uiChartSeries* series )
 {
     const Qt::Orientations qorient =
@@ -85,13 +103,21 @@ void uiChart::removeAllSeries()
 
 void uiChart::removeAxis( uiChartAxis* axis )
 {
-    odchart_->removeAxis( axis->getQAxis() );
+    if ( axis )
+	odchart_->removeAxis( axis->getQAxis() );
 }
 
 
 void uiChart::removeSeries( uiChartSeries* series )
 {
-    odchart_->removeSeries( series->getQSeries() );
+    if ( series )
+	odchart_->removeSeries( series->getQSeries() );
+}
+
+
+void uiChart::setAcceptHoverEvents( bool yn )
+{
+    odchart_->setAcceptHoverEvents( yn );
 }
 
 

@@ -45,5 +45,5 @@ protected:
     uiValueAxis*	zaxis_;
 
     void		makeZaxis();
-    uiChartAxis*	makeLogAxis(const BufferString&, float, float, bool);
+    uiChartAxis*	makeLogAxis(const BufferString&,float,float,bool);
 };

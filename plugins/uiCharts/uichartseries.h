@@ -12,8 +12,14 @@ ________________________________________________________________________
 #include "uichartsmod.h"
 
 #include "bufstring.h"
+#include "callback.h"
+#include "geometry.h"
+#include "uistring.h"
 
+class uiCallout;
 class uiChartAxis;
+class i_xySeriesMsgHandler;
+
 namespace OD		{ class LineStyle; }
 namespace QtCharts
 {
@@ -24,10 +30,10 @@ namespace QtCharts
 }
 
 
-mExpClass(uiCharts) uiChartSeries
+mExpClass(uiCharts) uiChartSeries : public CallBacker
 {
 public:
-			~uiChartSeries();
+    virtual		~uiChartSeries();
 
     void		attachAxis(uiChartAxis*);
     BufferString	name() const;
@@ -43,7 +49,7 @@ protected:
 
 
 mExpClass(uiCharts) uiXYChartSeries : public uiChartSeries
-{
+{ mODTextTranslationClass(uiXYChartSeries);
 public:
     virtual		~uiXYChartSeries();
 
@@ -51,11 +57,27 @@ public:
     void		add(float x,float y);
     int			size() const;
     bool		isEmpty() const;
+    void		setCalloutTxt(const char*,int nrdecx=2,int nrdecy=2);
+
+    CNotifier<uiXYChartSeries,const Geom::PointF&>	clicked;
+    CNotifier<uiXYChartSeries,const Geom::PointF&>	doubleClicked;
+    CNotifier<uiXYChartSeries,const Geom::PointF&>	hoverOn;
+    CNotifier<uiXYChartSeries,const Geom::PointF&>	hoverOff;
 
 protected:
 			uiXYChartSeries(QtCharts::QXYSeries*);
 
+    void		showCallout(CallBacker*);
+    void		hideCallout(CallBacker*);
+
     QtCharts::QXYSeries*	qxyseries_;
+    uiCallout*			callout_ = nullptr;
+    BufferString		callouttxt_;
+    int				nrdecx_ = 2;
+    int				nrdecy_ = 2;
+
+private:
+    i_xySeriesMsgHandler*	msghandler_;
 };
 
 

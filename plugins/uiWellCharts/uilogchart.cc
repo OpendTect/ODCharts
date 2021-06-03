@@ -87,6 +87,7 @@ void uiLogChart::addLogCurve( const Well::Log& log, const OD::LineStyle& lstyle,
     logaxis->setLineStyle( lstyle );
     addAxis( logaxis, OD::Top );
     zaxis_->setAxisLimits( log.dahRange() );
+    const BufferString callouttxt( "Depth: %2\n", log.name(), ": %1" );
 
     uiLineSeries* series = new uiLineSeries();
     for (int idx=0; idx<log.size(); idx++)
@@ -103,6 +104,7 @@ void uiLogChart::addLogCurve( const Well::Log& log, const OD::LineStyle& lstyle,
 		addSeries( series );
 		series->attachAxis( zaxis_ );
 		series->attachAxis( logaxis );
+		series->setCalloutTxt( callouttxt );
 		series = new uiLineSeries();
 	    }
 	}
@@ -114,6 +116,7 @@ void uiLogChart::addLogCurve( const Well::Log& log, const OD::LineStyle& lstyle,
 	addSeries( series );
 	series->attachAxis( zaxis_ );
 	series->attachAxis( logaxis );
+	series->setCalloutTxt( callouttxt );
     }
     else
 	delete series;
@@ -171,8 +174,8 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float min,
     {
 	uiValueAxis* vaxis = new uiValueAxis;
 	vaxis->setTickType( uiValueAxis::TicksFixed );
-	vaxis->setTickCount( 5 );
-	vaxis->setMinorTickCount( 1 );
+	vaxis->setTickCount( 2 );
+	vaxis->setMinorTickCount( 9 );
 	vaxis->setLabelFormat( "%d" );
 	vaxis->setRange( min, max );
 	vaxis->setReverse( reverse );
