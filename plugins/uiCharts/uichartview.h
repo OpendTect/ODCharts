@@ -27,7 +27,9 @@ public:
 
     enum ZoomStyle		{ NoZoom, VerticalZoom, HorizontalZoom,
 				  RectangleZoom };
+    void			setMinimumSize(int width,int height);
     void			setZoomStyle(ZoomStyle);
+
 
 protected:
     ODChartView&		mkbody(uiParent*,const char*);

@@ -144,6 +144,11 @@ ODChartView& uiChartView::mkbody( uiParent* p, const char* nm )
 }
 
 
+void uiChartView::setMinimumSize( int w, int h )
+{
+    odchartview_->setMinimumSize( w, h );
+}
+
 void uiChartView::setZoomStyle( ZoomStyle style )
 {
     QChartView::RubberBand rb = QChartView::NoRubberBand;
