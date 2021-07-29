@@ -12,6 +12,9 @@ ________________________________________________________________________
 
 #include "uichart.h"
 #include "uilogchart.h"
+#include "uilogviewpropdlg.h"
+#include "uimsg.h"
+#include "uistrings.h"
 #include "welldata.h"
 #include "welllog.h"
 #include "welllogset.h"
@@ -20,11 +23,14 @@ uiLogView::uiLogView( uiParent* p, const char* nm )
     : uiChartView(p,nm)
 {
     setZoomStyle( VerticalZoom );
+    mAttachCB(doubleClick, uiLogView::doubleClickCB);
 }
 
 
 uiLogView::~uiLogView()
 {
+    detachAllNotifiers();
+    delete propdlg_;
 }
 
 
@@ -38,4 +44,14 @@ uiLogChart* uiLogView::logChart()
 {
     uiChart* ch = chart();
     return dynamic_cast<uiLogChart*>(ch);
+}
+
+
+void uiLogView::doubleClickCB( CallBacker* )
+{
+    if ( logChart()->logcurves().size()==0 )
+	return;
+    if ( !propdlg_ )
+	propdlg_ = new uiLogViewPropDlg( parent(), *logChart() );
+    propdlg_->show();
 }

@@ -11,6 +11,8 @@ ________________________________________________________________________
 #include "uichart.h"
 #include "uichartaxes.h"
 #include "uichartseries.h"
+#include "chartutils.h"
+#include "i_qchart.h"
 
 #include <QChart>
 #include <QLegend>
@@ -24,22 +26,30 @@ ODChart()
     : QChart()
 {}
 
-
 ~ODChart()
 {}
 
+int numAxes( OD::Orientation orient ) const
+{
+    const Qt::Orientations qorient =
+			orient==OD::Vertical ? Qt::Vertical : Qt::Horizontal;
+    return axes( qorient ).size();
+}
 };
 
 
 uiChart::uiChart()
     : odchart_(new ODChart)
+    , plotAreaChanged(this)
 {
+    msghandler_ = new i_chartMsgHandler( this, odchart_ );
 }
 
 
 uiChart::~uiChart()
 {
     delete odchart_;
+    delete msghandler_;
 }
 
 
@@ -60,9 +70,24 @@ void uiChart::addSeries( uiChartSeries* series )
 }
 
 
+OD::Color uiChart::backgroundColor() const
+{
+    QColor qcol = odchart_->backgroundBrush()!=Qt::SolidPattern ? Qt::white
+					 : odchart_->backgroundBrush().color();
+    return fromQColor( qcol );
+}
+
+
 void uiChart::displayLegend( bool yn )
 {
     yn ? odchart_->legend()->show() : odchart_->legend()->hide();
+}
+
+
+Geom::RectI uiChart::margins() const
+{
+    const QMargins qm = odchart_->margins();
+    return Geom::RectI( qm.left(), qm.top(), qm.right(), qm.bottom() );
 }
 
 
@@ -81,6 +106,19 @@ Geom::PointF uiChart::mapToValue( const Geom::PointF& pos,
     const QPointF qpos = odchart_->mapToValue( QPoint(pos.x, pos.y),
 			series ? series->getQSeries() : nullptr );
     return Geom::PointF( qpos.x(), qpos.y() );
+}
+
+
+int uiChart::numAxes( OD::Orientation orient ) const
+{
+    return odchart_->numAxes( orient );
+}
+
+Geom::RectF uiChart::plotArea() const
+{
+    const QRectF qrect = odchart_->plotArea();
+    return Geom::RectF( qrect.left(), qrect.top(), qrect.right(),
+			qrect.bottom() );
 }
 
 
@@ -118,6 +156,32 @@ void uiChart::removeSeries( uiChartSeries* series )
 void uiChart::setAcceptHoverEvents( bool yn )
 {
     odchart_->setAcceptHoverEvents( yn );
+}
+
+
+void uiChart::setBackgroundColor( const OD::Color& col )
+{
+    if ( col==OD::Color::NoColor() )
+	odchart_->setBackgroundBrush( QBrush(Qt::NoBrush) );
+    else
+    {
+	QColor qcol;
+	toQColor( qcol, col );
+	odchart_->setBackgroundBrush( QBrush(qcol) );
+    }
+}
+
+
+void uiChart::setPlotArea( const Geom::RectF& rect )
+{
+    const QRectF qrect( rect.left(), rect.top(), rect.right(), rect.bottom() );
+    odchart_->setPlotArea( qrect );
+}
+
+
+void uiChart::setMargins( int left, int top, int right, int bottom )
+{
+    odchart_->setMargins( QMargins( left, top, right, bottom ) );
 }
 
 

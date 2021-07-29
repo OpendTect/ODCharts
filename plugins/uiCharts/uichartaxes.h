@@ -21,13 +21,8 @@ namespace QtCharts
     class QLogValueAxis;
     class QValueAxis;
 }
-class QPen;
-class i_valueAxisMsgHandler;
 
-mGlobal(uiCharts) void			toQPen(QPen&,const OD::LineStyle&,
-					       bool usetransp=false,
-					       bool cosmetic=true);
-mGlobal(uiCharts) OD::LineStyle		fromQPen(const QPen&);
+class i_valueAxisMsgHandler;
 
 
 mExpClass(uiCharts) uiChartAxis : public CallBacker
@@ -47,14 +42,31 @@ public:
 					  bool usetransp=false);
 
     OD::LineStyle	lineStyle() const;
-    OD::LineStyle	gridStyle() const;
-    OD::LineStyle	minorGridStyle() const;
+    OD::LineStyle	getGridStyle() const;
+    OD::LineStyle	getMinorGridStyle() const;
+
+    bool		gridVisible() const;
+    void		setGridLineVisible(bool);
+    bool		minorGridVisible() const;
+    void		setMinorGridLineVisible(bool);
 
     OD::Orientation	orientation() const;
 
+    void		setRange(const Interval<float>&);
     void		setRange(float min,float max);
+    Interval<float>	range() const;
+
     void		setReverse(bool yn);
+    bool		reversed() const;
+
     void		setMinorTickCount(int);
+    int			getMinorTickCount() const;
+
+    void		setTickCount(int);
+    int			getTickCount() const;
+
+    void		setTickInterval(float);
+    float		getTickInterval() const;
 
     AxisType		type() const;
 
@@ -80,11 +92,11 @@ public:
 
     void 		setTickType(TickType);
     void		setTickInterval(float);
-    void		setTickCount(int);
 
     void		setAxisLimits(const Interval<float>&,bool include=true);
     void		setAxisLimits(float min,float max,bool include=true);
     void		snapRange(float min,float max);
+    Interval<float>	getAxisLimits();
 
 protected:
     QtCharts::QValueAxis*	qvalueaxis_;

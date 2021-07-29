@@ -14,15 +14,21 @@ ________________________________________________________________________
 #include "uichartseries.h"
 #include "uistring.h"
 
+#include "chartutils.h"
 #include "draw.h"
-#include "mnemonics.h"
+#include "logcurve.h"
 #include "multiid.h"
-#include "welldata.h"
-#include "welllog.h"
-#include "wellman.h"
+#include "separstr.h"
+
+mDefineEnumUtils(uiLogChart, Scale, "Log chart scale type")
+    { "Linear", "Log10", 0 };
+
+mDefineEnumUtils(uiLogChart, ZType, "Log chart Z type")
+    { "MD", "TVD", "TVDSS", "TWT" };
 
 uiLogChart::uiLogChart( ZType ztype, Scale scale )
-    : ztype_(ztype)
+    : logChange(this)
+    , ztype_(ztype)
     , scale_(scale)
 {
     makeZaxis();
@@ -30,101 +36,53 @@ uiLogChart::uiLogChart( ZType ztype, Scale scale )
 
 
 uiLogChart::~uiLogChart()
-{}
+{
+    deepErase( logcurves_ );
+}
+
+
+bool uiLogChart::hasLogCurve( const MultiID& wellid, const char* lognm )
+{
+    bool found = false;
+    for ( auto* logcurve : logcurves_ )
+    {
+	if ( logcurve->wellID()==wellid && logcurve->logName()==lognm )
+	{
+	    found = true;
+	    break;
+	}
+    }
+    return found;
+}
 
 
 void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm )
 {
-    Well::LoadReqs lreq( Well::LogInfos );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid, lreq );
-    if ( !wd || !wd->getLog(lognm) )
-	return;
-
-    const Well::Log& log = *wd->getLog( lognm );
-    int idx = MNC().indexOf( log.mnemLabel() );
-    OD::LineStyle lstyle;
-    float min, max;
-    bool reverse;
-    if ( idx>=0 )
-    {
-	const Mnemonic::DispDefs& disp = MNC().get( idx )->disp_;
-	min = disp.range_.start;
-	max = disp.range_.stop;
-	lstyle.color_ = disp.color_;
-	reverse = false;
-    }
-    else
-    {
-	min = log.valueRange().start;
-	max = log.valueRange().stop;
-	reverse = false;
-    }
-
-    addLogCurve( log, lstyle, min, max, reverse );
+    LogCurve* logcurve = new LogCurve( wellid, lognm );
+    logcurve->addTo( *this );
+    logcurves_ += logcurve;
+    logChange.trigger();
 }
 
 
 void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm,
 			      const OD::LineStyle& lstyle )
 {
-    Well::LoadReqs lreq( Well::LogInfos );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid, lreq );
-    if ( !wd || !wd->getLog(lognm) )
-	return;
-
-    const Well::Log& log = *wd->getLog( lognm );
-    addLogCurve( log, lstyle, log.valueRange().start, log.valueRange().stop,
-		 false );
+    LogCurve* logcurve = new LogCurve( wellid, lognm );
+    logcurve->addTo( *this, lstyle );
+    logcurves_ += logcurve;
+    logChange.trigger();
 }
 
 
-void uiLogChart::addLogCurve( const Well::Log& log, const OD::LineStyle& lstyle,
+void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm,
+			      const OD::LineStyle& lstyle,
 			      float min, float max, bool reverse )
 {
-    BufferString logtitle( log.name() );
-    logtitle.add(" (").add(log.unitMeasLabel()).add(")");
-    uiChartAxis* logaxis = makeLogAxis( logtitle, min, max, reverse );
-    logaxis->setLineStyle( lstyle );
-    addAxis( logaxis, OD::Top );
-    zaxis_->setAxisLimits( log.dahRange() );
-    const BufferString callouttxt( "Depth: %2\n", log.name(), ": %1" );
-
-    uiLineSeries* series = new uiLineSeries();
-    for (int idx=0; idx<log.size(); idx++)
-    {
-	const float logval = log.value( idx );
-	const float dah = log.dah( idx ); //TODO handle other ZTypes
-	if ( !mIsUdf(logval) )
-	    series->append( logval, dah );
-	else
-	{
-	    if ( !series->isEmpty() )
-	    {
-		series->setLineStyle( lstyle );
-		addSeries( series );
-		series->attachAxis( zaxis_ );
-		series->attachAxis( logaxis );
-		series->setCalloutTxt( callouttxt );
-		series = new uiLineSeries();
-	    }
-	}
-    }
-
-    if ( !series->isEmpty() )
-    {
-	series->setLineStyle( lstyle );
-	addSeries( series );
-	series->attachAxis( zaxis_ );
-	series->attachAxis( logaxis );
-	series->setCalloutTxt( callouttxt );
-    }
-    else
-	delete series;
-}
-
-
-void uiLogChart::removeLogCurve( const MultiID& wellid, const char* lognm )
-{
+    LogCurve* logcurve = new LogCurve( wellid, lognm );
+    logcurve->addTo( *this, lstyle, min, max, reverse );
+    logcurves_ += logcurve;
+    logChange.trigger();
 }
 
 
@@ -132,12 +90,25 @@ void uiLogChart::removeAllCurves()
 {
     removeAllSeries();
     removeAllAxes( OD::Horizontal );
+    deepErase( logcurves_ );
+    logChange.trigger();
 }
 
 
 uiValueAxis* uiLogChart::getZAxis() const
 {
     return zaxis_;
+}
+
+
+Interval<float> uiLogChart::getActualZRange() const
+{
+    Interval<float> range;
+    range.setUdf();
+    for ( const auto* logcurve : logcurves_ )
+	range.include(logcurve->zRange() );
+
+    return range;
 }
 
 
@@ -195,4 +166,119 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float min,
 	axis->setTitleText( logtitle );
 
     return axis;
+}
+
+
+BufferStringSet uiLogChart::wellNames() const
+{
+    BufferStringSet res;
+    for ( auto* logcurve : logcurves_ )
+	res.addIfNew( logcurve->wellName() );
+
+    return res;
+}
+
+
+void uiLogChart::fillPar( IOPar& iop ) const
+{
+    iop.set( sKey::Type(), ztype_ );
+    iop.set( sKey::Scale(), scale_ );
+    FileMultiString zfms;
+    zfms.add( zaxis_->getTickInterval() );
+    zfms.add( zaxis_->gridVisible() );
+    iop.set( sKey::ZMajorGrid(), zfms );
+
+    BufferString lsstr;
+    zaxis_->getGridStyle().toString( lsstr );
+    iop.set( sKey::ZMajorGridStyle(), lsstr );
+    zfms.setEmpty();
+    zfms.add( zaxis_->getMinorTickCount() );
+    zfms.add( zaxis_->minorGridVisible() );
+    iop.set( sKey::ZMinorGrid(), zfms );
+    zaxis_->getMinorGridStyle().toString( lsstr );
+    iop.set( sKey::ZMinorGridStyle(), lsstr );
+
+    int nitems = logcurves_.size();
+    iop.set( sKey::NrItems(), nitems );
+    if ( nitems<1 )
+	return;
+
+    uiChartAxis* laxis = logcurves_[0]->getAxis();
+    FileMultiString lfms;
+    lfms.add( laxis->getTickCount() );
+    lfms.add( laxis->gridVisible() );
+    iop.set( sKey::LogMajorGrid(), lfms );
+    laxis->getGridStyle().toString( lsstr );
+    iop.set( sKey::LogMajorGridStyle(), lsstr );
+
+    lfms.setEmpty();
+    lfms.add( laxis->getMinorTickCount() );
+    lfms.add( laxis->minorGridVisible() );
+    iop.set( sKey::LogMinorGrid(), lfms );
+    laxis->getMinorGridStyle().toString( lsstr );
+    iop.set( sKey::LogMinorGridStyle(), lsstr );
+
+    for ( int idx=0; idx<nitems; idx++ )
+    {
+	IOPar tmp;
+	logcurves_[idx]->fillPar( tmp );
+	iop.mergeComp( tmp, IOPar::compKey(sKey::Log(), idx) );
+    }
+}
+
+
+void uiLogChart::usePar( const IOPar& iop )
+{
+    int ztype, scale;
+    iop.get( sKey::Type(), ztype );
+    ztype_ = ZTypeDef().getEnumForIndex( ztype );
+    iop.get( sKey::Scale(), scale );
+    scale_ = ScaleDef().getEnumForIndex( scale );
+
+    FileMultiString zfms_major( iop.find(sKey::ZMajorGrid()) );
+    FileMultiString zfms_minor( iop.find(sKey::ZMinorGrid()) );
+    OD::LineStyle ls_major, ls_minor;
+    BufferString lsstr;
+
+    zaxis_->setTickInterval( zfms_major.getFValue(0) );
+    zaxis_->setGridLineVisible( zfms_major.getYN(1) );
+    zaxis_->setMinorTickCount( zfms_minor.getIValue(0) );
+    zaxis_->setMinorGridLineVisible( zfms_minor.getYN(1) );
+
+    iop.get( sKey::ZMajorGridStyle(), lsstr );
+    ls_major.fromString( lsstr );
+    iop.get( sKey::ZMinorGridStyle(), lsstr );
+    ls_minor.fromString( lsstr );
+
+    zaxis_->setGridStyle( ls_major );
+    zaxis_->setMinorGridStyle( ls_minor );
+
+    int nlog;
+    iop.get( sKey::NrItems(), nlog );
+    if ( nlog<1 )
+	return;
+
+    FileMultiString lfms_major( iop.find(sKey::LogMajorGrid()) );
+    FileMultiString lfms_minor( iop.find(sKey::LogMinorGrid()) );
+    iop.get( sKey::LogMajorGridStyle(), lsstr );
+    ls_major.fromString( lsstr );
+    iop.get( sKey::LogMinorGridStyle(), lsstr );
+    ls_minor.fromString( lsstr );
+
+    removeAllCurves();
+    for ( int idx=0; idx<nlog; idx++ )
+    {
+	IOPar* tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
+	LogCurve* logcurve = new LogCurve;
+	logcurve->addTo( *this, *tmp );
+	uiChartAxis* laxis = logcurve->getAxis();
+	laxis->setTickCount( lfms_major.getIValue(0) );
+	laxis->setGridLineVisible( lfms_major.getYN(1) );
+	laxis->setGridStyle( ls_major );
+	laxis->setMinorTickCount( lfms_minor.getIValue(0) );
+	laxis->setMinorGridLineVisible( lfms_minor.getYN(1) );
+	laxis->setMinorGridStyle( ls_minor );
+	logcurves_ += logcurve;
+	logChange.trigger();
+    }
 }

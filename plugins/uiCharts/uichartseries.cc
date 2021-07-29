@@ -14,6 +14,7 @@ ________________________________________________________________________
 #include "uichartaxes.h"
 #include "uimain.h"
 #include "uimainwin.h"
+#include "chartutils.h"
 
 #include <QLineSeries>
 #include <QScatterSeries>

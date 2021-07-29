@@ -27,9 +27,11 @@ public:
 
     enum ZoomStyle		{ NoZoom, VerticalZoom, HorizontalZoom,
 				  RectangleZoom };
+    void			setBackgroundColor(const OD::Color&) override;
     void			setMinimumSize(int width,int height);
     void			setZoomStyle(ZoomStyle);
 
+    Notifier<uiChartView>	doubleClick;
 
 protected:
     ODChartView&		mkbody(uiParent*,const char*);

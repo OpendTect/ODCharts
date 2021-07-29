@@ -11,6 +11,7 @@ ________________________________________________________________________
 #include "uichartview.h"
 #include "uichart.h"
 #include "uiobjbodyimpl.h"
+#include "chartutils.h"
 
 #include <QApplication>
 #include <QChart>
@@ -26,6 +27,7 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
     : uiObjBodyImpl<uiChartView,QChartView>(hndle,p,nm)
 {
     setInteractive( true );
+    setRenderHint(QPainter::Antialiasing);
 }
 
 
@@ -40,6 +42,7 @@ protected:
     void		mouseMoveEvent(QMouseEvent*) override;
     void		mouseReleaseEvent(QMouseEvent*) override;
     void		mousePressEvent(QMouseEvent*) override;
+    void		mouseDoubleClickEvent(QMouseEvent*) override;
 };
 
 
@@ -115,17 +118,22 @@ void ODChartView::mousePressEvent( QMouseEvent* ev )
 }
 
 
+void ODChartView::mouseDoubleClickEvent( QMouseEvent* ev )
+{
+    handle_.doubleClick.trigger();
+}
+
 // uiChartView
 uiChartView::uiChartView( uiParent* p, const char* nm )
     : uiObject(p,nm,mkbody(p,nm))
+    , doubleClick(this)
 {
 }
 
 
 uiChartView::~uiChartView()
 {
-    odchartview_->setChart( nullptr );
-    delete uichart_;
+    delete odchartview_;
 }
 
 
@@ -141,6 +149,19 @@ ODChartView& uiChartView::mkbody( uiParent* p, const char* nm )
 {
     odchartview_ = new ODChartView( *this, p, nm );
     return *odchartview_;
+}
+
+
+void uiChartView::setBackgroundColor( const OD::Color& col )
+{
+    if ( col==OD::Color::NoColor() )
+	odchartview_->setBackgroundBrush( QBrush(Qt::NoBrush) );
+    else
+    {
+	QColor qcol;
+	toQColor( qcol, col );
+	odchartview_->setBackgroundBrush( QBrush(qcol) );
+    }
 }
 
 
