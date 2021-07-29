@@ -33,6 +33,8 @@ ________________________________________________________________________
 #include <QChart>
 
 static int sMnuID = 0;
+static const int sWinHeight = 500;
+static const int sWinWidth = 500;
 
 uiLogViewWin::uiLogViewWin( uiParent* p )
     : uiMainWin(p,toUiString("OpendTect - Log Viewer"))
@@ -51,8 +53,8 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
     , rmvbuttonitem_(uiStrings::sRemove(),"minus","",
 			    mCB(this,uiLogViewWin,rmvTrackCB),sMnuID++)
 {
-    mainObject()->setMinimumHeight(1000);
-    mainObject()->setMinimumWidth(500);
+    mainObject()->setMinimumHeight( sWinHeight );
+    mainObject()->setMinimumWidth( sWinWidth );
     createToolBar();
 
     inputgrp_ = new uiWellInputGroup( this );
