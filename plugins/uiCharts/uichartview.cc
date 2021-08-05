@@ -182,3 +182,9 @@ void uiChartView::setZoomStyle( ZoomStyle style )
 
     odchartview_->setRubberBand( rb );
 }
+
+
+void uiChartView::zoomResetCB( CallBacker* )
+{
+    odchartview_->chart()->zoomReset();
+}

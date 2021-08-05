@@ -60,7 +60,7 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
     inputgrp_ = new uiWellInputGroup( this );
     inputgrp_->setStretch( 0, 2 );
 
-    logviewtbl_ = new uiLogViewTable( this );
+    logviewtbl_ = new uiLogViewTable( this, true );
 
     auto* splitter = new uiSplitter( this );
     splitter->addGroup( inputgrp_ );
@@ -133,7 +133,7 @@ void uiLogViewWin::add( int idx, const MultiID& wellkey,
     if ( logviewtbl_->masterZRange().includes(wd->track().zRange()) )
 	chart->getZAxis()->setAxisLimits( logviewtbl_->masterZRange() );
     else
-	logviewtbl_->updateZrangeCB( nullptr );
+	logviewtbl_->updateMasterZrangeCB( nullptr );
 
     needsave_ = true;
 }
@@ -211,7 +211,7 @@ void uiLogViewWin::openCB( CallBacker* )
 				    toUiString(chart->wellNames().cat(" ")) );
 	}
 	logviewtbl_->clearSelection();
-	logviewtbl_->updateZrangeCB( nullptr );
+	logviewtbl_->updateMasterZrangeCB( nullptr );
 	needsave_ = false;
     }
 }

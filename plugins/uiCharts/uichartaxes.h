@@ -72,6 +72,8 @@ public:
 
     QtCharts::QAbstractAxis*	getQAxis();
 
+    CNotifier<uiChartAxis,const Interval<float>&>	rangeChanged;
+
 protected:
 			uiChartAxis(QtCharts::QAbstractAxis*);
 

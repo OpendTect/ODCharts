@@ -23,7 +23,7 @@ uiLogView::uiLogView( uiParent* p, const char* nm )
     : uiChartView(p,nm)
 {
     setZoomStyle( VerticalZoom );
-    mAttachCB(doubleClick, uiLogView::doubleClickCB);
+    mAttachCB(doubleClick, uiLogView::showSettingsCB);
 }
 
 
@@ -47,7 +47,7 @@ uiLogChart* uiLogView::logChart()
 }
 
 
-void uiLogView::doubleClickCB( CallBacker* )
+void uiLogView::showSettingsCB( CallBacker* )
 {
     if ( logChart()->logcurves().size()==0 )
 	return;

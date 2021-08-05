@@ -13,6 +13,7 @@ SET( OD_MODULE_SOURCES
 	uilogview.cc
 	uilogviewpropdlg.cc
 	uilogviewtable.cc
+	uilogviewtoolgrp.cc
 	uilogviewwin.cc
 	uiwellchartspi.cc
 	uiwellinpgrp.cc

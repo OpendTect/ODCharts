@@ -37,5 +37,10 @@ private:
 
 private slots:
     void		snapRange( qreal min, qreal max )
-			{ axis_->snapRange( min, max ); }
+			{
+			    axis_->snapRange( min, max );
+			    Interval<float> rg( axis_->range() );
+			    rg.sort();
+			    axis_->rangeChanged.trigger( rg );
+			}
 };

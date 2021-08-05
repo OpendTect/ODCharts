@@ -19,7 +19,7 @@ class uiTable;
 mExpClass(uiWellCharts) uiLogViewTable : public uiGroup
 { mODTextTranslationClass(uiLogViewTable);
 public:
-				uiLogViewTable(uiParent*);
+				uiLogViewTable(uiParent*, bool showTools=false);
 				~uiLogViewTable();
 
     int				currentView() const;
@@ -33,7 +33,7 @@ public:
     void			addTrackCB(CallBacker*);
     void 			removeTrackCB(CallBacker*);
     void			updatePlotAreaCB(CallBacker*);
-    void			updateZrangeCB(CallBacker*);
+    void			updateMasterZrangeCB(CallBacker*);
     void			clearSelection();
 
     Interval<float>		masterZRange() const;
@@ -44,19 +44,21 @@ public:
     uiLogChart*			getLogChart(int);
     uiLogView*			getCurrentLogView();
     uiLogView*			getLogView(int vwidx);
+    bool			isViewLocked(int vwidx);
 
 protected:
     uiTable*			logviews_;
+    bool			showtools_;
     Interval<float>		masterzrange_;
     int				selected_ = -1;
 
-    void			applyMasterZrange();
-
     void			addViewer(int);
+    void			addTools(int);
     void			selectView(int);
 
     void			trackaddCB(CallBacker*);
     void			trackremoveCB(CallBacker*);
     void			colSelectCB(CallBacker*);
     void			selectCB(CallBacker*);
+    void			syncViewsCB(CallBacker*);
 };

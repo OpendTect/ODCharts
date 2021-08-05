@@ -22,6 +22,7 @@ using namespace QtCharts;
 
 uiChartAxis::uiChartAxis( QAbstractAxis* axis )
     : qabstractaxis_(axis)
+    , rangeChanged(this)
 {
 }
 
@@ -310,11 +311,11 @@ void uiValueAxis::setAxisLimits( float min, float max, bool include )
 
 void uiValueAxis::snapRange( float min, float max )
 {
-    const Interval<float> range( min, max );
-    if ( axislimits_.isUdf() || axislimits_.includes(range) )
+    const Interval<float> rg( min, max );
+    if ( axislimits_.isUdf() || axislimits_.includes(rg) )
 	return;
 
-    const float width = range.width();
+    const float width = rg.width();
     if ( min<axislimits_.start )
     {
 	min = axislimits_.start;

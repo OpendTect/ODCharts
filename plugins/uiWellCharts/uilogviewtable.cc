@@ -14,16 +14,20 @@ ________________________________________________________________________
 #include "uichartaxes.h"
 #include "uilogchart.h"
 #include "uilogview.h"
+#include "uilogviewtoolgrp.h"
 #include "uimain.h"
 #include "uimsg.h"
+#include "uipixmap.h"
 #include "uitable.h"
 
 
-uiLogViewTable::uiLogViewTable( uiParent* p )
+uiLogViewTable::uiLogViewTable( uiParent* p, bool showtools )
     : uiGroup(p)
+    , showtools_(showtools)
     , masterzrange_(Interval<float>::udf())
 {
-    logviews_ = new uiTable( this, uiTable::Setup(1,0)
+    const int nrrows = showtools_ ? 2 : 1;
+    logviews_ = new uiTable( this, uiTable::Setup(nrrows,0)
 			    .rowgrow(false).colgrow(true)
 			    .fillrow(true).fillcol(true)
 			    .defrowlbl(false).defcollbl(false)
@@ -35,9 +39,11 @@ uiLogViewTable::uiLogViewTable( uiParent* p )
     logviews_->setLeftHeaderHidden( true );
     logviews_->setBackgroundColor( this->backgroundColor() );
     logviews_->showOuterFrame( false );
-    logviews_->setRowResizeMode( uiTable::Stretch );
+    logviews_->setRowResizeMode( uiTable::ResizeToContents );
+    logviews_->setRowStretchable( showtools_ ? 1 : 0, true );
     logviews_->setColumnResizeMode( uiTable::Stretch );
     logviews_->setSelectionMode( uiTable::SingleColumn );
+
 
     mAttachCB( logviews_->colInserted, uiLogViewTable::trackaddCB );
     mAttachCB( logviews_->colDeleted, uiLogViewTable::trackremoveCB );
@@ -132,7 +138,8 @@ uiLogView* uiLogViewTable::getLogView( int col )
     if ( !validIdx(col) )
 	return nullptr;
 
-    const RowCol curcell( 0, col );
+    const int row = showtools_ ? 1 : 0;
+    const RowCol curcell( row, col );
     mDynamicCastGet(uiLogView*, logview, logviews_->getCellObject( curcell ) );
     return logview;
 }
@@ -171,8 +178,9 @@ void uiLogViewTable::addTrackCB( CallBacker* )
     if ( size()>0 && selected_>=0 )
 	curcol = selected_;
 
+    const int row = showtools_ ? 1 : 0;
     logviews_->insertColumns( curcol, 1 );
-    logviews_->setCurrentCell( RowCol(0, curcol) );
+    logviews_->setCurrentCell( RowCol(row, curcol) );
     trackaddCB( nullptr );
 }
 
@@ -183,7 +191,8 @@ void uiLogViewTable::removeTrackCB( CallBacker* )
 	return;
 
     auto* logchart = getLogChart( selected_ );
-    mDetachCB( logchart->plotAreaChanged, uiLogViewTable::updatePlotAreaCB );
+    mDetachCB(logchart->plotAreaChanged, uiLogViewTable::updatePlotAreaCB);
+    mDetachCB(logchart->getZAxis()->rangeChanged, uiLogViewTable::syncViewsCB);
     logviews_->removeColumn( selected_ );
     selected_ = -1;
     trackremoveCB( nullptr );
@@ -199,7 +208,7 @@ void uiLogViewTable::trackaddCB( CallBacker* )
 
 void uiLogViewTable::trackremoveCB( CallBacker* )
 {
-    updateZrangeCB( nullptr );
+    updateMasterZrangeCB( nullptr );
     updatePlotAreaCB( nullptr );
 }
 
@@ -249,7 +258,7 @@ void uiLogViewTable::updatePlotAreaCB( CallBacker* )
 }
 
 
-void uiLogViewTable::updateZrangeCB( CallBacker* )
+void uiLogViewTable::updateMasterZrangeCB( CallBacker* )
 {
     masterzrange_.setUdf();
     for ( int idx=0; idx<size(); idx++ )
@@ -270,7 +279,8 @@ void uiLogViewTable::updateZrangeCB( CallBacker* )
 
 void uiLogViewTable::addViewer( int col )
 {
-    const RowCol addcell( 0, col);
+    const int row = showtools_ ? 1 : 0;
+    const RowCol addcell( row, col);
     if ( validIdx(col) && logviews_->getCellObject(addcell) )
 	logviews_->clearCellObject( addcell );
 
@@ -285,9 +295,23 @@ void uiLogViewTable::addViewer( int col )
     vwr->setStretch( 2, 2 );
     logviews_->setCellObject( addcell, vwr );
     logviews_->setColumnLabel( addcell.second, uiString::empty() );
+    if ( showtools_ )
+	addTools( col );
+
     mAttachCB(chart->plotAreaChanged, uiLogViewTable::updatePlotAreaCB);
+    mAttachCB(chart->getZAxis()->rangeChanged, uiLogViewTable::syncViewsCB);
 }
 
+
+void uiLogViewTable::addTools( int col )
+{
+    const RowCol toolscell( 0, col );
+    if ( validIdx(col) && logviews_->getCellGroup(toolscell) )
+	return;
+
+    uiLogViewToolGrp* tools = new uiLogViewToolGrp( nullptr, *getLogView(col) );
+    logviews_->setCellGroup( toolscell, tools );
+}
 
 void uiLogViewTable::clearSelection()
 {
@@ -309,5 +333,45 @@ void uiLogViewTable::selectView( int col )
 	logview->setBackgroundColor( OD::Color::Red() );
 	selected_ = col;
 	logviews_->ensureCellVisible( RowCol(0,col) );
+    }
+}
+
+
+bool uiLogViewTable::isViewLocked( int vwidx )
+{
+    if ( validIdx(vwidx) && showtools_ )
+    {
+	const RowCol curcell( 0, vwidx );
+	mDynamicCastGet(uiLogViewToolGrp*, tools,
+			logviews_->getCellGroup(curcell));
+	return tools->isLocked();
+    }
+    return false;
+}
+
+
+void uiLogViewTable::syncViewsCB( CallBacker* cb )
+{
+    mCBCapsuleUnpackWithCaller(const Interval<float>&,range,cber,cb);
+    int vwidx = -1;
+    for (int idx=0; idx<logviews_->nrCols(); idx++ )
+    {
+	if ( getLogChart(idx)->getZAxis()==cber )
+	{
+	    vwidx = idx;
+	    break;
+	}
+    }
+    if ( !isViewLocked(vwidx) )
+	return;
+
+    for (int idx=0; idx<logviews_->nrCols(); idx++ )
+    {
+	if ( idx!=vwidx && isViewLocked( idx ) )
+	{
+	    uiLogChart* logchart = getLogChart( idx );
+	    NotifyStopper ns(logchart->getZAxis()->rangeChanged);
+	    logchart->setZRange( range );
+	}
     }
 }

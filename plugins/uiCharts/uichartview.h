@@ -30,6 +30,7 @@ public:
     void			setBackgroundColor(const OD::Color&) override;
     void			setMinimumSize(int width,int height);
     void			setZoomStyle(ZoomStyle);
+    void			zoomResetCB(CallBacker*);
 
     Notifier<uiChartView>	doubleClick;
 

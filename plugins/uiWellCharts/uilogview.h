@@ -24,9 +24,9 @@ public:
     void		setLogChart(uiLogChart*);
     uiLogChart*		logChart();
 
+    void		showSettingsCB(CallBacker*);
+
 protected:
     uiLogViewPropDlg*	propdlg_ = nullptr;
-    void		doubleClickCB(CallBacker*);
-
 
 };
