@@ -27,7 +27,7 @@ public:
 			~uiCallout();
 
     void		hide();
-    void		setText(uiString);
+    void		setText(const uiString&);
     void		setAnchor(Geom::PointF,uiChartSeries* series=nullptr);
     void		setLine(const OD::Color&,int width);
     void		setBackground(const OD::Color&);

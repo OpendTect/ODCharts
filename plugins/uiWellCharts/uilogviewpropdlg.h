@@ -91,7 +91,7 @@ protected:
 mClass(uiWellCharts) uiLogViewPropDlg : public uiDialog
 { mODTextTranslationClass(uiLogViewPropDlg)
 public:
-			uiLogViewPropDlg(uiParent*, uiLogChart&);
+			uiLogViewPropDlg(uiParent*,uiLogChart&);
 			~uiLogViewPropDlg();
 
 protected:

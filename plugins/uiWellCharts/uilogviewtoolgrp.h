@@ -18,12 +18,12 @@ class uiLogView;
 mClass(uiWellCharts) uiLogViewToolGrp : public uiGroup
 { mODTextTranslationClass(uiLogViewToolGrp)
 public:
-			uiLogViewToolGrp(uiParent*, uiLogView&);
+			uiLogViewToolGrp(uiParent*,uiLogView&);
 			~uiLogViewToolGrp();
 
-    int			addButton(const char* icon, const uiString& tooltip,
+    int			addButton(const char* icon,const uiString& tooltip,
 				  const CallBack& cb=CallBack(),
-				  bool toggle=false, int id=-1);
+				  bool toggle=false,int id=-1);
     void		addObject(uiObject*);
 
     bool		isLocked() const;
