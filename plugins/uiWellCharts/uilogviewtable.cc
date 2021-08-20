@@ -25,6 +25,7 @@ uiLogViewTable::uiLogViewTable( uiParent* p, bool showtools )
     : uiGroup(p)
     , showtools_(showtools)
     , masterzrange_(Interval<float>::udf())
+    , chartSelectionChg(this)
 {
     const int nrrows = showtools_ ? 2 : 1;
     logviews_ = new uiTable( this, uiTable::Setup(nrrows,0)
@@ -88,29 +89,6 @@ void uiLogViewTable::setEmpty()
 bool uiLogViewTable::isEmpty() const
 {
     return size()==0;
-}
-
-
-void uiLogViewTable::addToViewLabel( int idx, const char* label )
-{
-    if ( !validIdx(idx) )
-	return;
-
-    BufferString bs( logviews_->columnLabel(idx) );
-    if ( !bs.contains(label) )
-    {
-	bs.addSpace().add( label );
-	logviews_->setColumnLabel( idx, toUiString(bs) );
-    }
-}
-
-
-void uiLogViewTable::setViewLabel( int idx, const uiString& label )
-{
-    if ( !validIdx(idx) )
-	return;
-
-    logviews_->setColumnLabel( idx, label );
 }
 
 
@@ -277,6 +255,20 @@ void uiLogViewTable::updateMasterZrangeCB( CallBacker* )
 }
 
 
+void uiLogViewTable::updateViewLabel( int col )
+{
+    if ( validIdx( col) )
+    {
+	uiLogChart* chart = getLogChart( col );
+	if ( !chart )
+	    return;
+
+	BufferStringSet wellnms = chart->wellNames();
+	logviews_->setColumnLabel( col, toUiString(wellnms.cat(" ")) );
+    }
+}
+
+
 void uiLogViewTable::addViewer( int col )
 {
     const int row = showtools_ ? 1 : 0;
@@ -322,6 +314,7 @@ void uiLogViewTable::clearSelection()
 	    logview->setBackgroundColor( OD::Color::NoColor() );
     }
     selected_ = -1;
+    chartSelectionChg.trigger();
 }
 
 void uiLogViewTable::selectView( int col )
@@ -333,6 +326,7 @@ void uiLogViewTable::selectView( int col )
 	logview->setBackgroundColor( OD::Color::Red() );
 	selected_ = col;
 	logviews_->ensureCellVisible( RowCol(0,col) );
+	chartSelectionChg.trigger();
     }
 }
 

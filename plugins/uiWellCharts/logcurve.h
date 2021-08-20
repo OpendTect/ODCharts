@@ -31,6 +31,7 @@ public:
     void		addTo(uiLogChart&,const OD::LineStyle&);
     void		addTo(uiLogChart&,const OD::LineStyle&,float,
 			      float,bool);
+    void		removeFrom(uiLogChart&);
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
     OD::LineStyle	lineStyle() const;
@@ -40,6 +41,7 @@ public:
     MultiID		wellID() const		{ return wellid_; }
     BufferString	wellName() const	{ return wellname_; }
     BufferString	logName() const		{ return logname_; }
+    const Well::Log*	wellLog() const;
     Interval<float>	zRange() const		{ return dahrange_; }
     Interval<float>	logRange() const	{ return valrange_; }
     Interval<float>	dispRange() const	{ return disprange_; }

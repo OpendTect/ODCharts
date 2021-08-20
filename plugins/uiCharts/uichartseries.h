@@ -49,7 +49,7 @@ protected:
 
 
 mExpClass(uiCharts) uiXYChartSeries : public uiChartSeries
-{ mODTextTranslationClass(uiXYChartSeries);
+{ mODTextTranslationClass(uiXYChartSeries)
 public:
     virtual		~uiXYChartSeries();
 
@@ -58,6 +58,9 @@ public:
     int			size() const;
     bool		isEmpty() const;
     void		setCalloutTxt(const char*,int nrdecx=2,int nrdecy=2);
+
+    void		setPointLabelsVisible(bool);
+    void		setPointLabelsFormat(const char*);
 
     CNotifier<uiXYChartSeries,const Geom::PointF&>	clicked;
     CNotifier<uiXYChartSeries,const Geom::PointF&>	doubleClicked;
@@ -87,8 +90,8 @@ public:
 			uiLineSeries();
 			~uiLineSeries();
 
-    void		append(float, float);
-    void		append(int, float*, float*);
+    void		append(float,float);
+    void		append(int,float*,float*);
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
 
     OD::LineStyle	lineStyle() const;

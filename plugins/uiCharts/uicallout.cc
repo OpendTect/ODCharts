@@ -59,7 +59,7 @@ void uiCallout::hide()
 }
 
 
-void uiCallout::setText( uiString uistr )
+void uiCallout::setText( const uiString& uistr )
 {
     uistr.fillQString( odcallout_->qtext_ );
     odcallout_->updateTextGeometry();
@@ -71,7 +71,8 @@ void uiCallout::setAnchor( Geom::PointF pos, uiChartSeries* series )
     const QPointF qp( qreal(pos.x), qreal(pos.y) );
     const QRectF qrect = odcallout_->qchart_->plotArea();
     odcallout_->qanchor_ =
-		odcallout_->qchart_->mapToPosition( qp, series->getQSeries() );
+		odcallout_->qchart_->mapToPosition( qp,
+				    series ? series->getQSeries() : nullptr );
     odcallout_->onright_ = qrect.center().x() >= odcallout_->qanchor_.x();
 }
 
@@ -84,7 +85,7 @@ void uiCallout::setLine( const OD::Color& col, int width )
 }
 
 
-void uiCallout::setBackground( const OD::Color& col)
+void uiCallout::setBackground( const OD::Color& col )
 {
     QColor qcolor = QColor( col.rgb() );
     qcolor.setAlpha( 255-col.t() );

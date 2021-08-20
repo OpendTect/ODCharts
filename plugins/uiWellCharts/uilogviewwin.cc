@@ -14,6 +14,7 @@ ________________________________________________________________________
 #include "uifiledlg.h"
 #include "uilogchart.h"
 #include "uilogview.h"
+#include "uilogviewertree.h"
 #include "uilogviewtable.h"
 #include "uimsg.h"
 #include "uiscrollarea.h"
@@ -21,7 +22,6 @@ ________________________________________________________________________
 #include "uitable.h"
 #include "uitoolbar.h"
 #include "uitoolbutton.h"
-#include "uiwellinpgrp.h"
 
 #include "filepath.h"
 #include "iopar.h"
@@ -46,8 +46,6 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
 				mCB(this,uiLogViewWin,saveCB),sMnuID++)
     , saveasitem_(uiStrings::sSaveAs(),"saveas","",
 				mCB(this,uiLogViewWin,saveasCB),sMnuID++)
-    , setbuttonitem_(uiStrings::sApply(),"axis-next","",
-				mCB(this,uiLogViewWin,addCB),sMnuID++)
     , addbuttonitem_(uiStrings::sAdd(),"plus","",
 				mCB(this,uiLogViewWin,addTrackCB),sMnuID++)
     , rmvbuttonitem_(uiStrings::sRemove(),"minus","",
@@ -57,14 +55,11 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
     mainObject()->setMinimumWidth( sWinWidth );
     createToolBar();
 
-    inputgrp_ = new uiWellInputGroup( this );
-    inputgrp_->setStretch( 0, 2 );
+    logviewtree_ = new uiLogViewerTree( this );
+    logviewtree_->setStretch( 0, 2 );
 
     logviewtbl_ = new uiLogViewTable( this, true );
-
-    auto* splitter = new uiSplitter( this );
-    splitter->addGroup( inputgrp_ );
-    splitter->addGroup( logviewtbl_ );
+    logviewtbl_->attach( rightTo, logviewtree_ );
 
     mAttachCB( postFinalise(), uiLogViewWin::uiInitCB );
 }
@@ -79,6 +74,11 @@ uiLogViewWin::~uiLogViewWin()
 void uiLogViewWin::uiInitCB( CallBacker* )
 {
     mAttachCB( windowClosed, uiLogViewWin::closeCB );
+    mAttachCB( logviewtbl_->chartSelectionChg, uiLogViewWin::selTrackChgCB );
+    mAttachCB( logviewtree_->logChecked, uiLogViewWin::addLogCB );
+    mAttachCB( logviewtree_->logUnchecked, uiLogViewWin::removeLogCB );
+    mAttachCB( logviewtree_->markerChecked, uiLogViewWin::addMarkerCB );
+    mAttachCB( logviewtree_->markerUnchecked, uiLogViewWin::removeMarkerCB );
 }
 
 
@@ -90,7 +90,6 @@ void uiLogViewWin::createToolBar()
     tb_->addButton( saveitem_ );
     tb_->addButton( saveasitem_ );
     tb_->addSeparator();
-    tb_->addButton( setbuttonitem_ );
     tb_->addButton( addbuttonitem_ );
     tb_->addButton( rmvbuttonitem_ );
     tb_->addSeparator();
@@ -120,16 +119,25 @@ void uiLogViewWin::add( int idx, const MultiID& wellkey,
 	return;
 
     for ( auto* lognm : lognms )
-    {
-	if ( chart->hasLogCurve(wellkey,*lognm) )
-	    continue;
+	addLog( idx, wellkey, *lognm );
+}
 
-	chart->addLogCurve( wellkey, *lognm );
-    }
+
+void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
+			   const BufferString& lognm )
+{
+    uiLogChart* chart = logviewtbl_->getLogChart( idx );
+    if ( !chart )
+	return;
+
+    if ( chart->hasLogCurve(wellkey, lognm) )
+	return;
+
+    chart->addLogCurve( wellkey, lognm );
 
     Well::LoadReqs lreq( Well::Trck );
     RefMan<Well::Data> wd = Well::MGR().get( wellkey, lreq );
-    logviewtbl_->addToViewLabel( idx, wd->name() );
+    logviewtbl_->updateViewLabel( idx );
     if ( logviewtbl_->masterZRange().includes(wd->track().zRange()) )
 	chart->getZAxis()->setAxisLimits( logviewtbl_->masterZRange() );
     else
@@ -139,30 +147,113 @@ void uiLogViewWin::add( int idx, const MultiID& wellkey,
 }
 
 
-void uiLogViewWin::addCB( CallBacker* )
+void uiLogViewWin::rmvLog( int idx, const MultiID& wellkey,
+			   const BufferString& lognm )
 {
-    TypeSet<MultiID> wellkeys;
-    BufferStringSet lognms;
-    inputgrp_->getSelection( wellkeys, lognms );
-
-    if ( logviewtbl_->isEmpty() )
-	logviewtbl_->addTrackCB( nullptr );
-
-    uiLogChart* chart = logviewtbl_->getCurrentLogChart();
+    uiLogChart* chart = logviewtbl_->getLogChart( idx );
     if ( !chart )
 	return;
 
-    chart->removeAllCurves();
-    logviewtbl_->setViewLabel( logviewtbl_->currentView(), uiString::empty() );
-    for ( int widx=0; widx<wellkeys.size(); widx++ )
-	add( logviewtbl_->currentView(), wellkeys[widx], lognms );
+    if ( !chart->hasLogCurve(wellkey, lognm) )
+	return;
 
+    chart->removeLogCurve( wellkey, lognm );
+    logviewtbl_->updateViewLabel( idx );
+    logviewtbl_->updateMasterZrangeCB( nullptr );
+
+    needsave_ = true;
 }
 
+
+void uiLogViewWin::addLogCB( CallBacker* cb )
+{
+    mCBCapsuleUnpack(const LogID&,logid,cb);
+    const MultiID wellid = logid.first;
+    const BufferString lognm( logid.second );
+
+    if ( logviewtbl_->isEmpty() )
+    {
+	NotifyStopper ns( logviewtbl_->chartSelectionChg );
+	logviewtbl_->addTrackCB( nullptr );
+    }
+
+    addLog( logviewtbl_->currentView(), wellid, lognm );
+}
+
+
+void uiLogViewWin::removeLogCB( CallBacker* cb )
+{
+    mCBCapsuleUnpack(const LogID&,logid,cb);
+    const MultiID wellid = logid.first;
+    const BufferString lognm( logid.second );
+
+    rmvLog( logviewtbl_->currentView(), wellid, lognm );
+}
+
+
+void uiLogViewWin::addMarker( int idx, const MultiID& wellkey,
+			   const BufferString& markernm )
+{
+    uiLogChart* chart = logviewtbl_->getLogChart( idx );
+    if ( !chart )
+	return;
+
+    if ( chart->hasMarker(wellkey, markernm) )
+	return;
+
+    chart->addMarker( wellkey, markernm );
+
+    logviewtbl_->updateViewLabel( idx );
+    needsave_ = true;
+}
+
+
+void uiLogViewWin::rmMarker( int idx, const MultiID& wellkey,
+			     const BufferString& markernm )
+{
+    uiLogChart* chart = logviewtbl_->getLogChart( idx );
+    if ( !chart )
+	return;
+
+    if ( !chart->hasMarker(wellkey, markernm) )
+	return;
+
+    chart->removeMarker( wellkey, markernm );
+    logviewtbl_->updateViewLabel( idx );
+    needsave_ = true;
+}
+
+
+void uiLogViewWin::addMarkerCB( CallBacker* cb )
+{
+    mCBCapsuleUnpack(const MarkerID&,markerid,cb);
+    const MultiID wellid = markerid.first;
+    const BufferString markernm( markerid.second );
+
+    if ( logviewtbl_->isEmpty() )
+    {
+	NotifyStopper ns( logviewtbl_->chartSelectionChg );
+	logviewtbl_->addTrackCB( nullptr );
+    }
+
+    addMarker( logviewtbl_->currentView(), wellid, markernm );
+}
+
+
+void uiLogViewWin::removeMarkerCB( CallBacker* cb )
+{
+    mCBCapsuleUnpack(const MarkerID&,markerid,cb);
+    const MultiID wellid = markerid.first;
+    const BufferString markernm( markerid.second );
+
+    rmMarker( logviewtbl_->currentView(), wellid, markernm );
+}
 
 void uiLogViewWin::clearAll()
 {
     logviewtbl_->setEmpty();
+    logviewtree_->uncheckAll();
+    logviewtree_->collapseAll();
 }
 
 
@@ -180,7 +271,6 @@ void uiLogViewWin::openCB( CallBacker* )
     if ( !checkSave() )
 	return;
 
-    clearAll();
     const BufferString defseldir =
 	FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
     uiFileDialog dlg( this, true, 0, filtStr(),
@@ -188,6 +278,8 @@ void uiLogViewWin::openCB( CallBacker* )
     dlg.setDirectory(defseldir);
     if (!dlg.go())
 	return;
+
+    clearAll();
 
     filename_ = dlg.fileName();
     IOPar iop;
@@ -207,8 +299,7 @@ void uiLogViewWin::openCB( CallBacker* )
 		return;
 
 	    chart->usePar( *tmp );
-	    logviewtbl_->setViewLabel( logviewtbl_->currentView(),
-				    toUiString(chart->wellNames().cat(" ")) );
+	    logviewtbl_->updateViewLabel( logviewtbl_->currentView() );
 	}
 	logviewtbl_->clearSelection();
 	logviewtbl_->updateMasterZrangeCB( nullptr );
@@ -281,4 +372,27 @@ void uiLogViewWin::rmvTrackCB( CallBacker* )
 void uiLogViewWin::closeCB( CallBacker* )
 {
    checkSave();
+}
+
+
+void uiLogViewWin::selTrackChgCB( CallBacker* )
+{
+    NotifyStopper ns1(logviewtree_->logChecked);
+    NotifyStopper ns2(logviewtree_->logUnchecked);
+    NotifyStopper ns3(logviewtree_->markerChecked);
+    NotifyStopper ns4(logviewtree_->markerUnchecked);
+    logviewtree_->uncheckAll();
+    logviewtree_->collapseAll();
+    uiLogChart* logchart = logviewtbl_->getCurrentLogChart();
+    if ( !logchart )
+	return;
+
+    TypeSet<MultiID> wellids = logchart->wellIDs();
+    for ( const auto& wellid : wellids )
+    {
+	const BufferStringSet logs = logchart->getDispLogsForID( wellid );
+	logviewtree_->checkLogsFor( wellid, logs );
+	const BufferStringSet mrkrs = logchart->getDispMarkersForID( wellid );
+	logviewtree_->checkMarkersFor( wellid, mrkrs );
+    }
 }

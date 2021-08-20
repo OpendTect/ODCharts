@@ -16,8 +16,10 @@ ________________________________________________________________________
 #include "uilogchart.h"
 
 #include "draw.h"
+#include "math2.h"
 #include "mnemonics.h"
 #include "multiid.h"
+#include "ranges.h"
 #include "welldata.h"
 #include "welllog.h"
 #include "wellman.h"
@@ -39,6 +41,7 @@ LogCurve::LogCurve( const MultiID& wellid, const char* lognm )
 LogCurve::~LogCurve()
 {
     deepErase( series_ );
+    delete axis_;
 }
 
 
@@ -49,45 +52,66 @@ bool LogCurve::initLog()
     if ( !wd || !wd->getLog(logname_) )
 	return false;
 
-    const Well::Log& log = *wd->getLog( logname_ );
+    const Well::Log* log = wellLog();
+    if ( !log )
+	return false;
     wellname_ = wd->name();
-    uomlbl_ = log.unitMeasLabel();
-    mnemlbl_ = log.mnemLabel();
-    dahrange_ = log.dahRange();
-    valrange_ = log.valueRange();
+    uomlbl_ = log->unitOfMeasure()->symbol();
+    mnemlbl_ = log->mnemLabel();
+    dahrange_ = log->dahRange();
+    valrange_ = log->valueRange();
     disprange_.setUdf();
-    addLog( log );
+    addLog( *log );
     return true;
+}
+
+
+const Well::Log* LogCurve::wellLog() const
+{
+    Well::LoadReqs lreq( Well::LogInfos );
+    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
+    if ( !wd )
+	return nullptr;
+
+    return wd->getLog( logname_ );
 }
 
 
 void LogCurve::addTo( uiLogChart& logchart )
 {
-    int idx = MNC().indexOf( mnemlbl_ );
+    const Well::Log* log = wellLog();
+    if ( !log )
+	return;
+    const Mnemonic* mnem = MNC().find( mnemlbl_ );
     OD::LineStyle lstyle;
     float min, max;
     bool reverse;
-    if ( idx>=0 )
+    if ( mnem )
     {
-	const Mnemonic::DispDefs& disp = MNC().get( idx )->disp_;
-	min = disp.range_.start;
-	max = disp.range_.stop;
+	const Mnemonic::DispDefs& disp = mnem->disp_;
+	const UnitOfMeasure* mnem_uom = UoMR().get( disp.unit_ );
+	const UnitOfMeasure* log_uom = log->unitOfMeasure();
+
+	disprange_.start = getConvertedValue( disp.typicalrange_.start,
+					      mnem_uom, log_uom );
+	disprange_.stop = getConvertedValue( disp.typicalrange_.stop,
+					      mnem_uom, log_uom );
 	lstyle.color_ = disp.color_;
-	reverse = false;
     }
     else
     {
-	min = valrange_.start;
-	max = valrange_.stop;
-	reverse = false;
+	disprange_.start = valrange_.start;
+	disprange_.stop = valrange_.stop;
     }
     if ( !disprange_.isUdf() )
     {
 	min = disprange_.isRev() ? disprange_.stop : disprange_.start;
 	max = disprange_.isRev() ? disprange_.start : disprange_.stop;
 	reverse = disprange_.isRev();
+	StepInterval<float> ni =
+		StepInterval<float>( min, max, 1 ).niceInterval( 10, false );
+	addTo( logchart, lstyle, ni.start, ni.stop, reverse );
     }
-    addTo( logchart, lstyle, min, max, reverse );
 }
 
 
@@ -100,6 +124,7 @@ void LogCurve::addTo( uiLogChart& logchart, const IOPar& iop )
     addTo( logchart, linestyle_, min, max, reverse );
 }
 
+
 void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle )
 {
 
@@ -111,6 +136,7 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
 		      float min, float max, bool reverse )
 {
     BufferString logtitle( logname_ );
+    logtitle.add(" - ").add( wellname_ );
     logtitle.add(" (").add( uomlbl_ ).add(")");
     axis_ = logchart.makeLogAxis( logtitle, min, max, reverse );
     axis_->setLineStyle( lstyle );
@@ -135,10 +161,16 @@ void LogCurve::addLog( const Well::Log& log )
 {
     series_.setEmpty();
     uiLineSeries* series = new uiLineSeries();
+    const UnitOfMeasure* zdisp_uom = UnitOfMeasure::surveyDefDepthUnit();
+    const UnitOfMeasure* zstor_uom = UnitOfMeasure::surveyDefDepthStorageUnit();
+    dahrange_.start = getConvertedValue(dahrange_.start, zstor_uom, zdisp_uom);
+    dahrange_.stop = getConvertedValue( dahrange_.stop, zstor_uom, zdisp_uom );
+
     for (int idx=0; idx<log.size(); idx++)
     {
-	const float logval = log.value( idx );
-	const float dah = log.dah( idx ); //TODO handle other ZTypes
+	const float logval = log.value(idx);
+	const float dah = getConvertedValue( log.dah( idx ), zstor_uom,
+					     zdisp_uom );
 	if ( !mIsUdf(logval) )
 	    series->append( logval, dah );
 	else
@@ -155,6 +187,16 @@ void LogCurve::addLog( const Well::Log& log )
 	series_ += series;
     else
 	delete series;
+}
+
+
+void LogCurve::removeFrom( uiLogChart& logchart )
+{
+    for ( auto* series : series_ )
+    {
+	logchart.removeSeries( series );
+    }
+    logchart.removeAxis( axis_ );
 }
 
 

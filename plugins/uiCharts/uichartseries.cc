@@ -113,13 +113,33 @@ void uiXYChartSeries::setCalloutTxt( const char* txt, int nrdecx, int nrdecy )
 }
 
 
+void uiXYChartSeries::setPointLabelsVisible( bool yn )
+{
+    qxyseries_->setPointLabelsVisible( yn );
+}
+
+
+void uiXYChartSeries::setPointLabelsFormat( const char* fmt )
+{
+    qxyseries_->setPointLabelsFormat( fmt );
+}
+
+
 void uiXYChartSeries::showCallout( CallBacker* cb )
 {
     if ( !callout_ )
 	callout_ = new uiCallout( this );
 
     mCBCapsuleUnpack(const Geom::PointF&,pos,cb);
-    callout_->setText(tr(callouttxt_).arg(pos.x,nrdecx_).arg(pos.y,nrdecy_));
+    if ( callouttxt_.find("%1") && callouttxt_.find("%2") )
+	callout_->setText(tr(callouttxt_).arg(pos.x,nrdecx_).arg(pos.y,nrdecy_));
+    else if ( callouttxt_.find("%1") )
+	callout_->setText(tr(callouttxt_).arg(pos.x,nrdecx_));
+    else if ( callouttxt_.find("%2") )
+	callout_->setText(tr(callouttxt_).arg(pos.y,nrdecy_));
+    else
+	callout_->setText( tr(callouttxt_) );
+
     callout_->setAnchor( pos, this );
     callout_->setZValue( 11 );
     callout_->update();

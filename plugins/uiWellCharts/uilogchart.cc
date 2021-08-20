@@ -17,8 +17,10 @@ ________________________________________________________________________
 #include "chartutils.h"
 #include "draw.h"
 #include "logcurve.h"
+#include "markerline.h"
 #include "multiid.h"
 #include "separstr.h"
+#include "survinfo.h"
 
 mDefineEnumUtils(uiLogChart, Scale, "Log chart scale type")
     { "Linear", "Log10", 0 };
@@ -28,6 +30,7 @@ mDefineEnumUtils(uiLogChart, ZType, "Log chart Z type")
 
 uiLogChart::uiLogChart( ZType ztype, Scale scale )
     : logChange(this)
+    , markerChange(this)
     , ztype_(ztype)
     , scale_(scale)
 {
@@ -38,6 +41,7 @@ uiLogChart::uiLogChart( ZType ztype, Scale scale )
 uiLogChart::~uiLogChart()
 {
     deepErase( logcurves_ );
+    deepErase( markers_ );
 }
 
 
@@ -86,12 +90,90 @@ void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm,
 }
 
 
+void uiLogChart::removeLogCurve( const MultiID& wellid, const char* lognm )
+{
+    for ( int idx=0; idx<logcurves_.size(); idx++ )
+    {
+	if ( wellid==logcurves_[idx]->wellID() && logcurves_[idx]->logName()==lognm )
+	{
+	    LogCurve* tbremoved =  logcurves_.removeSingle( idx );
+	    tbremoved->removeFrom( *this );
+	    delete tbremoved;
+	    break;
+	}
+    }
+
+    logChange.trigger();
+}
+
+
 void uiLogChart::removeAllCurves()
 {
     removeAllSeries();
     removeAllAxes( OD::Horizontal );
     deepErase( logcurves_ );
     logChange.trigger();
+}
+
+
+bool uiLogChart::hasMarker( const MultiID& wellid, const char* markernm )
+{
+    bool found = false;
+    for ( auto* marker : markers_ )
+    {
+	if ( marker->wellID()==wellid && marker->markerName()==markernm )
+	{
+	    found = true;
+	    break;
+	}
+    }
+    return found;
+}
+
+
+void uiLogChart::addMarker( const MultiID& wellid, const char* markernm )
+{
+    MarkerLine* marker = new MarkerLine( wellid, markernm );
+    marker->addTo( *this );
+    markers_ += marker;
+    markerChange.trigger();
+}
+
+
+void uiLogChart::addMarker( const MultiID& wellid, const char* markernm,
+			      const OD::LineStyle& lstyle )
+{
+    addMarker( wellid, markernm );
+    markers_.last()->setLineStyle( lstyle );
+}
+
+
+void uiLogChart::removeMarker( const MultiID& wellid, const char* markernm )
+{
+    for ( int idx=0; idx<markers_.size(); idx++ )
+    {
+	if ( wellid==markers_[idx]->wellID() &&
+					markers_[idx]->markerName()==markernm )
+	{
+	    MarkerLine* tbremoved =  markers_.removeSingle( idx );
+	    tbremoved->removeFrom( *this );
+	    delete tbremoved;
+	    break;
+	}
+    }
+
+    markerChange.trigger();
+}
+
+
+void uiLogChart::removeAllMarkers()
+{
+    for ( int idx=markers_.size()-1; idx>=0; idx++ )
+    {
+	MarkerLine* tbremoved = markers_.removeSingle( idx );
+	tbremoved->removeFrom( *this );
+	delete tbremoved;
+    }
 }
 
 
@@ -115,6 +197,7 @@ Interval<float> uiLogChart::getActualZRange() const
 void uiLogChart::setZRange( float minz, float maxz )
 {
     zaxis_->setRange( minz, maxz );
+    axisRangeChanged.trigger();
 }
 
 
@@ -128,7 +211,8 @@ void uiLogChart::makeZaxis()
 {
     zaxis_ = new uiValueAxis;
     zaxis_->setTickType( uiValueAxis::TicksDynamic );
-    zaxis_->setTickInterval( ztype_==TWT ? 0.1 : 100 );
+    zaxis_->setTickInterval( ztype_==TWT ? 0.1 :
+					    SI().depthsInFeet() ? 500 : 200 );
     zaxis_->setMinorTickCount( 4 );
     zaxis_->setLabelFormat( "%d" );
     zaxis_->setRange( 0, 1000 );
@@ -147,7 +231,7 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float min,
 	vaxis->setTickType( uiValueAxis::TicksFixed );
 	vaxis->setTickCount( 2 );
 	vaxis->setMinorTickCount( 9 );
-	vaxis->setLabelFormat( "%d" );
+	vaxis->setLabelFormat( "%g" );
 	vaxis->setRange( min, max );
 	vaxis->setReverse( reverse );
 	axis = vaxis;
@@ -172,12 +256,45 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float min,
 BufferStringSet uiLogChart::wellNames() const
 {
     BufferStringSet res;
-    for ( auto* logcurve : logcurves_ )
+    for ( const auto* logcurve : logcurves_ )
 	res.addIfNew( logcurve->wellName() );
 
     return res;
 }
 
+
+TypeSet<MultiID> uiLogChart::wellIDs() const
+{
+    TypeSet<MultiID> res;
+    for ( const auto* logcurve : logcurves_ )
+	res.addIfNew( logcurve->wellID() );
+
+    return res;
+}
+
+
+BufferStringSet uiLogChart::getDispLogsForID( const MultiID& wellid ) const
+{
+    BufferStringSet res;
+    for ( const auto* logcurve : logcurves_ )
+    {
+	if ( wellid==logcurve->wellID() )
+	    res.addIfNew( logcurve->logName() );
+    }
+    return res;
+}
+
+
+BufferStringSet uiLogChart::getDispMarkersForID( const MultiID& wellid ) const
+{
+    BufferStringSet res;
+    for ( const auto* marker : markers_ )
+    {
+	if ( wellid==marker->wellID() )
+	    res.addIfNew( marker->markerName() );
+    }
+    return res;
+}
 
 void uiLogChart::fillPar( IOPar& iop ) const
 {
@@ -224,6 +341,19 @@ void uiLogChart::fillPar( IOPar& iop ) const
 	logcurves_[idx]->fillPar( tmp );
 	iop.mergeComp( tmp, IOPar::compKey(sKey::Log(), idx) );
     }
+
+
+    int nmrkrs = markers_.size();
+    iop.set( sKey::NrValues(), nmrkrs );
+    if ( nmrkrs<1 )
+	return;
+    for ( int idx=0; idx<nmrkrs; idx++ )
+    {
+	IOPar tmp;
+	markers_[idx]->fillPar( tmp );
+	iop.mergeComp( tmp, IOPar::compKey(sKey::Marker(), idx) );
+    }
+
 }
 
 
@@ -281,4 +411,21 @@ void uiLogChart::usePar( const IOPar& iop )
 	logcurves_ += logcurve;
 	logChange.trigger();
     }
+
+
+    int nmrkrs;
+    iop.get( sKey::NrValues(), nmrkrs );
+    if ( nmrkrs<1 )
+	return;
+
+    removeAllMarkers();
+    for ( int idx=0; idx<nmrkrs; idx++ )
+    {
+	IOPar* tmp = iop.subselect( IOPar::compKey(sKey::Marker(), idx) );
+	MarkerLine* marker = new MarkerLine;
+	marker->addTo( *this, *tmp );
+	markers_ += marker;
+	markerChange.trigger();
+    }
+
 }

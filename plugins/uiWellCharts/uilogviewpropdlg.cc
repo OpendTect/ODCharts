@@ -166,7 +166,11 @@ void uiLogsGrp::update()
     logselfld_->setEmpty();
     auto logcurves = logchart_.logcurves();
     for ( auto* logcurve : logcurves )
-	logselfld_->addItem( logcurve->logName() );
+    {
+	BufferString str( logcurve->logName() );
+	str.add(" (").add(logcurve->wellName()).add(")");
+	logselfld_->addItem( str );
+    }
 
     logselfld_->setCurrentItem( 0 );
     logselCB( nullptr );

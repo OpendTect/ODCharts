@@ -48,7 +48,7 @@ public:
     void		removeSeries(uiChartSeries*);
     void		setAcceptHoverEvents(bool);
     void		setBackgroundColor(const OD::Color&);
-    void		setMargins(int, int, int, int);
+    void		setMargins(int l,int t,int r,int b);
     void		setPlotArea(const Geom::RectF&);
     void		setTitle(const char*);
 
@@ -57,9 +57,12 @@ public:
     QtCharts::QChart*	getQChart()	{ return (QtCharts::QChart*)odchart_; }
 
     Notifier<uiChart>	plotAreaChanged;
+    Notifier<uiChart>	axisRangeChanged;
 
 protected:
     ODChart*		odchart_;
+
+    void		axisRangeChgCB(CallBacker*);
 
 private:
     i_chartMsgHandler*	msghandler_;

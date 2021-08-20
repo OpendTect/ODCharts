@@ -17,6 +17,7 @@ class uiChartAxis;
 class uiValueAxis;
 class BufferString;
 class LogCurve;
+class MarkerLine;
 class MultiID;
 namespace OD { class LineStyle; }
 namespace Well { class Log; }
@@ -44,34 +45,48 @@ public:
 			uiLogChart(ZType ztype=MD,Scale scale=Linear);
 			~uiLogChart();
 
-    bool		hasLogCurve(const MultiID&, const char*);
+    bool		hasLogCurve(const MultiID&,const char*);
     void		addLogCurve(const MultiID&,const char*);
     void		addLogCurve(const MultiID&,const char*,
 				    const OD::LineStyle&);
     void		addLogCurve(const MultiID&,const char*,
-				    const OD::LineStyle&, float, float, bool);
+				    const OD::LineStyle&,float,float,bool);
+    void		removeLogCurve(const MultiID&,const char*);
     void		removeAllCurves();
+
+    bool		hasMarker(const MultiID&,const char*);
+    void		addMarker(const MultiID&,const char*);
+    void		addMarker(const MultiID&,const char*,
+				  const OD::LineStyle&);
+    void		removeMarker(const MultiID&,const char*);
+    void		removeAllMarkers();
+
     uiValueAxis*	getZAxis() const;
     Interval<float>	getActualZRange() const;
     void		setZRange(float minz,float maxz);
     void		setZRange(const Interval<float>&);
     uiChartAxis*	makeLogAxis(const BufferString&,float,float,bool);
     BufferStringSet	wellNames() const;
+    TypeSet<MultiID>	wellIDs() const;
+    BufferStringSet	getDispLogsForID(const MultiID&) const;
+    BufferStringSet	getDispMarkersForID(const MultiID&) const;
 
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
 
     ObjectSet<LogCurve>&	logcurves()	{ return logcurves_; }
+    ObjectSet<MarkerLine>&	markers()	{ return markers_; }
 
     Notifier<uiLogChart>	logChange;
-
+    Notifier<uiLogChart>	markerChange;
 
 protected:
-    ZType		ztype_;
-    Scale		scale_;
-    uiValueAxis*	zaxis_;
-    ObjectSet<LogCurve>	logcurves_;
+    ZType			ztype_;
+    Scale			scale_;
+    uiValueAxis*		zaxis_;
+    ObjectSet<LogCurve>		logcurves_;
+    ObjectSet<MarkerLine>	markers_;
 
-    void		makeZaxis();
+    void			makeZaxis();
 
 };
