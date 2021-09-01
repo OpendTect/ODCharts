@@ -14,6 +14,7 @@ set( QT_MOC_HEADERS
 )
 SET( OD_MODULE_SOURCES
 	uicallout.cc
+	uichartfillx.cc
 	uichartlabel.cc
 	uichartspi.cc
 	uichart.cc
