@@ -41,13 +41,16 @@ int uiLogViewToolGrp::addButton( const char* icon, const uiString& tooltip,
 {
     uiToolButtonSetup tbs( icon, tooltip, cb );
     tbs.istoggle( toggle );
-    uiToolButton* tool = new uiToolButton( this, tbs );
+    auto* tool = new uiToolButton( this, tbs );
     if ( toggle )
 	tool->setOn( false );
+
     if ( id != -1 )
 	tool->setID( id );
+
     if ( !addedobjects_.isEmpty() )
 	tool->attach( rightOf, addedobjects_.last() );
+
     addedobjects_ += tool;
     return tool->id();
 }
@@ -55,26 +58,25 @@ int uiLogViewToolGrp::addButton( const char* icon, const uiString& tooltip,
 
 void uiLogViewToolGrp::addObject( uiObject* obj )
 {
-    if ( obj )
-    {
-	mDynamicCastGet(uiToolButton*,button,obj)
-	if ( !button )
-	    obj->setMaximumHeight( uiObject::iconSize() );
-	obj->reParent( this );
-	if ( !addedobjects_.isEmpty() )
-	    obj->attach( rightOf, addedobjects_.last() );
-	addedobjects_ += obj;
-    }
+    if ( !obj )
+	return;
+
+    mDynamicCastGet(uiToolButton*,button,obj)
+    if ( !button )
+	obj->setMaximumHeight( uiObject::iconSize() );
+
+    obj->reParent( this );
+    if ( !addedobjects_.isEmpty() )
+	obj->attach( rightOf, addedobjects_.last() );
+
+    addedobjects_ += obj;
 }
 
 
 bool uiLogViewToolGrp::isLocked() const
 {
-    mDynamicCastGet(const uiToolButton*,tool,addedobjects_.first());
-    if ( tool )
-	return tool->isOn();
-
-    return false;
+    mDynamicCastGet(const uiToolButton*,tool,addedobjects_.first())
+    return tool ? tool->isOn() : false;
 }
 
 

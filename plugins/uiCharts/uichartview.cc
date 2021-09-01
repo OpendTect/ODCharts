@@ -83,11 +83,6 @@ void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
 	ev->accept();
 	QApplication::restoreOverrideCursor();
     }
-    else if ( ev->button() == Qt::RightButton )
-    {
-	chart()->zoomReset();
-	ev->accept();
-    }
     else
 	QChartView::mouseReleaseEvent( ev );
 }
@@ -108,17 +103,12 @@ void ODChartView::mousePressEvent( QMouseEvent* ev )
 	lastmousepos_ = ev->pos();
 	ev->accept();
     }
-    else if ( ev->button() == Qt::RightButton )
-    {
-	chart()->zoomReset();
-	ev->accept();
-    }
     else
 	QChartView::mousePressEvent( ev );
 }
 
 
-void ODChartView::mouseDoubleClickEvent( QMouseEvent* ev )
+void ODChartView::mouseDoubleClickEvent( QMouseEvent* )
 {
     handle_.doubleClick.trigger();
 }
@@ -181,10 +171,4 @@ void uiChartView::setZoomStyle( ZoomStyle style )
 	rb = QChartView::RectangleRubberBand;
 
     odchartview_->setRubberBand( rb );
-}
-
-
-void uiChartView::zoomResetCB( CallBacker* )
-{
-    odchartview_->chart()->zoomReset();
 }

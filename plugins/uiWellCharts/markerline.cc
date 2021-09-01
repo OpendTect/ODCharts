@@ -20,6 +20,7 @@ ________________________________________________________________________
 #include "uichartaxes.h"
 #include "uichartlabel.h"
 #include "uilogchart.h"
+#include "unitofmeasure.h"
 
 MarkerLine::MarkerLine()
     : wellid_(MultiID::udf())

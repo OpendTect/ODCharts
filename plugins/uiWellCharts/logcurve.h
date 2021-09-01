@@ -13,11 +13,13 @@ ________________________________________________________________________
 #include "uiwellchartsmod.h"
 #include "uichartseries.h"
 #include "multiid.h"
+#include "color.h"
 #include "draw.h"
 
 namespace Well { class Log; }
 
 class uiLogChart;
+class uiChartFillx;
 
 mExpClass(uiWellCharts) LogCurve
 {
@@ -29,14 +31,19 @@ public:
     void		addTo(uiLogChart&);
     void		addTo(uiLogChart&,const IOPar&);
     void		addTo(uiLogChart&,const OD::LineStyle&);
-    void		addTo(uiLogChart&,const OD::LineStyle&,float,
-			      float,bool);
+    void		addTo(uiLogChart&,const OD::LineStyle&,float min,
+			      float max,bool reverse);
+    void		addCurveFillTo(uiLogChart&);
     void		removeFrom(uiLogChart&);
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
     OD::LineStyle	lineStyle() const;
-    void		setDisplayRange(float, float);
-    void		setDisplayRange(const Interval<float>&);
+    void		setDisplayRange(float left,float right);
+    void		setDisplayRange(const Interval<float>& range);
+    uiChartFillx*	leftFill()		{ return leftfill_; }
+    uiChartFillx*	rightFill()		{ return rightfill_; }
+    void		setFillToLog(const char* lognm,bool left=true);
+
 
     MultiID		wellID() const		{ return wellid_; }
     BufferString	wellName() const	{ return wellname_; }
@@ -51,9 +58,13 @@ public:
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
 
+    ObjectSet<uiLineSeries>&	getSeries()	{ return series_; }
+
 protected:
     void			addLog(const Well::Log&);
     bool			initLog();
+    BufferString		getFillPar(bool left) const;
+    void			setFillPar(const char* fillstr,bool left=true);
 
     MultiID			wellid_;
     BufferString 		wellname_;
@@ -64,6 +75,12 @@ protected:
     Interval<float>		valrange_;
     Interval<float>		disprange_;
     OD::LineStyle		linestyle_;
+    float			pointsize_	= 2.f;
     ObjectSet<uiLineSeries>	series_;
-    uiChartAxis*		axis_ = nullptr;
+    uiScatterSeries*		scatseries_ 	= nullptr;
+    uiChartAxis*		axis_ 		= nullptr;
+    uiChartFillx*		leftfill_	= nullptr;
+    uiChartFillx*		rightfill_ 	= nullptr;
+    BufferString		lefttolog_;
+    BufferString		righttolog_;
 };

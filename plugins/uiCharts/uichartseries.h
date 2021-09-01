@@ -13,6 +13,9 @@ ________________________________________________________________________
 
 #include "bufstring.h"
 #include "callback.h"
+#include "chartutils.h"
+#include "color.h"
+#include "enums.h"
 #include "geometry.h"
 #include "uistring.h"
 
@@ -54,13 +57,17 @@ public:
     virtual		~uiXYChartSeries();
 
     void		clear();
-    void		add(float x,float y);
+    void		append(float x,float y);
+    void		append(int sz,float* xarr,float* yarr);
+    float		x(int idx) const;
+    float		y(int idx) const;
     int			size() const;
     bool		isEmpty() const;
+    bool		validIdx(int) const;
     void		setCalloutTxt(const char*,int nrdecx=2,int nrdecy=2);
 
-    void		setPointLabelsVisible(bool);
-    void		setPointLabelsFormat(const char*);
+    void		setPointLabelsVisible(bool yn);
+    void		setPointLabelsFormat(const char* fmt);
 
     CNotifier<uiXYChartSeries,const Geom::PointF&>	clicked;
     CNotifier<uiXYChartSeries,const Geom::PointF&>	doubleClicked;
@@ -90,11 +97,11 @@ public:
 			uiLineSeries();
 			~uiLineSeries();
 
-    void		append(float,float);
-    void		append(int,float*,float*);
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
 
     OD::LineStyle	lineStyle() const;
+
+    QtCharts::QLineSeries*	getQLineSeries();
 
 protected:
     QtCharts::QLineSeries*	qlineseries_;
@@ -104,8 +111,22 @@ protected:
 mExpClass(uiCharts) uiScatterSeries : public uiXYChartSeries
 {
 public:
+    enum MarkerShape	{ Circle, Square };
+    mDeclareEnumUtils(MarkerShape)
+
 			uiScatterSeries();
 			~uiScatterSeries();
+
+    MarkerShape		shape() const;
+    OD::Color		color() const;
+    OD::Color		borderColor() const;
+    float		markerSize() const;
+
+    void		setShape(MarkerShape);
+    void		setColor(OD::Color);
+    void		setBorderColor(OD::Color);
+    void		setMarkerSize(float);
+
 
 protected:
     QtCharts::QScatterSeries*	qscatterseries_;

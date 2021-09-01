@@ -50,7 +50,7 @@ uiChartLabel::uiChartLabel( uiChart* chart, const uiString& uistr,
     odlabel_->qseries_ = series ? series->getQSeries() : nullptr;
 
     mAttachCB( chart->plotAreaChanged, uiChartLabel::updateCB );
-    mAttachCB( chart->axisRangeChanged, uiChartLabel::updateCB );
+    mAttachCB( chart->needsRedraw, uiChartLabel::updateCB );
 }
 
 
@@ -78,7 +78,7 @@ void uiChartLabel::setAnchor( Geom::PointF pos, Alignment all )
 {
     const QPointF qp( qreal(pos.x), qreal(pos.y) );
     odlabel_->qanchor_ = qp;
-    odlabel_->align_ = (Qt::AlignmentFlag)all.uiValue();
+    odlabel_->align_ = sCast(Qt::AlignmentFlag,all.uiValue());
 }
 
 
@@ -142,7 +142,7 @@ void ODChartLabel::updateTextGeometry()
     QFontMetrics metrics( qfont_ );
     qtextrect_ = metrics.boundingRect( QRect(0,0,150,150), Qt::AlignLeft,
 				       qtext_ );
-    qtextrect_.translate( 5, 5 );
+    qtextrect_.translate( 1, 1 );
     prepareGeometryChange();
-    qrect_ = qtextrect_.adjusted( -5, -5, 5, 5 );
+    qrect_ = qtextrect_.adjusted( -1, -1, 1, 1 );
 }

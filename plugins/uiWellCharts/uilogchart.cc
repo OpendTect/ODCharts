@@ -17,6 +17,7 @@ ________________________________________________________________________
 #include "chartutils.h"
 #include "draw.h"
 #include "logcurve.h"
+#include "math2.h"
 #include "markerline.h"
 #include "multiid.h"
 #include "separstr.h"
@@ -56,13 +57,26 @@ bool uiLogChart::hasLogCurve( const MultiID& wellid, const char* lognm )
 	    break;
 	}
     }
+
     return found;
+}
+
+
+LogCurve* uiLogChart::getLogCurve( const MultiID& wellid, const char* lognm )
+{
+    for ( auto* logcurve : logcurves_ )
+    {
+	if ( logcurve->wellID()==wellid && logcurve->logName()==lognm )
+	    return logcurve;
+    }
+
+    return nullptr;
 }
 
 
 void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm )
 {
-    LogCurve* logcurve = new LogCurve( wellid, lognm );
+    auto* logcurve = new LogCurve( wellid, lognm );
     logcurve->addTo( *this );
     logcurves_ += logcurve;
     logChange.trigger();
@@ -72,7 +86,7 @@ void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm )
 void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm,
 			      const OD::LineStyle& lstyle )
 {
-    LogCurve* logcurve = new LogCurve( wellid, lognm );
+    auto* logcurve = new LogCurve( wellid, lognm );
     logcurve->addTo( *this, lstyle );
     logcurves_ += logcurve;
     logChange.trigger();
@@ -83,7 +97,7 @@ void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm,
 			      const OD::LineStyle& lstyle,
 			      float min, float max, bool reverse )
 {
-    LogCurve* logcurve = new LogCurve( wellid, lognm );
+    auto* logcurve = new LogCurve( wellid, lognm );
     logcurve->addTo( *this, lstyle, min, max, reverse );
     logcurves_ += logcurve;
     logChange.trigger();
@@ -127,13 +141,14 @@ bool uiLogChart::hasMarker( const MultiID& wellid, const char* markernm )
 	    break;
 	}
     }
+
     return found;
 }
 
 
 void uiLogChart::addMarker( const MultiID& wellid, const char* markernm )
 {
-    MarkerLine* marker = new MarkerLine( wellid, markernm );
+    auto* marker = new MarkerLine( wellid, markernm );
     marker->addTo( *this );
     markers_ += marker;
     markerChange.trigger();
@@ -188,7 +203,7 @@ Interval<float> uiLogChart::getActualZRange() const
     Interval<float> range;
     range.setUdf();
     for ( const auto* logcurve : logcurves_ )
-	range.include(logcurve->zRange() );
+	range.include( logcurve->zRange() );
 
     return range;
 }
@@ -197,7 +212,6 @@ Interval<float> uiLogChart::getActualZRange() const
 void uiLogChart::setZRange( float minz, float maxz )
 {
     zaxis_->setRange( minz, maxz );
-    axisRangeChanged.trigger();
 }
 
 
@@ -221,27 +235,41 @@ void uiLogChart::makeZaxis()
 }
 
 
-uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float min,
-				      float max, bool reverse )
+uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float axmin,
+				      float axmax, bool reverse )
 {
     uiChartAxis* axis = nullptr;
     if ( scale_==Linear )
     {
-	uiValueAxis* vaxis = new uiValueAxis;
+	auto* vaxis = new uiValueAxis;
 	vaxis->setTickType( uiValueAxis::TicksFixed );
 	vaxis->setTickCount( 2 );
 	vaxis->setMinorTickCount( 9 );
 	vaxis->setLabelFormat( "%g" );
-	vaxis->setRange( min, max );
+	vaxis->setRange( axmin, axmax );
 	vaxis->setReverse( reverse );
 	axis = vaxis;
     }
     else if ( scale_==Log10 )
     {
-	uiLogValueAxis* vaxis = new uiLogValueAxis;
+	auto* vaxis = new uiLogValueAxis;
 	vaxis->setBase( 10 );
-	vaxis->setMinorTickCount( 9 ); //TODO check
-	vaxis->setRange( min, max ); //TODO check min and max
+	vaxis->setMinorTickCount( 8 ); //TODO check
+	vaxis->setLabelFormat( "%g" );
+	if ( axmax<=0.f )
+	    axmax = -axmax;
+	if ( logcurves_.size() )
+	{
+	    Interval<float> maxis = logcurves_.first()->dispRange();
+	    reverse = maxis.isRev();
+	    const float mmax = maxis.isRev() ? maxis.start : maxis.stop;
+	    const float mmin = maxis.isRev() ? maxis.stop : maxis.start;
+	    const float mexp = Math::Log10(mmax) -
+			       Math::Floor(Math::Log10(mmax/axmax));
+	    axmax = Math::PowerOf( 10.f, mexp );
+	    axmin = mmin/mmax*axmax;
+	}
+	vaxis->setRange( axmin, axmax );
 	vaxis->setReverse( reverse );
 	axis = vaxis;
     }
@@ -295,6 +323,26 @@ BufferStringSet uiLogChart::getDispMarkersForID( const MultiID& wellid ) const
     }
     return res;
 }
+
+
+void uiLogChart::setScale( Scale scaletyp )
+{
+    if ( scale_==scaletyp )
+	return;
+
+    scale_ =scaletyp;
+    for ( auto* logcurve : logcurves_ )
+    {
+	logcurve->removeFrom( *this );
+	const Interval<float> dr = logcurve->dispRange();
+	float min = dr.isRev() ? dr.stop : dr.start;
+	float max = dr.isRev() ? dr.start : dr.stop;
+	bool reverse = dr.isRev();
+	logcurve->addTo( *this, logcurve->lineStyle(), min, max, reverse );
+    }
+    logChange.trigger();
+}
+
 
 void uiLogChart::fillPar( IOPar& iop ) const
 {
@@ -399,7 +447,7 @@ void uiLogChart::usePar( const IOPar& iop )
     for ( int idx=0; idx<nlog; idx++ )
     {
 	IOPar* tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
-	LogCurve* logcurve = new LogCurve;
+	auto* logcurve = new LogCurve;
 	logcurve->addTo( *this, *tmp );
 	uiChartAxis* laxis = logcurve->getAxis();
 	laxis->setTickCount( lfms_major.getIValue(0) );
@@ -412,6 +460,8 @@ void uiLogChart::usePar( const IOPar& iop )
 	logChange.trigger();
     }
 
+    for ( auto* logcurve : logcurves_ )
+	logcurve->addCurveFillTo( *this );
 
     int nmrkrs;
     iop.get( sKey::NrValues(), nmrkrs );
@@ -422,7 +472,7 @@ void uiLogChart::usePar( const IOPar& iop )
     for ( int idx=0; idx<nmrkrs; idx++ )
     {
 	IOPar* tmp = iop.subselect( IOPar::compKey(sKey::Marker(), idx) );
-	MarkerLine* marker = new MarkerLine;
+	auto* marker = new MarkerLine;
 	marker->addTo( *this, *tmp );
 	markers_ += marker;
 	markerChange.trigger();

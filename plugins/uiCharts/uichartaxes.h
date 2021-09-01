@@ -123,5 +123,6 @@ public:
 
 protected:
     QtCharts::QLogValueAxis*	qlogvalueaxis_;
+
 };
 

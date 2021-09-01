@@ -11,25 +11,60 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "uigroup.h"
+#include "uichartfillx.h"
 
 class LogCurve;
 class uiGenInput;
 class uiSelLineStyle;
+class uiColorInput;
+class uiLogChart;
+
+mClass(uiWellCharts) uiLogFillProps : public uiGroup
+{ mODTextTranslationClass(uiLogFillProps)
+public:
+			uiLogFillProps(uiParent*,const uiString&,uiLogChart&);
+			~uiLogFillProps();
+
+    void		setLogFill(int,uiChartFillx::FillDir);
+
+protected:
+    uiLogChart&		logchart_;
+    LogCurve*		logcurve_ = nullptr;
+    uiChartFillx*	fill_ = nullptr;
+
+    uiGenInput*		filltypefld_;
+    uiGenInput*		filllimitfld_;
+    uiColorInput*	fillcolorfld_;
+    uiGenInput*		fillbasefld_;
+    uiGenInput*		fillseriesfld_;
+
+    void		fillTypeChgCB(CallBacker*);
+    void		fillLimitChgCB(CallBacker*);
+    void		fillColorChgCB(CallBacker*);
+    void		fillBaseChgCB(CallBacker*);
+    void		fillSeriesChgCB(CallBacker*);
+};
+
 
 mClass(uiWellCharts) uiLogCurveProps : public uiGroup
 { mODTextTranslationClass(uiLogCurveProps)
 public:
-			uiLogCurveProps(uiParent*);
-			uiLogCurveProps(uiParent*,LogCurve*);
+    enum FillLimit	{ Track, Baseline, Curve };
+			mDeclareEnumUtils(FillLimit)
+
+			uiLogCurveProps(uiParent*,uiLogChart&);
 			~uiLogCurveProps();
 
-    void		setLogCurve(LogCurve*);
+    void		setLogCurve(int);
 
 protected:
+    uiLogChart&		logchart_;
     LogCurve*		logcurve_ = nullptr;
 
     uiGenInput*		rangefld_;
     uiSelLineStyle*	linestylefld_;
+    uiLogFillProps*	leftfillfld_;
+    uiLogFillProps*	rightfillfld_;
 
     void		lineStyleChgCB(CallBacker*);
     void		rangeChgCB(CallBacker*);

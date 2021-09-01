@@ -23,9 +23,8 @@ ________________________________________________________________________
 
 uiLogViewTable::uiLogViewTable( uiParent* p, bool showtools )
     : uiGroup(p)
-    , showtools_(showtools)
-    , masterzrange_(Interval<float>::udf())
     , chartSelectionChg(this)
+    , showtools_(showtools)
 {
     const int nrrows = showtools_ ? 2 : 1;
     logviews_ = new uiTable( this, uiTable::Setup(nrrows,0)
@@ -305,6 +304,7 @@ void uiLogViewTable::addTools( int col )
     logviews_->setCellGroup( toolscell, tools );
 }
 
+
 void uiLogViewTable::clearSelection()
 {
     for ( int idx=0; idx<logviews_->nrCols(); idx++ )
@@ -317,13 +317,14 @@ void uiLogViewTable::clearSelection()
     chartSelectionChg.trigger();
 }
 
+
 void uiLogViewTable::selectView( int col )
 {
     clearSelection();
     uiLogView* logview = getLogView( col );
     if ( logview )
     {
-	logview->setBackgroundColor( OD::Color::Red() );
+	logview->setBackgroundColor( OD::Color(205,235,205) );
 	selected_ = col;
 	logviews_->ensureCellVisible( RowCol(0,col) );
 	chartSelectionChg.trigger();
@@ -340,6 +341,7 @@ bool uiLogViewTable::isViewLocked( int vwidx )
 			logviews_->getCellGroup(curcell));
 	return tools->isLocked();
     }
+
     return false;
 }
 
@@ -356,6 +358,7 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
 	    break;
 	}
     }
+
     if ( !isViewLocked(vwidx) )
 	return;
 
@@ -366,6 +369,7 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
 	    uiLogChart* logchart = getLogChart( idx );
 	    NotifyStopper ns(logchart->getZAxis()->rangeChanged);
 	    logchart->setZRange( range );
+	    logchart->needsRedraw.trigger();
 	}
     }
 }

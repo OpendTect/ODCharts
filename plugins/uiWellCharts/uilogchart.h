@@ -38,38 +38,43 @@ mClass(uiWellCharts) uiLogChart : public uiChart
 {
 public:
     enum Scale		{ Linear, Log10 };
-    mDeclareEnumUtils(Scale);
+    mDeclareEnumUtils(Scale)
     enum ZType		{ MD, TVD, TVDSS, TWT };
-    mDeclareEnumUtils(ZType);
+    mDeclareEnumUtils(ZType)
 
 			uiLogChart(ZType ztype=MD,Scale scale=Linear);
 			~uiLogChart();
 
-    bool		hasLogCurve(const MultiID&,const char*);
-    void		addLogCurve(const MultiID&,const char*);
-    void		addLogCurve(const MultiID&,const char*,
+    bool		hasLogCurve(const MultiID&,const char* lognm);
+    LogCurve*		getLogCurve(const MultiID&,const char* lognm);
+    void		addLogCurve(const MultiID&,const char* lognm);
+    void		addLogCurve(const MultiID&,const char* lognm,
 				    const OD::LineStyle&);
-    void		addLogCurve(const MultiID&,const char*,
-				    const OD::LineStyle&,float,float,bool);
-    void		removeLogCurve(const MultiID&,const char*);
+    void		addLogCurve(const MultiID&,const char* lognm,
+				    const OD::LineStyle&,float min,float max,
+				    bool reverse);
+    void		removeLogCurve(const MultiID&,const char* lognm);
     void		removeAllCurves();
 
-    bool		hasMarker(const MultiID&,const char*);
-    void		addMarker(const MultiID&,const char*);
-    void		addMarker(const MultiID&,const char*,
+    bool		hasMarker(const MultiID&,const char* markernm);
+    void		addMarker(const MultiID&,const char* markernm);
+    void		addMarker(const MultiID&,const char* markernm,
 				  const OD::LineStyle&);
-    void		removeMarker(const MultiID&,const char*);
+    void		removeMarker(const MultiID&,const char* markernm);
     void		removeAllMarkers();
 
     uiValueAxis*	getZAxis() const;
     Interval<float>	getActualZRange() const;
     void		setZRange(float minz,float maxz);
     void		setZRange(const Interval<float>&);
-    uiChartAxis*	makeLogAxis(const BufferString&,float,float,bool);
+    uiChartAxis*	makeLogAxis(const BufferString&,float min,float max,
+				    bool reverse);
     BufferStringSet	wellNames() const;
     TypeSet<MultiID>	wellIDs() const;
     BufferStringSet	getDispLogsForID(const MultiID&) const;
     BufferStringSet	getDispMarkersForID(const MultiID&) const;
+    void		setScale(Scale);
+    Scale		getScale() const	{ return scale_; }
 
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
@@ -88,5 +93,4 @@ protected:
     ObjectSet<MarkerLine>	markers_;
 
     void			makeZaxis();
-
 };

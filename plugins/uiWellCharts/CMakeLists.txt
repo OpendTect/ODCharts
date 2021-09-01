@@ -18,6 +18,7 @@ SET( OD_MODULE_SOURCES
 	uilogviewtoolgrp.cc
 	uilogviewwin.cc
 	uiwellchartspi.cc
+	wellchartcommon.cc
 )
 
 set( OD_MODULE_PROGS od_LogViewer.cc )

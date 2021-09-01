@@ -16,17 +16,23 @@ ________________________________________________________________________
 
 void toQColor( QColor& qcol, const OD::Color& col, bool usetransp )
 {
-    qcol = QColor( QRgb(col.rgb()) );
-    if ( usetransp )
-	qcol.setAlpha( 255-col.t() );
+    if ( col==OD::Color::NoColor() )
+	qcol = QColor();
+    else
+    {
+	qcol = QColor( QRgb(col.rgb()) );
+	if ( usetransp )
+	    qcol.setAlpha( 255-col.t() );
+    }
 }
 
 
 OD::Color fromQColor( const QColor& qcol )
 {
-    const OD::Color color( qcol.red(), qcol.green(), qcol.blue(),
-			   255-qcol.alpha());
-    return color;
+    if ( !qcol.isValid() )
+	return OD::Color::NoColor();
+
+    return OD::Color( qcol.red(), qcol.green(), qcol.blue(), 255-qcol.alpha() );
 }
 
 

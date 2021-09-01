@@ -19,10 +19,9 @@ using namespace QtCharts;
 
 
 
-
 uiChartAxis::uiChartAxis( QAbstractAxis* axis )
-    : qabstractaxis_(axis)
-    , rangeChanged(this)
+    : rangeChanged(this)
+    , qabstractaxis_(axis)
 {
 }
 
@@ -135,6 +134,9 @@ void uiChartAxis::setRange( const Interval<float>& range )
 void uiChartAxis::setRange( float min, float max )
 {
     qabstractaxis_->setRange( min, max );
+    Interval<float> rg( range() );
+    rg.sort();
+    rangeChanged.trigger( rg );
 }
 
 
@@ -340,8 +342,9 @@ Interval<float> uiValueAxis::getAxisLimits()
 
 // uiLogValueAxis
 uiLogValueAxis::uiLogValueAxis()
-    : uiChartAxis(*this)
+    : uiChartAxis(new QLogValueAxis)
 {
+    qlogvalueaxis_ = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
 }
 
 

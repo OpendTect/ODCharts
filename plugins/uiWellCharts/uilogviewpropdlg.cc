@@ -19,6 +19,7 @@ ________________________________________________________________________
 #include "uilistbox.h"
 #include "uilogchart.h"
 #include "uilogcurveprops.h"
+#include "uimain.h"
 #include "uisellinest.h"
 #include "uichartaxes.h"
 
@@ -37,6 +38,8 @@ uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart& logchart )
     logsgrp_ = new uiLogsGrp( this, logchart_ );
     logsgrp_->attach( alignedBelow, chartgrp_ );
     mAttachCB( logchart_.logChange, uiLogViewPropDlg::updateCB );
+    mAttachCB( uiMain::theMain().topLevel()->windowClosed,
+	       uiLogViewPropDlg::closeCB );
 }
 
 
@@ -52,6 +55,12 @@ void uiLogViewPropDlg::updateCB( CallBacker* )
 }
 
 
+void uiLogViewPropDlg::closeCB( CallBacker* )
+{
+    close();
+}
+
+
 // uiLogChartGrp
 uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart& lc )
     : uiGroup(p,"LogChart")
@@ -60,6 +69,11 @@ uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart& lc )
     bgcolorfld_ = new uiColorInput( this,
 				    uiColorInput::Setup(lc.backgroundColor())
 				   .lbltxt(tr("Background Color")) );
+
+    scalefld_ = new uiGenInput( this, tr("Scale Type"),
+				StringListInpSpec(uiLogChart::ScaleDef()) );
+    scalefld_->attach( rightOf, bgcolorfld_ );
+    scalefld_->setValue( lc.getScale() );
 
     uiValueAxis* zaxis = lc.getZAxis();
     majorzgridfld_ = new uiGridStyleGrp( this, tr("Major Z Grid Step"), false );
@@ -90,6 +104,7 @@ uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart& lc )
     minorloggridfld_->setVisible( laxis->minorGridVisible() );
 
     mAttachCB( bgcolorfld_->colorChanged, uiLogChartGrp::bgColorChgCB );
+    mAttachCB( scalefld_->valuechanged, uiLogChartGrp::scaleChgCB );
     mAttachCB( majorzgridfld_->changed, uiLogChartGrp::zgridChgCB );
     mAttachCB( minorzgridfld_->changed, uiLogChartGrp::zgridChgCB );
     mAttachCB( majorloggridfld_->changed, uiLogChartGrp::lgridChgCB );
@@ -138,6 +153,19 @@ void uiLogChartGrp::lgridChgCB( CallBacker* )
 }
 
 
+void uiLogChartGrp::scaleChgCB( CallBacker* )
+{
+    const uiLogChart::Scale scaletyp =
+			sCast(uiLogChart::Scale,scalefld_->getIntValue());
+    logchart_.setScale( scaletyp );
+    uiChartAxis* laxis = logchart_.logcurves()[0]->getAxis();
+    minorloggridfld_->setSteps( laxis->getMinorTickCount() );
+    majorloggridfld_->setSteps( laxis->getTickCount() );
+    majorloggridfld_->setStepSensitive( scaletyp==uiLogChart::Linear );
+    minorloggridfld_->setStepSensitive( scaletyp==uiLogChart::Linear );
+}
+
+
 // uiLogsGrp
 uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart& lc )
     : uiGroup(p,"Logs")
@@ -148,7 +176,7 @@ uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart& lc )
     logselfld_->setAllowNoneChosen( false );
     logselfld_->attach( leftBorder, 5 );
 
-    logpropfld_ = new uiLogCurveProps( this );
+    logpropfld_ = new uiLogCurveProps( this, lc );
     logpropfld_->attach( rightOf, logselfld_, 5 );
     update();
     mAttachCB( logselfld_->selectionChanged, uiLogsGrp::logselCB );
@@ -182,7 +210,7 @@ void uiLogsGrp::logselCB( CallBacker* )
     const int selidx = logselfld_ ? logselfld_->currentItem() : 0;
     ObjectSet<LogCurve>& logcurves = logchart_.logcurves();
     if ( logcurves.validIdx(selidx) )
-	logpropfld_->setLogCurve( logcurves[selidx] );
+	logpropfld_->setLogCurve( selidx );
 }
 
 
@@ -202,6 +230,9 @@ uiGridStyleGrp::uiGridStyleGrp( uiParent* p, const uiString& lbl,
 
     linestylefld_ = new uiSelLineStyle( this, OD::LineStyle() );
     linestylefld_->attach( rightOf, stepsfld_ );
+
+    setHAlignObj( stepsfld_ );
+
     mAttachCB( stepsfld_->valuechanged, uiGridStyleGrp::stepChgCB );
     mAttachCB( stepsfld_->checked, uiGridStyleGrp::stepCheckedCB );
     mAttachCB( linestylefld_->changed, uiGridStyleGrp::lineStyleChgCB );
@@ -226,6 +257,11 @@ void uiGridStyleGrp::setVisible( bool yn )
     stepCheckedCB( nullptr );
 }
 
+
+void uiGridStyleGrp::setStepSensitive( bool yn )
+{
+    stepsfld_->setSensitive( yn, 0, 0 );
+}
 
 void uiGridStyleGrp::setStyle( const OD::LineStyle& ls )
 {

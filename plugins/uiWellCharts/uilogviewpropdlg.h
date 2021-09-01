@@ -31,6 +31,7 @@ public:
 
     bool		isVisible() const;
     void		setVisible(bool);
+    void		setStepSensitive(bool);
 
     void		setStyle(const OD::LineStyle&);
     OD::LineStyle	getStyle() const;
@@ -60,6 +61,7 @@ public:
 protected:
     uiLogChart&		logchart_;
     uiColorInput*	bgcolorfld_;
+    uiGenInput*		scalefld_;
     uiGridStyleGrp*	majorzgridfld_;
     uiGridStyleGrp*	minorzgridfld_;
     uiGridStyleGrp*	majorloggridfld_;
@@ -68,6 +70,7 @@ protected:
     void		bgColorChgCB(CallBacker*);
     void		zgridChgCB(CallBacker*);
     void		lgridChgCB(CallBacker*);
+    void		scaleChgCB(CallBacker*);
 };
 
 
@@ -100,4 +103,5 @@ protected:
     uiLogsGrp*		logsgrp_;
 
     void		updateCB(CallBacker*);
+    void		closeCB(CallBacker*);
 };

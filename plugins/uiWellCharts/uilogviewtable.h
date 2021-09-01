@@ -50,8 +50,8 @@ public:
 protected:
     uiTable*			logviews_;
     bool			showtools_;
-    Interval<float>		masterzrange_;
-    int				selected_ = -1;
+    Interval<float>		masterzrange_	= Interval<float>::udf();
+    int				selected_	= -1;
 
     void			addViewer(int);
     void			addTools(int);

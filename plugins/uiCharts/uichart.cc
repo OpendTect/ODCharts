@@ -40,7 +40,7 @@ int numAxes( OD::Orientation orient ) const
 
 uiChart::uiChart()
     : plotAreaChanged(this)
-    , axisRangeChanged(this)
+    , needsRedraw(this)
     , odchart_(new ODChart)
 {
     msghandler_ = new i_chartMsgHandler( this, odchart_ );
@@ -207,5 +207,5 @@ BufferString uiChart::title() const
 
 void uiChart::axisRangeChgCB( CallBacker* )
 {
-    axisRangeChanged.trigger();
+    needsRedraw.trigger();
 }

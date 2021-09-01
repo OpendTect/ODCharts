@@ -49,7 +49,7 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
     , addbuttonitem_(uiStrings::sAdd(),"plus","",
 				mCB(this,uiLogViewWin,addTrackCB),sMnuID++)
     , rmvbuttonitem_(uiStrings::sRemove(),"minus","",
-			    mCB(this,uiLogViewWin,rmvTrackCB),sMnuID++)
+				mCB(this,uiLogViewWin,rmvTrackCB),sMnuID++)
 {
     mainObject()->setMinimumHeight( sWinHeight );
     mainObject()->setMinimumWidth( sWinWidth );
@@ -130,7 +130,7 @@ void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
     if ( !chart )
 	return;
 
-    if ( chart->hasLogCurve(wellkey, lognm) )
+    if ( chart->hasLogCurve(wellkey,lognm) )
 	return;
 
     chart->addLogCurve( wellkey, lognm );
@@ -154,7 +154,7 @@ void uiLogViewWin::rmvLog( int idx, const MultiID& wellkey,
     if ( !chart )
 	return;
 
-    if ( !chart->hasLogCurve(wellkey, lognm) )
+    if ( !chart->hasLogCurve(wellkey,lognm) )
 	return;
 
     chart->removeLogCurve( wellkey, lognm );
@@ -301,6 +301,7 @@ void uiLogViewWin::openCB( CallBacker* )
 	    chart->usePar( *tmp );
 	    logviewtbl_->updateViewLabel( logviewtbl_->currentView() );
 	}
+
 	logviewtbl_->clearSelection();
 	logviewtbl_->updateMasterZrangeCB( nullptr );
 	needsave_ = false;
@@ -365,6 +366,7 @@ void uiLogViewWin::addTrackCB( CallBacker* )
 void uiLogViewWin::rmvTrackCB( CallBacker* )
 {
     logviewtbl_->removeTrackCB( nullptr );
+    selTrackChgCB( nullptr );
     needsave_ = true;
 }
 

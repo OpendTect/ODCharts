@@ -25,6 +25,7 @@ public:
     uiLogChart*		logChart();
 
     void		showSettingsCB(CallBacker*);
+    void		zoomResetCB(CallBacker*);
 
 protected:
     uiLogViewPropDlg*	propdlg_ = nullptr;
