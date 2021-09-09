@@ -17,6 +17,7 @@ ________________________________________________________________________
 
 class uiChart;
 class uiLineSeries;
+class uiVertGradientImg;
 class ODChartFillx;
 
 
@@ -43,6 +44,9 @@ public:
 
     void		setColor(OD::Color,bool update=true);
     OD::Color		color() const;
+
+    void		setGradientImg(uiVertGradientImg*,bool update=true);
+    uiVertGradientImg*	gradientImg() const;
 
     void		setBaseLine(float,bool update=true);
     void		setBaseLine(const ObjectSet<uiLineSeries>&,

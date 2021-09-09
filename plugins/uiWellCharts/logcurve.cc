@@ -12,6 +12,7 @@ ________________________________________________________________________
 #include "logcurve.h"
 #include "chartutils.h"
 
+#include "loggradient.h"
 #include "uichartfillx.h"
 #include "uichartaxes.h"
 #include "uilogchart.h"
@@ -28,16 +29,16 @@ ________________________________________________________________________
 #include "wellman.h"
 
 LogCurve::LogCurve()
-    : wellid_(MultiID::udf())
-    , logname_(BufferString::empty())
+    : LogData()
 {}
 
 
 LogCurve::LogCurve( const MultiID& wellid, const char* lognm )
-    : wellid_(wellid)
-    , logname_(lognm)
+    : LogData(wellid,lognm)
 {
-    initLog();
+    const Well::Log* log = wellLog();
+    if ( log )
+	addLog( *log );
 }
 
 
@@ -48,36 +49,6 @@ LogCurve::~LogCurve()
     deleteAndZeroPtr( leftfill_ );
     deleteAndZeroPtr( rightfill_ );
     deleteAndZeroPtr( axis_ );
-}
-
-
-bool LogCurve::initLog()
-{
-    Well::LoadReqs lreq( Well::LogInfos );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
-    if ( !wd || !wd->getLog(logname_) )
-	return false;
-
-    const Well::Log* log = wellLog();
-    if ( !log )
-	return false;
-
-    wellname_ = wd->name();
-    uomlbl_ = log->unitOfMeasure()->symbol();
-    mnemlbl_ = log->mnemLabel();
-    dahrange_ = log->dahRange();
-    valrange_ = log->valueRange();
-    disprange_.setUdf();
-    addLog( *log );
-    return true;
-}
-
-
-const Well::Log* LogCurve::wellLog() const
-{
-    Well::LoadReqs lreq( Well::LogInfos );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
-    return wd ? wd->getLog( logname_ ) : nullptr;
 }
 
 
@@ -94,19 +65,7 @@ void LogCurve::addTo( uiLogChart& logchart )
     if ( mnem )
     {
 	const Mnemonic::DispDefs& disp = mnem->disp_;
-	const UnitOfMeasure* mnem_uom = UoMR().get( disp.getUnitLbl() );
-	const UnitOfMeasure* log_uom = log->unitOfMeasure();
-
-	disprange_.start = getConvertedValue( disp.typicalrange_.start,
-					      mnem_uom, log_uom );
-	disprange_.stop = getConvertedValue( disp.typicalrange_.stop,
-					      mnem_uom, log_uom );
 	lstyle.color_ = disp.color_;
-    }
-    else
-    {
-	disprange_.start = valrange_.start;
-	disprange_.stop = valrange_.stop;
     }
 
     if ( !disprange_.isUdf() )
@@ -289,31 +248,29 @@ OD::LineStyle LogCurve::lineStyle() const
 }
 
 
-void LogCurve::setDisplayRange( float left, float right )
-{
-    setDisplayRange( Interval<float>(left,right) );
-}
-
-
-void LogCurve::setDisplayRange( const Interval<float>& range )
-{
-    disprange_ = range;
-    if ( axis_ )
-	axis_->setRange( range );
-}
-
-
 void LogCurve::setFillToLog( const char* lognm, bool left )
 {
     (left ? lefttolog_ : righttolog_) = lognm;
 }
 
 
+const char* LogCurve::fillToLog( bool left )
+{
+    return left ? lefttolog_ : righttolog_;
+}
+
+
+void LogCurve::setDisplayRange( const Interval<float>& range )
+{
+    LogData::setDisplayRange( range );
+    if ( axis_ )
+	axis_->setRange( range );
+}
+
+
 void LogCurve::fillPar( IOPar& par ) const
 {
-    par.set( sKey::ID(), wellid_ );
-    par.set( sKey::Log(), logname_);
-    par.set( sKey::Range(), disprange_ );
+    LogData::fillPar( par );
 
     BufferString lsstr;
     lineStyle().toString( lsstr );
@@ -350,6 +307,8 @@ BufferString LogCurve::getFillPar( bool left ) const
 	fill->color().fill( col );
 	fms += FileMultiString( col );
     }
+    else if ( fill->fillType()==uiChartFillx::Gradient )
+	fms += fill->gradientImg()->toString();
 
     res = fms;
     return res;
@@ -359,7 +318,7 @@ BufferString LogCurve::getFillPar( bool left ) const
 void LogCurve::setFillPar( const char* fillstr, bool left )
 {
     uiChartFillx* fill = left ? leftfill_ : rightfill_;
-    fill->setBaseLine( mUdf(float) );
+    fill->setBaseLine( mUdf(float), false );
 
     FileMultiString fms( fillstr );
     uiChartFillx::FillType ftype;
@@ -388,18 +347,23 @@ void LogCurve::setFillPar( const char* fillstr, bool left )
 	col.use( colfms );
 	fill->setColor( col, false );
     }
+    else if ( ftype==uiChartFillx::Gradient )
+    {
+	FileMultiString gradfms( fms.from(next) );
+	LogGradient* lg = new LogGradient( wellid_ );
+	lg->fromString( gradfms );
+	fill->setGradientImg( lg, false );
+    }
 }
 
 
 void LogCurve::usePar( const IOPar& par )
 {
-    par.get( sKey::ID(), wellid_ );
-    par.get( sKey::Log(), logname_ );
-    initLog();
-    Interval<float> range;
-    range.setUdf();
-    par.get( sKey::Range(), range );
-    setDisplayRange( range );
+    LogData::usePar( par );
+    const Well::Log* log = wellLog();
+    if ( log )
+	addLog( *log );
+
 
     BufferString lsstr;
     par.get( sKey::LineStyle(), lsstr );

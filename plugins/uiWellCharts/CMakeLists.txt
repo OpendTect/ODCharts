@@ -8,6 +8,8 @@ SET( OD_MODULE_DEPS uiCharts uiTools Well )
 SET( OD_IS_PLUGIN yes )
 SET( OD_MODULE_SOURCES
 	logcurve.cc
+	logdata.cc
+	loggradient.cc
 	markerline.cc
 	uilogchart.cc
 	uilogcurveprops.cc

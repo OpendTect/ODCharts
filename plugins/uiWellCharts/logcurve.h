@@ -11,17 +11,18 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
+#include "logdata.h"
 #include "uichartseries.h"
-#include "multiid.h"
 #include "color.h"
 #include "draw.h"
 
 namespace Well { class Log; }
 
+class LogGradient;
 class uiLogChart;
 class uiChartFillx;
 
-mExpClass(uiWellCharts) LogCurve
+mExpClass(uiWellCharts) LogCurve : public LogData
 {
 public:
 			LogCurve();
@@ -38,23 +39,15 @@ public:
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
     OD::LineStyle	lineStyle() const;
-    void		setDisplayRange(float left,float right);
-    void		setDisplayRange(const Interval<float>& range);
     uiChartFillx*	leftFill()		{ return leftfill_; }
     uiChartFillx*	rightFill()		{ return rightfill_; }
     void		setFillToLog(const char* lognm,bool left=true);
+    const char*		fillToLog(bool left=true);
 
-
-    MultiID		wellID() const		{ return wellid_; }
-    BufferString	wellName() const	{ return wellname_; }
-    BufferString	logName() const		{ return logname_; }
-    const Well::Log*	wellLog() const;
-    Interval<float>	zRange() const		{ return dahrange_; }
-    Interval<float>	logRange() const	{ return valrange_; }
-    Interval<float>	dispRange() const	{ return disprange_; }
     uiChartAxis*	getAxis() const		{ return axis_; }
     uiChartAxis*	getAxis()		{ return axis_; }
 
+    void		setDisplayRange(const Interval<float>& range) override;
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
 
@@ -62,18 +55,9 @@ public:
 
 protected:
     void			addLog(const Well::Log&);
-    bool			initLog();
     BufferString		getFillPar(bool left) const;
     void			setFillPar(const char* fillstr,bool left=true);
 
-    MultiID			wellid_;
-    BufferString 		wellname_;
-    BufferString		logname_;
-    BufferString		uomlbl_;
-    BufferString		mnemlbl_;
-    Interval<float>		dahrange_;
-    Interval<float>		valrange_;
-    Interval<float>		disprange_;
     OD::LineStyle		linestyle_;
     float			pointsize_	= 2.f;
     ObjectSet<uiLineSeries>	series_;

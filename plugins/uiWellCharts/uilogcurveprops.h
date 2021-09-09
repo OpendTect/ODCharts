@@ -17,30 +17,37 @@ class LogCurve;
 class uiGenInput;
 class uiSelLineStyle;
 class uiColorInput;
+class uiColorTableGroup;
 class uiLogChart;
 
 mClass(uiWellCharts) uiLogFillProps : public uiGroup
 { mODTextTranslationClass(uiLogFillProps)
 public:
-			uiLogFillProps(uiParent*,const uiString&,uiLogChart&);
+			uiLogFillProps(uiParent*,uiChartFillx::FillDir,
+				       uiLogChart&);
 			~uiLogFillProps();
 
-    void		setLogFill(int,uiChartFillx::FillDir);
+    void		setLogFill(int);
 
 protected:
-    uiLogChart&		logchart_;
-    LogCurve*		logcurve_ = nullptr;
-    uiChartFillx*	fill_ = nullptr;
+    uiLogChart&			logchart_;
+    LogCurve*			logcurve_ = nullptr;
+    uiChartFillx*		fill_ = nullptr;
+    uiChartFillx::FillDir	filldir_;
 
     uiGenInput*		filltypefld_;
     uiGenInput*		filllimitfld_;
     uiColorInput*	fillcolorfld_;
+    uiColorTableGroup*	fillgradientfld_;
+    uiGenInput*		gradientlogfld_;
     uiGenInput*		fillbasefld_;
     uiGenInput*		fillseriesfld_;
 
     void		fillTypeChgCB(CallBacker*);
     void		fillLimitChgCB(CallBacker*);
     void		fillColorChgCB(CallBacker*);
+    void		fillGradientChgCB(CallBacker*);
+    void		fillGradientLogChgCB(CallBacker*);
     void		fillBaseChgCB(CallBacker*);
     void		fillSeriesChgCB(CallBacker*);
 };

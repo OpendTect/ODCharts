@@ -12,6 +12,7 @@ ________________________________________________________________________
 #include "chartutils.h"
 #include "uichart.h"
 #include "uichartseries.h"
+#include "uigradientimg.h"
 #include "uistring.h"
 
 #include <QChart>
@@ -41,11 +42,12 @@ public:
     void	paint(QPainter*,const QStyleOptionGraphicsItem*,QWidget*);
     void	updateGeometry();
     QPainterPath		makePath(bool qlines=true);
-    Interval<float>		getAxisRange(bool qlines=true);
+    Interval<float>		getAxisRange(Qt::Orientations,bool qlines=true);
 
     QChart*			qchart_;
     ObjectSet<QLineSeries>	qlines_;
     ObjectSet<QLineSeries>	qbaselines_;
+    uiVertGradientImg*		gradientimg_ = nullptr;
     float			baseline_ = mUdf(float);
     QColor			qcolor_;
     QRectF			qrect_;
@@ -82,7 +84,7 @@ void uiChartFillx::addTo( uiChart* chart,
 	odfillx_->qlines_ += series->getQLineSeries();
 
     setFillDir( fdir, false );
-    setBaseLine( mUdf(float), true );
+    setBaseLine( mUdf(float), false );
     mAttachCB( chart->plotAreaChanged, uiChartFillx::updateCB );
     mAttachCB( chart->needsRedraw, uiChartFillx::updateCB );
 }
@@ -139,10 +141,27 @@ OD::Color uiChartFillx::color() const
 }
 
 
+void uiChartFillx::setGradientImg( uiVertGradientImg* vimg, bool update )
+{
+    deleteAndZeroPtr( odfillx_->gradientimg_ );
+    odfillx_->gradientimg_ = vimg;
+    if ( update )
+	updateCB( nullptr );
+}
+
+
+uiVertGradientImg* uiChartFillx::gradientImg() const
+{
+    return odfillx_->gradientimg_;
+}
+
+
 void uiChartFillx::setBaseLine( float base, bool update )
 {
     odfillx_->baseline_ = base;
-    odfillx_->qbaselines_.setEmpty();
+    if ( !mIsUdf(base) )
+	odfillx_->qbaselines_.setEmpty();
+
     if ( update )
 	updateCB( nullptr );
 }
@@ -206,22 +225,32 @@ void ODChartFillx::paint( QPainter* painter,
     Q_UNUSED( widget )
     painter->save();
     painter->setPen( QPen(Qt::NoPen) );
+    QRectF plotarea = mapRectFromParent( qchart_->plotArea() );
+    painter->setClipRect( plotarea );
     if ( filltype_==uiChartFillx::Color && qcolor_.isValid() )
+    {
 	painter->setBrush( qcolor_ );
-
-    painter->setClipRect( mapRectFromParent(qchart_->plotArea()) );
-    painter->drawPath( qpath_ );
+	painter->drawPath( qpath_ );
+    }
+    else if ( filltype_==uiChartFillx::Gradient && gradientimg_ )
+    {
+	StepInterval<float> si( getAxisRange(Qt::Vertical) );
+	si.step = si.width() / plotarea.height();
+	gradientimg_->updateImg( si );
+	painter->setClipPath( qpath_, Qt::IntersectClip );
+	painter->drawImage( plotarea, gradientimg_->qImage() );
+    }
 
     painter->restore();
 }
 
 
-Interval<float> ODChartFillx::getAxisRange( bool qlines )
+Interval<float> ODChartFillx::getAxisRange( Qt::Orientations qor, bool qlines )
 {
     Interval<float> res;
 
     ObjectSet<QLineSeries>& series = qlines ? qlines_ : qbaselines_;
-    QAbstractAxis* axis = qchart_->axes( Qt::Horizontal, series.first() )[0];
+    QAbstractAxis* axis = qchart_->axes( qor, series.first() )[0];
     auto* qvaxis = dynamic_cast<QValueAxis*>( axis );
     auto* qlvaxis = dynamic_cast<QLogValueAxis*>( axis );
     if ( qvaxis )
@@ -248,7 +277,7 @@ QPainterPath ODChartFillx::makePath( bool qlines )
 	QPointF p1 = part->at( part->count()-1 );
 	QPointF p2 = part->at( 0 );
 
-	Interval<float> rng = getAxisRange( qlines );
+	Interval<float> rng = getAxisRange( Qt::Horizontal, qlines );
 	if ( filldir_==uiChartFillx::Left )
 	    p1.rx() = qlines ? rng.start : rng.stop;
 	else
@@ -267,39 +296,33 @@ void ODChartFillx::updateGeometry()
 {
     QPainterPath path;
 
-    if ( filltype_==uiChartFillx::Color && qcolor_.isValid() )
+    path = makePath( true );
+
+    Interval<float> rng = getAxisRange( Qt::Horizontal, true );
+    if ( !mIsUdf(baseline_) && rng.includes(baseline_,true) )
     {
-	path = makePath( true );
+	QLineSeries* first = qlines_.first();
+	QLineSeries* last = qlines_.last();
+	QPointF br1 = first->at( 0 );
+	br1.rx() = baseline_;
+	QPointF br2 = last->at( last->count()-1 );
+	br2.rx() = baseline_;
+	QPointF br3 = br2;
+	br3.rx() = filldir_==uiChartFillx::Left ? rng.stop : rng.start;
+	QPointF br4 = br1;
+	br4.rx() = br3.x();
 
-	Interval<float> rng = getAxisRange( true );
-	if ( !mIsUdf(baseline_) && rng.includes(baseline_, true) )
-	{
-	    QLineSeries* first = qlines_.first();
-	    QLineSeries* last = qlines_.last();
-	    QPointF br1 = first->at( 0 );
-	    br1.rx() = baseline_;
-	    QPointF br2 = last->at( last->count()-1 );
-	    br2.rx() = baseline_;
-	    QPointF br3 = br2;
-	    QPointF br4 = br1;
-
-	    if ( filldir_==uiChartFillx::Left )
-		br3.rx() = rng.stop;
-	    else
-		br3.rx() = rng.start;
-	    br4.rx() = br3.x();
-	    QPainterPath baserect( qchart_->mapToPosition(br1, first) );
-	    baserect.lineTo( qchart_->mapToPosition(br2, first) );
-	    baserect.lineTo( qchart_->mapToPosition(br3, first) );
-	    baserect.lineTo( qchart_->mapToPosition(br4, first) );
-	    baserect.closeSubpath();
-	    path &= baserect;
-	}
-	else if ( !qbaselines_.isEmpty() )
-	{
-	    QPainterPath other = makePath( false );
-	    path &= other;
-	}
+	QPainterPath baserect( qchart_->mapToPosition(br1, first) );
+	baserect.lineTo( qchart_->mapToPosition(br2, first) );
+	baserect.lineTo( qchart_->mapToPosition(br3, first) );
+	baserect.lineTo( qchart_->mapToPosition(br4, first) );
+	baserect.closeSubpath();
+	path &= baserect;
+    }
+    else if ( !qbaselines_.isEmpty() )
+    {
+	QPainterPath other = makePath( false );
+	path &= other;
     }
 
     if ( path.boundingRect().height() <= INT_MAX &&
@@ -313,3 +336,13 @@ void ODChartFillx::updateGeometry()
 }
 
 
+// uiVertGradientImg
+uiVertGradientImg::uiVertGradientImg()
+    : qimg_(new QImage)
+{}
+
+
+uiVertGradientImg::~uiVertGradientImg()
+{
+    delete qimg_;
+}
