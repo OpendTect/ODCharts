@@ -167,6 +167,14 @@ void uiChartFillx::setBaseLine( float base, bool update )
 }
 
 
+void uiChartFillx::setBaseLineSeriesEmpty( bool update )
+{
+    odfillx_->qbaselines_.setEmpty();
+    if ( update )
+	updateCB( nullptr );
+}
+
+
 float uiChartFillx::baseLineValue() const
 {
     return odfillx_->baseline_;

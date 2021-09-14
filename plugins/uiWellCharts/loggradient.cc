@@ -112,7 +112,7 @@ void LogGradient::fromString( const FileMultiString& str )
 void LogGradient::update()
 {
     const Well::Log* log = wellLog();
-    if ( !qimg_ || !log )
+    if ( !qimg_ || !log || zrange_==StepInterval<float>() )
 	return;
 
     QColor qcol;
@@ -120,9 +120,13 @@ void LogGradient::update()
     {
 	const float dah = zrange_.atIndex( idx );
 	const float logval = log->getValue( dah );
-	OD::Color color = mIsUdf(logval) ? OD::Color::NoColor()
-				: ctseq_.color( ctmapper_.position(logval) );
-	toQColor( qcol, color, true );
+	if ( mIsUdf(logval) )
+	    qcol = QColorConstants::Transparent;
+	else
+	{
+	    OD::Color color = ctseq_.color( ctmapper_.position(logval) );
+	    toQColor( qcol, color, true );
+	}
 	qimg_->setPixelColor( 0, idx, qcol );
     }
 }

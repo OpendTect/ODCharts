@@ -51,6 +51,7 @@ public:
     void		setBaseLine(float,bool update=true);
     void		setBaseLine(const ObjectSet<uiLineSeries>&,
 				    bool update=true);
+    void		setBaseLineSeriesEmpty(bool update=true);
     float		baseLineValue() const;
     bool		hasBaseLineSeries() const;
 

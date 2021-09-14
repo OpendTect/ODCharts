@@ -196,7 +196,10 @@ void uiLogFillProps::fillLimitChgCB( CallBacker* )
 	fillseriesfld_->display( false );
 
     if ( fill_ && filllimit==uiWellCharts::Track )
-	fill_->setBaseLine( mUdf(float), mIsUdf(fill_->baseLineValue()) );
+    {
+	fill_->setBaseLine( mUdf(float), false );
+	fill_->setBaseLineSeriesEmpty();
+    }
 }
 
 
