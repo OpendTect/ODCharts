@@ -49,17 +49,17 @@ bool LogData::initLog()
 	return false;
 
     wellname_ = wd->name();
-    uomlbl_ = log->unitOfMeasure()->symbol();
+    uomlbl_ = log->unitMeasLabel();
     mnemlbl_ = log->mnemLabel();
     dahrange_ = log->dahRange();
     valrange_ = log->valueRange();
     disprange_.setUdf();
 
-    const Mnemonic* mnem = MNC().getByName( mnemlbl_ );
+    const Mnemonic* mnem = log->mnemonic();
     if ( mnem )
     {
 	const Mnemonic::DispDefs& disp = mnem->disp_;
-	const UnitOfMeasure* mnem_uom = UoMR().get( disp.getUnitLbl() );
+	const UnitOfMeasure* mnem_uom = mnem->unit();
 	const UnitOfMeasure* log_uom = log->unitOfMeasure();
 
 	disprange_.start = getConvertedValue( disp.typicalrange_.start,
