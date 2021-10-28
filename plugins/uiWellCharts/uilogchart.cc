@@ -108,9 +108,10 @@ void uiLogChart::removeLogCurve( const MultiID& wellid, const char* lognm )
 {
     for ( int idx=0; idx<logcurves_.size(); idx++ )
     {
-	if ( wellid==logcurves_[idx]->wellID() && logcurves_[idx]->logName()==lognm )
+	if ( wellid==logcurves_[idx]->wellID() &&
+		logcurves_[idx]->logName()==lognm )
 	{
-	    LogCurve* tbremoved =  logcurves_.removeSingle( idx );
+	    LogCurve* tbremoved = logcurves_.removeSingle( idx );
 	    tbremoved->removeFrom( *this );
 	    delete tbremoved;
 	    break;
@@ -168,9 +169,9 @@ void uiLogChart::removeMarker( const MultiID& wellid, const char* markernm )
     for ( int idx=0; idx<markers_.size(); idx++ )
     {
 	if ( wellid==markers_[idx]->wellID() &&
-					markers_[idx]->markerName()==markernm )
+			markers_[idx]->markerName()==markernm )
 	{
-	    MarkerLine* tbremoved =  markers_.removeSingle( idx );
+	    MarkerLine* tbremoved = markers_.removeSingle( idx );
 	    tbremoved->removeFrom( *this );
 	    delete tbremoved;
 	    break;
@@ -225,8 +226,8 @@ void uiLogChart::makeZaxis()
 {
     zaxis_ = new uiValueAxis;
     zaxis_->setTickType( uiValueAxis::TicksDynamic );
-    zaxis_->setTickInterval( ztype_==TWT ? 0.1 :
-					    SI().depthsInFeet() ? 500 : 200 );
+    zaxis_->setTickInterval(
+		ztype_==TWT ? 0.1 : SI().depthsInFeet() ? 500 : 200 );
     zaxis_->setMinorTickCount( 4 );
     zaxis_->setLabelFormat( "%d" );
     zaxis_->setRange( 0, 1000 );
