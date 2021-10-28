@@ -23,7 +23,7 @@ public:
 			LogData();
 			LogData(const MultiID&,const char*);
 			LogData(const LogData&) = delete;
-			~LogData();
+    virtual		~LogData();
     void		operator=(const LogData&) = delete;
 
     MultiID		wellID() const		{ return wellid_; }
