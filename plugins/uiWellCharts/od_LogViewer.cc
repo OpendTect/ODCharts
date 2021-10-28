@@ -40,7 +40,8 @@ int doMain( int argc, char** argv )
     const BufferString wellidstr = clp.keyedString("well");
     if ( !wellidstr.isEmpty() )
     {
-	const DBKey wellid( wellidstr );
+	DBKey wellid;
+	wellid.fromString( wellidstr );
 	if ( wellid.isUdf() || !IOM().isUsable(wellid) )
 	{
 	    uiMSG().error( toUiString("No valid well ID given") );
