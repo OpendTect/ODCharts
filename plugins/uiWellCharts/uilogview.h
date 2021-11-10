@@ -13,6 +13,7 @@ ________________________________________________________________________
 #include "uichartview.h"
 
 class uiLogChart;
+class uiLogViewPropDlg;
 
 mExpClass(uiWellCharts) uiLogView : public uiChartView
 {
@@ -22,5 +23,11 @@ public:
 
     void		setLogChart(uiLogChart*);
     uiLogChart*		logChart();
+
+    void		showSettingsCB(CallBacker*);
+    void		zoomResetCB(CallBacker*);
+
+protected:
+    uiLogViewPropDlg*	propdlg_ = nullptr;
 
 };

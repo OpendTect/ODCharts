@@ -13,6 +13,7 @@ ________________________________________________________________________
 
 #include "bufstring.h"
 #include "draw.h"
+#include "oduicommon.h"
 
 namespace QtCharts
 {
@@ -20,12 +21,8 @@ namespace QtCharts
     class QLogValueAxis;
     class QValueAxis;
 }
-class QPen;
 
-mGlobal(uiCharts) void			toQPen(QPen&,const OD::LineStyle&,
-					       bool usetransp=false,
-					       bool cosmetic=true);
-mGlobal(uiCharts) OD::LineStyle		fromQPen(const QPen&);
+class i_valueAxisMsgHandler;
 
 
 mExpClass(uiCharts) uiChartAxis : public CallBacker
@@ -45,16 +42,37 @@ public:
 					  bool usetransp=false);
 
     OD::LineStyle	lineStyle() const;
-    OD::LineStyle	gridStyle() const;
-    OD::LineStyle	minorGridStyle() const;
+    OD::LineStyle	getGridStyle() const;
+    OD::LineStyle	getMinorGridStyle() const;
 
+    bool		gridVisible() const;
+    void		setGridLineVisible(bool);
+    bool		minorGridVisible() const;
+    void		setMinorGridLineVisible(bool);
+
+    OD::Orientation	orientation() const;
+
+    void		setRange(const Interval<float>&);
     void		setRange(float min,float max);
+    Interval<float>	range() const;
+
     void		setReverse(bool yn);
+    bool		reversed() const;
+
     void		setMinorTickCount(int);
+    int			getMinorTickCount() const;
+
+    void		setTickCount(int);
+    int			getTickCount() const;
+
+    void		setTickInterval(float);
+    float		getTickInterval() const;
 
     AxisType		type() const;
 
     QtCharts::QAbstractAxis*	getQAxis();
+
+    CNotifier<uiChartAxis,const Interval<float>&>	rangeChanged;
 
 protected:
 			uiChartAxis(QtCharts::QAbstractAxis*);
@@ -76,10 +94,18 @@ public:
 
     void 		setTickType(TickType);
     void		setTickInterval(float);
-    void		setTickCount(int);
+
+    void		setAxisLimits(const Interval<float>&,bool include=true);
+    void		setAxisLimits(float min,float max,bool include=true);
+    void		snapRange(float min,float max);
+    Interval<float>	getAxisLimits();
 
 protected:
     QtCharts::QValueAxis*	qvalueaxis_;
+    Interval<float>		axislimits_;
+
+private:
+    i_valueAxisMsgHandler*	msghandler_;
 };
 
 
@@ -97,5 +123,6 @@ public:
 
 protected:
     QtCharts::QLogValueAxis*	qlogvalueaxis_;
+
 };
 

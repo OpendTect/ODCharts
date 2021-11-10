@@ -11,7 +11,9 @@ ________________________________________________________________________
 #include "uichartview.h"
 #include "uichart.h"
 #include "uiobjbodyimpl.h"
+#include "chartutils.h"
 
+#include <QApplication>
 #include <QChart>
 #include <QChartView>
 
@@ -25,6 +27,7 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
     : uiObjBodyImpl<uiChartView,QChartView>(hndle,p,nm)
 {
     setInteractive( true );
+    setRenderHint(QPainter::Antialiasing);
 }
 
 
@@ -32,19 +35,95 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
 {
 }
 
+protected:
+    bool		panning_ = false;
+    QPointF		lastmousepos_;
+
+    void		mouseMoveEvent(QMouseEvent*) override;
+    void		mouseReleaseEvent(QMouseEvent*) override;
+    void		mousePressEvent(QMouseEvent*) override;
+    void		mouseDoubleClickEvent(QMouseEvent*) override;
 };
 
 
+void ODChartView::mouseMoveEvent( QMouseEvent* ev )
+{
+    if ( panning_ )
+    {
+	auto dpos = ev->pos() - lastmousepos_;
+	if ( rubberBand()==VerticalRubberBand )
+	    chart()->scroll( 0, dpos.y() );
+	else if ( rubberBand()==HorizontalRubberBand )
+	    chart()->scroll( dpos.x(), 0 );
+	else
+	    chart()->scroll( dpos.x(), dpos.y() );
+
+	lastmousepos_ = ev->pos();
+	ev->accept();
+    }
+
+    QChartView::mouseMoveEvent( ev );
+}
+
+
+void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
+{
+    if ( ev->button() == Qt::MiddleButton )
+    {
+	panning_ = false;
+	auto dpos = ev->pos() - lastmousepos_;
+	if ( rubberBand() == VerticalRubberBand )
+	    chart()->scroll( 0, dpos.y() );
+	else if ( rubberBand() == HorizontalRubberBand )
+	    chart()->scroll( dpos.x(), 0 );
+	else
+	    chart()->scroll( dpos.x(), dpos.y() );
+
+	lastmousepos_ = ev->pos();
+	ev->accept();
+	QApplication::restoreOverrideCursor();
+    }
+    else
+	QChartView::mouseReleaseEvent( ev );
+}
+
+
+void ODChartView::mousePressEvent( QMouseEvent* ev )
+{
+    if ( ev->button() == Qt::MiddleButton )
+    {
+	if ( rubberBand() == VerticalRubberBand )
+	    QApplication::setOverrideCursor( QCursor(Qt::SizeVerCursor) );
+	else if ( rubberBand() == HorizontalRubberBand )
+	    QApplication::setOverrideCursor( QCursor(Qt::SizeHorCursor) );
+	else
+	    QApplication::setOverrideCursor( QCursor(Qt::SizeAllCursor) );
+
+	panning_ = true;
+	lastmousepos_ = ev->pos();
+	ev->accept();
+    }
+    else
+	QChartView::mousePressEvent( ev );
+}
+
+
+void ODChartView::mouseDoubleClickEvent( QMouseEvent* )
+{
+    handle_.doubleClick.trigger();
+}
+
+// uiChartView
 uiChartView::uiChartView( uiParent* p, const char* nm )
     : uiObject(p,nm,mkbody(p,nm))
+    , doubleClick(this)
 {
 }
 
 
 uiChartView::~uiChartView()
 {
-    odchartview_->setChart( nullptr );
-    delete uichart_;
+    delete odchartview_;
 }
 
 
@@ -62,6 +141,24 @@ ODChartView& uiChartView::mkbody( uiParent* p, const char* nm )
     return *odchartview_;
 }
 
+
+void uiChartView::setBackgroundColor( const Color& col )
+{
+    if ( col==Color::NoColor() )
+	odchartview_->setBackgroundBrush( QBrush(Qt::NoBrush) );
+    else
+    {
+	QColor qcol;
+	toQColor( qcol, col );
+	odchartview_->setBackgroundBrush( QBrush(qcol) );
+    }
+}
+
+
+void uiChartView::setMinimumSize( int w, int h )
+{
+    odchartview_->setMinimumSize( w, h );
+}
 
 void uiChartView::setZoomStyle( ZoomStyle style )
 {

@@ -9,7 +9,12 @@ ________________________________________________________________________
 -*/
 
 #include "uichartseries.h"
+#include "i_qchartseries.h"
+#include "uicallout.h"
 #include "uichartaxes.h"
+#include "uimain.h"
+#include "uimainwin.h"
+#include "chartutils.h"
 
 #include <QLineSeries>
 #include <QScatterSeries>
@@ -55,13 +60,24 @@ QAbstractSeries* uiChartSeries::getQSeries()
 // uiXYChartSeries
 uiXYChartSeries::uiXYChartSeries( QXYSeries* series )
     : uiChartSeries(series)
+    , clicked(this)
+    , doubleClicked(this)
+    , hoverOn(this)
+    , hoverOff(this)
+    , callouttxt_("X: %1\nY:%2")
 {
     qxyseries_ = dynamic_cast<QXYSeries*>(qabstractseries_);
+    msghandler_ = new i_xySeriesMsgHandler( this, qxyseries_ );
+    mAttachCB( this->hoverOn, uiXYChartSeries::showCallout );
+    mAttachCB( this->hoverOff, uiXYChartSeries::hideCallout );
 }
 
 
 uiXYChartSeries::~uiXYChartSeries()
 {
+    detachAllNotifiers();
+    delete callout_;
+    delete msghandler_;
 }
 
 
@@ -71,9 +87,40 @@ void uiXYChartSeries::clear()
 }
 
 
-void uiXYChartSeries::add( float x, float y )
+bool uiXYChartSeries::validIdx( int idx ) const
+{
+    return idx>=0 && idx<size();
+}
+
+void uiXYChartSeries::append( float x, float y )
 {
     qxyseries_->append( qreal(x), qreal(y) );
+}
+
+
+void uiXYChartSeries::append( int num, float* xarr, float* yarr )
+{
+
+    for ( float *px=xarr, *py=yarr; px<xarr+num; px++, py++ )
+	qxyseries_->append( qreal(*px), qreal(*py) );
+}
+
+
+float uiXYChartSeries::x( int idx ) const
+{
+    if ( !validIdx(idx) )
+	return mUdf(float);
+
+    return qxyseries_->at( idx ).x();
+}
+
+
+float uiXYChartSeries::y( int idx ) const
+{
+    if ( !validIdx(idx) )
+	return mUdf(float);
+
+    return qxyseries_->at( idx ).y();
 }
 
 
@@ -89,6 +136,56 @@ bool uiXYChartSeries::isEmpty() const
 }
 
 
+void uiXYChartSeries::setCalloutTxt( const char* txt, int nrdecx, int nrdecy )
+{
+    callouttxt_ = txt;
+    nrdecx_ = nrdecx;
+    nrdecy_ = nrdecy;
+}
+
+
+void uiXYChartSeries::setPointLabelsVisible( bool yn )
+{
+    qxyseries_->setPointLabelsVisible( yn );
+}
+
+
+void uiXYChartSeries::setPointLabelsFormat( const char* fmt )
+{
+    qxyseries_->setPointLabelsFormat( fmt );
+}
+
+
+void uiXYChartSeries::showCallout( CallBacker* cb )
+{
+    if ( !callout_ )
+	callout_ = new uiCallout( this );
+
+    mCBCapsuleUnpack(const Geom::PointF&,pos,cb);
+    if ( callouttxt_.find("%1") && callouttxt_.find("%2") )
+	callout_->setText(
+		tr(callouttxt_).arg(pos.x,nrdecx_).arg(pos.y,nrdecy_) );
+    else if ( callouttxt_.find("%1") )
+	callout_->setText( tr(callouttxt_).arg(pos.x,nrdecx_) );
+    else if ( callouttxt_.find("%2") )
+	callout_->setText( tr(callouttxt_).arg(pos.y,nrdecy_) );
+    else
+	callout_->setText( tr(callouttxt_) );
+
+    callout_->setAnchor( pos, this );
+    callout_->setZValue( 11 );
+    callout_->update();
+    callout_->show();
+}
+
+
+void uiXYChartSeries::hideCallout( CallBacker* )
+{
+    if ( callout_ )
+	callout_->hide();
+}
+
+
 // uiLineSeries
 uiLineSeries::uiLineSeries()
     : uiXYChartSeries(new QLineSeries)
@@ -99,20 +196,6 @@ uiLineSeries::uiLineSeries()
 
 uiLineSeries::~uiLineSeries()
 {
-}
-
-
-void uiLineSeries::append( float x, float y )
-{
-    qlineseries_->append( qreal(x), qreal(y) );
-}
-
-
-void uiLineSeries::append( int num, float* xarr, float* yarr )
-{
-
-    for ( float *px=xarr, *py=yarr; px<xarr+num; px++, py++ )
-	append( *px, *py );
 }
 
 
@@ -130,6 +213,12 @@ OD::LineStyle uiLineSeries::lineStyle() const
 }
 
 
+QLineSeries* uiLineSeries::getQLineSeries()
+{
+    return qlineseries_;
+}
+
+
 // uiScatterSeries
 uiScatterSeries::uiScatterSeries()
     : uiXYChartSeries(new QScatterSeries)
@@ -140,4 +229,56 @@ uiScatterSeries::uiScatterSeries()
 
 uiScatterSeries::~uiScatterSeries()
 {
+}
+
+
+uiScatterSeries::MarkerShape uiScatterSeries::shape() const
+{
+    return sCast(uiScatterSeries::MarkerShape,qscatterseries_->markerShape());
+}
+
+
+Color uiScatterSeries::color() const
+{
+    return fromQColor( qscatterseries_->color() );
+}
+
+
+Color uiScatterSeries::borderColor() const
+{
+    return fromQColor( qscatterseries_->borderColor() );
+}
+
+
+float uiScatterSeries::markerSize() const
+{
+    return qscatterseries_->markerSize();
+}
+
+
+void uiScatterSeries::setShape( uiScatterSeries::MarkerShape shp )
+{
+    qscatterseries_->setMarkerShape( sCast(QScatterSeries::MarkerShape,shp) );
+}
+
+
+void uiScatterSeries::setColor( Color color )
+{
+    QColor qcol;
+    toQColor( qcol, color );
+    qscatterseries_->setColor( qcol );
+}
+
+
+void uiScatterSeries::setBorderColor( Color color )
+{
+    QColor qcol;
+    toQColor( qcol, color );
+    qscatterseries_->setBorderColor( qcol );
+}
+
+
+void uiScatterSeries::setMarkerSize( float size )
+{
+    qscatterseries_->setMarkerSize( qreal(size) );
 }

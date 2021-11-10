@@ -5,29 +5,18 @@ ________________________________________________________________________
 
  (C) dGB Beheer B.V.; (LICENSE) http://opendtect.org/OpendTect_license.txt
  Author:	Nanne Hemstra
- Date:		August 2020
+ Date:		August 2021
 ________________________________________________________________________
 
 -*/
 
 #include "uiwellchartsmod.h"
-#include "uichartseries.h"
 
-namespace Well
+#include "enums.h"
+
+namespace uiWellCharts
 {
-    class Log;
-}
+    enum FillLimit	{ Track, Baseline, Curve };
+			mDeclareNameSpaceEnumUtils(uiWellCharts,FillLimit);
 
-mExpClass(uiWellCharts) LogSeries : public uiLineSeries
-{
-public:
-			LogSeries();
-			~LogSeries();
-
-    void		setWellLog(const Well::Log&);
-
-protected:
-    void		updateSeries();
-
-    const Well::Log*	log_	= nullptr;
 };

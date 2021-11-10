@@ -8,26 +8,28 @@ ________________________________________________________________________
 
 -*/
 
+#include "uimain.h"
+#include "uilogviewwin.h"
+
 #include "applicationdata.h"
 #include "commandlineparser.h"
 #include "ioman.h"
 #include "moddepmgr.h"
 #include "prog.h"
-
-#include "uilogviewwin.h"
-#include "uimainwin.h"
-#include "uimain.h"
 #include "uimsg.h"
 
 
-int doMain( int argc, char** argv )
+
+int mProgMainFnName( int argc, char** argv )
 {
-    OD::SetRunContext( OD::UiProgCtxt );
+    mInitProg( OD::UiProgCtxt )
     SetProgramArgs( argc, argv );
     uiMain app( argc, argv );
-    ApplicationData::setApplicationName( "OpendTect - LogViewer" );
+    ApplicationData::setApplicationName( "OpendTect - Log Viewer" );
+    app.setIcon( "welllogbased" );
 
     OD::ModDeps().ensureLoaded( "uiBase" );
+    OD::ModDeps().ensureLoaded( "Well" );
 
     CommandLineParser clp( argc, argv );
     const uiRetVal res = IOM().setDataSource( clp );
@@ -37,27 +39,12 @@ int doMain( int argc, char** argv )
 	return 1;
     }
 
-    const BufferString wellidstr = clp.keyedString("well");
-    if ( !wellidstr.isEmpty() )
-    {
-	DBKey wellid;
-	wellid.fromString( wellidstr );
-	if ( wellid.isUdf() || !IOM().isUsable(wellid) )
-	{
-	    uiMSG().error( toUiString("No valid well ID given") );
-	    return 1;
-	}
-    }
-
-    OD::ModDeps().ensureLoaded( "Well" );
-
-    PtrMan<uiMainWin> logwin = new uiLogViewWin( nullptr );
-    app.setTopLevel( logwin );
+    PtrMan<uiMainWin> dlg = new uiLogViewWin( nullptr );
 
     PIM().loadAuto( false );
     PIM().loadAuto( true );
 
-    logwin->show();
-
+    app.setTopLevel( dlg );
+    dlg->show();
     return app.exec();
 }

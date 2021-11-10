@@ -9,6 +9,8 @@ ________________________________________________________________________
 -*/
 
 #include "uichartaxes.h"
+#include "i_qchartaxes.h"
+#include "chartutils.h"
 
 #include <QLogValueAxis>
 #include <QValueAxis>
@@ -16,29 +18,10 @@ ________________________________________________________________________
 using namespace QtCharts;
 
 
-void toQPen( QPen& qpen, const OD::LineStyle& ls, bool usetransp, bool cosmetic)
-{
-    QColor color = QColor( QRgb(ls.color_.rgb()) );
-    if ( usetransp )
-	color.setAlpha( 255-ls.color_.t() );
-
-    QBrush qbrush( color );
-    qpen = QPen( qbrush, ls.width_, Qt::PenStyle(ls.type_) );
-    qpen.setCosmetic( cosmetic );
-}
-
-
-OD::LineStyle fromQPen( const QPen& qpen )
-{
-    const QColor qcol = qpen.color();
-    const Color color( qcol.red(), qcol.green(), qcol.blue(), 255-qcol.alpha());
-    return OD::LineStyle( OD::LineStyle::Type(qpen.style()), qpen.width(),
-			  color );
-}
-
 
 uiChartAxis::uiChartAxis( QAbstractAxis* axis )
-    : qabstractaxis_(axis)
+    : rangeChanged(this)
+    , qabstractaxis_(axis)
 {
 }
 
@@ -90,27 +73,107 @@ OD::LineStyle uiChartAxis::lineStyle() const
 }
 
 
-OD::LineStyle uiChartAxis::gridStyle() const
+OD::LineStyle uiChartAxis::getGridStyle() const
 {
     return fromQPen( qabstractaxis_->gridLinePen() );
 }
 
 
-OD::LineStyle uiChartAxis::minorGridStyle() const
+OD::LineStyle uiChartAxis::getMinorGridStyle() const
 {
     return fromQPen( qabstractaxis_->minorGridLinePen() );
+}
+
+
+bool uiChartAxis::gridVisible() const
+{
+    return qabstractaxis_->isGridLineVisible();
+}
+
+
+void uiChartAxis::setGridLineVisible( bool yn )
+{
+    qabstractaxis_->setGridLineVisible( yn );
+}
+
+
+bool uiChartAxis::minorGridVisible() const
+{
+    return qabstractaxis_->isMinorGridLineVisible();
+}
+
+
+void uiChartAxis::setMinorGridLineVisible( bool yn )
+{
+    qabstractaxis_->setMinorGridLineVisible( yn );
+}
+
+
+OD::Orientation uiChartAxis::orientation() const
+{
+    return qabstractaxis_->orientation()==Qt::Vertical ? OD::Vertical
+						       : OD::Horizontal;
+}
+
+
+void uiChartAxis::setRange( const Interval<float>& range )
+{
+    if ( range.isRev() )
+    {
+	setReverse( true );
+	setRange( range.stop, range.start );
+    }
+    else
+    {
+	setReverse( false );
+	setRange( range.start, range.stop );
+    }
 }
 
 
 void uiChartAxis::setRange( float min, float max )
 {
     qabstractaxis_->setRange( min, max );
+    Interval<float> rg( range() );
+    rg.sort();
+    rangeChanged.trigger( rg );
 }
 
 
 void uiChartAxis::setReverse( bool yn )
 {
     qabstractaxis_->setReverse( yn );
+}
+
+
+Interval<float> uiChartAxis::range() const
+{
+    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    float fmin, fmax;
+    if ( qvalueaxis )
+    {
+	fmin = qvalueaxis->min();
+	fmax = qvalueaxis->max();
+    }
+    else if ( qlogvalueaxis )
+    {
+	fmin = qlogvalueaxis->min();
+	fmax = qlogvalueaxis->max();
+    }
+    else
+	return Interval<float>::udf();
+
+    if ( reversed() )
+	return Interval<float>( fmax, fmin );
+    else
+	return Interval<float>( fmin, fmax );
+}
+
+
+bool uiChartAxis::reversed() const
+{
+    return qabstractaxis_->isReverse();
 }
 
 
@@ -124,6 +187,57 @@ void uiChartAxis::setMinorTickCount( int count )
 	qlogvalueaxis->setMinorTickCount( count );
 }
 
+
+int uiChartAxis::getMinorTickCount() const
+{
+    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    if ( qvalueaxis )
+	return qvalueaxis->minorTickCount();
+    if ( qlogvalueaxis )
+	return qlogvalueaxis->minorTickCount();
+
+    return mUdf(int);
+}
+
+
+void uiChartAxis::setTickCount( int count )
+{
+    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    if ( qvalueaxis )
+	qvalueaxis->setTickCount( count );
+}
+
+
+int uiChartAxis::getTickCount() const
+{
+    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    if ( qvalueaxis )
+	return qvalueaxis->tickCount();
+    if ( qlogvalueaxis )
+	return qlogvalueaxis->tickCount();
+
+    return mUdf(int);
+}
+
+
+void uiChartAxis::setTickInterval( float step )
+{
+    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    if ( qvalueaxis )
+	qvalueaxis->setTickInterval( step );
+}
+
+
+float uiChartAxis::getTickInterval() const
+{
+    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    if ( qvalueaxis )
+	return qvalueaxis->tickInterval();
+
+    return mUdf(float);
+}
 
 uiChartAxis::AxisType uiChartAxis::type() const
 {
@@ -140,13 +254,16 @@ QAbstractAxis* uiChartAxis::getQAxis()
 // uiValueAxis
 uiValueAxis::uiValueAxis()
     : uiChartAxis(new QValueAxis)
+    , axislimits_(Interval<float>::udf())
 {
     qvalueaxis_ = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    msghandler_ = new i_valueAxisMsgHandler( this, qvalueaxis_ );
 }
 
 
 uiValueAxis::~uiValueAxis()
 {
+    delete msghandler_;
 }
 
 
@@ -176,17 +293,58 @@ void uiValueAxis::setTickInterval( float intv )
 }
 
 
-void uiValueAxis::setTickCount( int count )
+void uiValueAxis::setAxisLimits( const Interval<float>& range, bool include )
 {
-    qvalueaxis_->setTickCount( count );
+    if ( include )
+       axislimits_.include( range );
+    else
+       axislimits_ = range;
+
+    setRange( axislimits_.start, axislimits_.stop );
 }
 
+
+void uiValueAxis::setAxisLimits( float min, float max, bool include )
+{
+    const Interval<float> range( min, max );
+    setAxisLimits( range, include );
+}
+
+
+void uiValueAxis::snapRange( float min, float max )
+{
+    const Interval<float> rg( min, max );
+    if ( axislimits_.isUdf() || axislimits_.includes(rg) )
+	return;
+
+    const float width = rg.width();
+    if ( min<axislimits_.start )
+    {
+	min = axislimits_.start;
+	max = min + width;
+    }
+
+    if ( max>axislimits_.stop )
+    {
+	max = axislimits_.stop;
+	min = max-width<axislimits_.start ? axislimits_.start : max-width;
+    }
+
+    setRange( min, max );
+}
+
+
+Interval<float> uiValueAxis::getAxisLimits()
+{
+    return axislimits_;
+}
 
 
 // uiLogValueAxis
 uiLogValueAxis::uiLogValueAxis()
-    : uiChartAxis(*this)
+    : uiChartAxis(new QLogValueAxis)
 {
+    qlogvalueaxis_ = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
 }
 
 
