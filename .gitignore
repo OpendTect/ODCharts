@@ -1,11 +1,12 @@
 # CMake related files
 CMakeCache.txt
+CMakeCache.txt.prev
 CMakeFiles
 CMakeLists.txt.user*
 CMakeModules
 CTestCustom.cmake
 cmake_install.cmake
-.cmake
+*.cmake
 Makefile
 
 # Visual Studio related files
@@ -24,3 +25,6 @@ Makefile
 *deps.h
 *.pdb
 *.obj
+
+# Qt
+moc_*
