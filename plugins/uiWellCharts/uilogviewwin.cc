@@ -16,6 +16,7 @@ ________________________________________________________________________
 #include "uilogview.h"
 #include "uilogviewertree.h"
 #include "uilogviewtable.h"
+#include "uimain.h"
 #include "uimsg.h"
 #include "uiscrollarea.h"
 #include "uisplitter.h"
@@ -23,6 +24,7 @@ ________________________________________________________________________
 #include "uitoolbar.h"
 #include "uitoolbutton.h"
 
+#include "commandlineparser.h"
 #include "filepath.h"
 #include "iopar.h"
 #include "oddirs.h"
@@ -79,6 +81,21 @@ void uiLogViewWin::uiInitCB( CallBacker* )
     mAttachCB( logviewtree_->logUnchecked, uiLogViewWin::removeLogCB );
     mAttachCB( logviewtree_->markerChecked, uiLogViewWin::addMarkerCB );
     mAttachCB( logviewtree_->markerUnchecked, uiLogViewWin::removeMarkerCB );
+
+    CommandLineParser clp;
+    if ( this==uiMain::theMain().topLevel() && !clp.hasKey("odserver") )
+    {
+        BufferString parfile;
+	if ( clp.getVal("lvpar",parfile) )
+	    loadFile( parfile );
+	else
+	{
+	    BufferStringSet wellids, welllogs;
+	    clp.getVal( "well", wellids );
+	    clp.getVal( "welllogs", welllogs );
+	    loadWells( wellids, welllogs );
+	}
+    }
 }
 
 
@@ -257,31 +274,47 @@ void uiLogViewWin::clearAll()
 }
 
 
-void uiLogViewWin::newCB( CallBacker* )
+void uiLogViewWin::addWellData( const DBKey& wellkey, const TypeSet<int>& logs )
 {
-    if ( !checkSave() )
-	return;
+    addTrackCB( nullptr );
+    const int vwidx = logviewtbl_->currentView();
+    BufferStringSet lognms;
+    Well::Man::getLogNamesByID( wellkey, lognms );
+    for ( const auto& lidx : logs )
+    {
+	if ( !lognms.validIdx(lidx) )
+	    continue;
 
-    clearAll();
+	addLog( vwidx, wellkey, lognms.get(lidx) );
+    }
 }
 
 
-void uiLogViewWin::openCB( CallBacker* )
+void uiLogViewWin::loadWells( const BufferStringSet& wellids,
+			      const BufferStringSet& logids )
 {
-    if ( !checkSave() )
+    if ( wellids.size() != logids.size() )
 	return;
 
-    const BufferString defseldir =
-	FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
-    uiFileDialog dlg( this, true, 0, filtStr(),
-		      tr("Load Log View parameters") );
-    dlg.setDirectory(defseldir);
-    if (!dlg.go())
-	return;
+    for ( int idx=0; idx<wellids.size(); idx++ )
+    {
+	const DBKey wellkey( MultiID(wellids.get(idx)) );
+	BufferStringSet lognums;
+	lognums.unCat( logids.get(idx), "," );
+	TypeSet<int> logs;
+	for ( const auto* logid : lognums )
+	    logs += logid->toInt();
 
+	addWellData( wellkey, logs );
+    }
+}
+
+
+void uiLogViewWin::loadFile( const char* nm )
+{
     clearAll();
 
-    filename_ = dlg.fileName();
+    filename_ = nm;
     IOPar iop;
     if ( iop.read(filename_,"Log Display",true) )
     {
@@ -306,6 +339,32 @@ void uiLogViewWin::openCB( CallBacker* )
 	logviewtbl_->updateMasterZrangeCB( nullptr );
 	needsave_ = false;
     }
+}
+
+
+void uiLogViewWin::newCB( CallBacker* )
+{
+    if ( !checkSave() )
+	return;
+
+    clearAll();
+}
+
+
+void uiLogViewWin::openCB( CallBacker* )
+{
+    if ( !checkSave() )
+	return;
+
+    const BufferString defseldir =
+	FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
+    uiFileDialog dlg( this, true, 0, filtStr(),
+		      tr("Load Log View parameters") );
+    dlg.setDirectory(defseldir);
+    if ( !dlg.go() )
+	return;
+
+    loadFile( dlg.fileName() );
 }
 
 
