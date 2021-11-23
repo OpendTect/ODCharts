@@ -155,10 +155,10 @@ void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
     Well::LoadReqs lreq( Well::Trck );
     RefMan<Well::Data> wd = Well::MGR().get( wellkey, lreq );
     logviewtbl_->updateViewLabel( idx );
-    if ( logviewtbl_->masterZRange().includes(wd->track().zRange()) )
-	chart->getZAxis()->setAxisLimits( logviewtbl_->masterZRange() );
+    if ( logviewtbl_->primaryZRange().includes(wd->track().zRange()) )
+	chart->getZAxis()->setAxisLimits( logviewtbl_->primaryZRange() );
     else
-	logviewtbl_->updateMasterZrangeCB( nullptr );
+	logviewtbl_->updatePrimaryZrangeCB( nullptr );
 
     needsave_ = true;
 }
@@ -176,7 +176,7 @@ void uiLogViewWin::rmvLog( int idx, const MultiID& wellkey,
 
     chart->removeLogCurve( wellkey, lognm );
     logviewtbl_->updateViewLabel( idx );
-    logviewtbl_->updateMasterZrangeCB( nullptr );
+    logviewtbl_->updatePrimaryZrangeCB( nullptr );
 
     needsave_ = true;
 }
@@ -336,7 +336,7 @@ void uiLogViewWin::loadFile( const char* nm )
 	}
 
 	logviewtbl_->clearSelection();
-	logviewtbl_->updateMasterZrangeCB( nullptr );
+	logviewtbl_->updatePrimaryZrangeCB( nullptr );
 	needsave_ = false;
     }
 }

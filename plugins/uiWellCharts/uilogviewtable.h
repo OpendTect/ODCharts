@@ -29,15 +29,16 @@ public:
     bool			validIdx(int) const;
 
     void			addTrackCB(CallBacker*);
+    void			alignTopCB(CallBacker*);
     void 			removeTrackCB(CallBacker*);
-    void			updatePlotAreaCB(CallBacker*);
-    void			updateMasterZrangeCB(CallBacker*);
+    void			updatePrimaryChartCB(CallBacker*);
+    void			updatePrimaryZrangeCB(CallBacker*);
     void			updateViewLabel(int);
     void			clearSelection();
 
-    Interval<float>		masterZRange() const;
-    void			setMasterZRange(const Interval<float>,
-						bool apply=true);
+    Interval<float>		primaryZRange() const;
+    void			setPrimaryZRange(const Interval<float>,
+						 bool apply=true);
 
     uiLogChart*			getCurrentLogChart();
     uiLogChart*			getLogChart(int);
@@ -49,8 +50,9 @@ public:
 
 protected:
     uiTable*			logviews_;
+    uiLogChart*			primarychart_	= nullptr;
     bool			showtools_;
-    Interval<float>		masterzrange_	= Interval<float>::udf();
+    Interval<float>		primaryzrange_	= Interval<float>::udf();
     int				selected_	= -1;
 
     void			addViewer(int);
