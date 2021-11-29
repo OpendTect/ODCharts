@@ -10,7 +10,7 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
-#include "uimainwin.h"
+#include "uidialog.h"
 #include "menuhandler.h"
 
 
@@ -21,7 +21,7 @@ class uiToolBar;
 class uiToolButton;
 class uiLogViewerTree;
 
-mExpClass(uiWellCharts) uiLogViewWin : public uiMainWin
+mExpClass(uiWellCharts) uiLogViewWin : public uiDialog
 { mODTextTranslationClass(uiLogViewWin)
 public:
 			uiLogViewWin(uiParent*);

@@ -39,7 +39,8 @@ static const int sWinHeight = 500;
 static const int sWinWidth = 500;
 
 uiLogViewWin::uiLogViewWin( uiParent* p )
-    : uiMainWin(p,toUiString("OpendTect - Log Viewer"))
+    : uiDialog(p,Setup(toUiString("OpendTect - Log Viewer"), mNoDlgTitle,
+		       mTODOHelpKey).modal(false))
     , newitem_(uiStrings::sNew(),"new","",
 				mCB(this,uiLogViewWin,newCB),sMnuID++)
     , openitem_(uiStrings::sOpen(),"open","",
@@ -55,6 +56,7 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
 {
     mainObject()->setMinimumHeight( sWinHeight );
     mainObject()->setMinimumWidth( sWinWidth );
+    setCtrlStyle( CloseOnly );
     createToolBar();
 
     logviewtree_ = new uiLogViewerTree( this );
@@ -122,6 +124,8 @@ bool uiLogViewWin::checkSave()
 	const int res = uiMSG().askSave( msg, false );
 	if ( res == 1 )
 	    saveasCB( nullptr );
+	else
+	    needsave_ = false;
     }
 
     return true;
