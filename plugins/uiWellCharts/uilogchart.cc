@@ -17,11 +17,12 @@ ________________________________________________________________________
 #include "chartutils.h"
 #include "draw.h"
 #include "logcurve.h"
-#include "math2.h"
 #include "markerline.h"
+#include "math2.h"
 #include "multiid.h"
 #include "separstr.h"
 #include "survinfo.h"
+
 
 mDefineEnumUtils(uiLogChart, Scale, "Log chart scale type")
     { "Linear", "Log10", 0 };
@@ -74,6 +75,31 @@ LogCurve* uiLogChart::getLogCurve( const MultiID& wellid, const char* lognm )
 }
 
 
+LogCurve* uiLogChart::getLogCurve( const char* lognm )
+{
+    for ( auto* logcurve : logcurves_ )
+    {
+	if ( logcurve->logName()==lognm )
+	    return logcurve;
+    }
+
+    return nullptr;
+}
+
+
+void uiLogChart::addLogCurve( LogCurve* lc, const OD::LineStyle& lstyle,
+			      float min, float max, bool reverse,
+			      bool show_wellnm, bool show_uom )
+{
+    if ( !lc )
+	return;
+
+    lc->addTo( *this, lstyle, min, max, reverse, show_wellnm, show_uom );
+    logcurves_ += lc;
+    logChange.trigger();
+}
+
+
 void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm )
 {
     auto* logcurve = new LogCurve( wellid, lognm );
@@ -95,13 +121,32 @@ void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm,
 
 void uiLogChart::addLogCurve( const MultiID& wellid, const char* lognm,
 			      const OD::LineStyle& lstyle,
-			      float min, float max, bool reverse )
+			      float min, float max, bool reverse,
+			      bool show_wellnm, bool show_uom )
 {
     auto* logcurve = new LogCurve( wellid, lognm );
-    logcurve->addTo( *this, lstyle, min, max, reverse );
+    logcurve->addTo( *this, lstyle, min, max, reverse, show_wellnm, show_uom );
     logcurves_ += logcurve;
     logChange.trigger();
 }
+
+
+void uiLogChart::removeLogCurve( const char* lognm )
+{
+    for ( int idx=0; idx<logcurves_.size(); idx++ )
+    {
+	if ( logcurves_[idx]->logName()==lognm )
+	{
+	    LogCurve* tbremoved = logcurves_.removeSingle( idx );
+	    tbremoved->removeFrom( *this );
+	    delete tbremoved;
+	    break;
+	}
+    }
+
+    logChange.trigger();
+}
+
 
 
 void uiLogChart::removeLogCurve( const MultiID& wellid, const char* lognm )

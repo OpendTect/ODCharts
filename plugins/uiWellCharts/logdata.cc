@@ -48,19 +48,26 @@ bool LogData::initLog()
     if ( !log )
 	return false;
 
-    wellname_ = wd->name();
-    uomlbl_ = log->unitMeasLabel();
-    mnemlbl_ = log->mnemLabel();
-    dahrange_ = log->dahRange();
-    valrange_ = log->valueRange();
+    return initLog( wd->name(), *log );
+}
+
+
+bool LogData::initLog( const char* wellnm, const Well::Log& log )
+{
+    wellname_ = wellnm;
+    logname_ = log.name();
+    uomlbl_ = log.unitMeasLabel();
+    mnemlbl_ = log.mnemLabel();
+    dahrange_ = log.dahRange();
+    valrange_ = log.valueRange();
     disprange_.setUdf();
 
-    const Mnemonic* mnem = log->mnemonic();
+    const Mnemonic* mnem = log.mnemonic();
     if ( mnem )
     {
 	const Mnemonic::DispDefs& disp = mnem->disp_;
 	const UnitOfMeasure* mnem_uom = mnem->unit();
-	const UnitOfMeasure* log_uom = log->unitOfMeasure();
+	const UnitOfMeasure* log_uom = log.unitOfMeasure();
 
 	disprange_.start = getConvertedValue( disp.typicalrange_.start,
 					      mnem_uom, log_uom );
@@ -72,7 +79,6 @@ bool LogData::initLog()
 	disprange_.start = valrange_.start;
 	disprange_.stop = valrange_.stop;
     }
-
     return true;
 }
 
@@ -94,6 +100,12 @@ void LogData::setDisplayRange( float left, float right )
 void LogData::setDisplayRange( const Interval<float>& range )
 {
     disprange_ = range;
+}
+
+
+void LogData::setLogName( const char* nm )
+{
+    logname_ = nm;
 }
 
 

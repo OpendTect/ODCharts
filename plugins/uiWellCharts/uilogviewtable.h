@@ -19,7 +19,7 @@ class uiTable;
 mExpClass(uiWellCharts) uiLogViewTable : public uiGroup
 { mODTextTranslationClass(uiLogViewTable);
 public:
-				uiLogViewTable(uiParent*,bool showTools=false);
+				uiLogViewTable(uiParent*,bool showtools=false);
 				~uiLogViewTable();
 
     int				currentView() const;
@@ -45,6 +45,7 @@ public:
     uiLogView*			getCurrentLogView();
     uiLogView*			getLogView(int vwidx);
     bool			isViewLocked(int vwidx);
+    void			setViewLocked(int,bool yn=true);
 
     Notifier<uiLogViewTable>	chartSelectionChg;
 

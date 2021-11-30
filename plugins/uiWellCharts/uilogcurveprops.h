@@ -11,6 +11,7 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "uigroup.h"
+
 #include "uichartfillx.h"
 
 class LogCurve;

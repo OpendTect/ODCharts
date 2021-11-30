@@ -28,11 +28,11 @@ uiLogViewTable::uiLogViewTable( uiParent* p, bool showtools )
 {
     const int nrrows = showtools_ ? 2 : 1;
     logviews_ = new uiTable( this, uiTable::Setup(nrrows,0)
-			    .rowgrow(false).colgrow(true)
-			    .fillrow(true).fillcol(true)
-			    .defrowlbl(false).defcollbl(false)
-			    .insertrowallowed(false).removerowallowed(false)
-			    .mincolwdt(30.0), "" );
+				.rowgrow(false).colgrow(true)
+				.fillrow(true).fillcol(true)
+				.defrowlbl(false).defcollbl(false)
+				.insertrowallowed(false).removerowallowed(false)
+				.mincolwdt(30.0), "" );
     logviews_->setStretch( 2, 2 );
     logviews_->showGrid( false );
     logviews_->setTopHeaderHidden( false );
@@ -220,6 +220,7 @@ void uiLogViewTable::updatePrimaryChartCB( CallBacker* )
     alignTopCB( nullptr );
 }
 
+
 void uiLogViewTable::alignTopCB( CallBacker* cb )
 {
     if ( !primarychart_ )
@@ -316,8 +317,8 @@ void uiLogViewTable::addTools( int col )
     if ( validIdx(col) && logviews_->getCellGroup(toolscell) )
 	return;
 
-    uiLogViewToolGrp* tools = new uiLogViewToolGrp( nullptr, *getLogView(col) );
-    logviews_->setCellGroup( toolscell, tools );
+    auto* grp = new uiLogViewToolGrp( nullptr, *getLogView(col) );
+    logviews_->setCellGroup( toolscell, grp );
 }
 
 
@@ -329,6 +330,7 @@ void uiLogViewTable::clearSelection()
 	if ( logview )
 	    logview->setBackgroundColor( OD::Color::NoColor() );
     }
+
     selected_ = -1;
     chartSelectionChg.trigger();
 }
@@ -338,13 +340,13 @@ void uiLogViewTable::selectView( int col )
 {
     clearSelection();
     uiLogView* logview = getLogView( col );
-    if ( logview )
-    {
-	logview->setBackgroundColor( OD::Color(205,235,205) );
-	selected_ = col;
-	logviews_->ensureCellVisible( RowCol(0,col) );
-	chartSelectionChg.trigger();
-    }
+    if ( !logview )
+	return;
+
+    logview->setBackgroundColor( OD::Color(205,235,205) );
+    selected_ = col;
+    logviews_->ensureCellVisible( RowCol(0,col) );
+    chartSelectionChg.trigger();
 }
 
 
@@ -353,12 +355,25 @@ bool uiLogViewTable::isViewLocked( int vwidx )
     if ( validIdx(vwidx) && showtools_ )
     {
 	const RowCol curcell( 0, vwidx );
-	mDynamicCastGet(uiLogViewToolGrp*, tools,
+	mDynamicCastGet(uiLogViewToolGrp*,grp,
 			logviews_->getCellGroup(curcell));
-	return tools->isLocked();
+	return grp ? grp->isLocked() : false;
     }
 
     return false;
+}
+
+
+void uiLogViewTable::setViewLocked( int vwidx, bool yn )
+{
+    if ( validIdx(vwidx) && showtools_ )
+    {
+	const RowCol curcell( 0, vwidx );
+	mDynamicCastGet(uiLogViewToolGrp*,grp,
+			logviews_->getCellGroup(curcell));
+	if ( grp )
+	    grp->setLocked( yn );
+    }
 }
 
 
@@ -378,12 +393,12 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
     if ( !isViewLocked(vwidx) )
 	return;
 
-    for (int idx=0; idx<logviews_->nrCols(); idx++ )
+    for ( int idx=0; idx<logviews_->nrCols(); idx++ )
     {
-	if ( idx!=vwidx && isViewLocked( idx ) )
+	if ( idx!=vwidx && isViewLocked(idx) )
 	{
 	    uiLogChart* logchart = getLogChart( idx );
-	    NotifyStopper ns(logchart->getZAxis()->rangeChanged);
+	    NotifyStopper ns( logchart->getZAxis()->rangeChanged );
 	    logchart->setZRange( range );
 	    logchart->needsRedraw.trigger();
 	}

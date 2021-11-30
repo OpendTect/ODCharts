@@ -11,16 +11,16 @@ ________________________________________________________________________
 
 #include "uilogcurveprops.h"
 
-#include "datainpspec.h"
-#include "draw.h"
-#include "logcurve.h"
-#include "loggradient.h"
 #include "uichartfillx.h"
 #include "uicolor.h"
 #include "uicolortable.h"
 #include "uigeninput.h"
 #include "uilogchart.h"
 #include "uisellinest.h"
+
+#include "draw.h"
+#include "logcurve.h"
+#include "loggradient.h"
 #include "wellchartcommon.h"
 #include "wellman.h"
 
@@ -29,8 +29,8 @@ ________________________________________________________________________
 uiLogFillProps::uiLogFillProps( uiParent* p, uiChartFillx::FillDir fdir,
 				uiLogChart& lc )
     : uiGroup(p)
-    , filldir_(fdir)
     , logchart_(lc)
+    , filldir_(fdir)
 {
     const EnumDef& ftdef = uiChartFillx::FillTypeDef();
     const EnumDef& fldef = uiWellCharts::FillLimitDef();

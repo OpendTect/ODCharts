@@ -8,19 +8,20 @@ ________________________________________________________________________
 
 -*/
 
-
 #include "markerline.h"
+
+#include "uichartaxes.h"
+#include "uichartlabel.h"
+#include "uilogchart.h"
 
 #include "draw.h"
 #include "mnemonics.h"
 #include "multiid.h"
+#include "unitofmeasure.h"
 #include "welldata.h"
 #include "wellman.h"
 #include "wellmarker.h"
-#include "uichartaxes.h"
-#include "uichartlabel.h"
-#include "uilogchart.h"
-#include "unitofmeasure.h"
+
 
 MarkerLine::MarkerLine()
     : wellid_(MultiID::udf())

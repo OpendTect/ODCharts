@@ -11,15 +11,15 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "uidialog.h"
-#include "menuhandler.h"
 
+#include "menuhandler.h"
 
 class uiLogChart;
 class uiLogView;
 class uiLogViewTable;
+class uiLogViewerTree;
 class uiToolBar;
 class uiToolButton;
-class uiLogViewerTree;
 
 mExpClass(uiWellCharts) uiLogViewWin : public uiDialog
 { mODTextTranslationClass(uiLogViewWin)

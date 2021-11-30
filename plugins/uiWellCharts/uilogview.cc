@@ -16,6 +16,7 @@ ________________________________________________________________________
 #include "uilogviewpropdlg.h"
 #include "uimsg.h"
 #include "uistrings.h"
+
 #include "welldata.h"
 #include "welllog.h"
 #include "welllogset.h"

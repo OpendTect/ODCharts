@@ -11,11 +11,12 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
+#include "logdata.h"
+#include "uigradientimg.h"
+
 #include "coltabsequence.h"
 #include "coltabmapper.h"
-#include "logdata.h"
 #include "separstr.h"
-#include "uigradientimg.h"
 
 namespace Well { class Log; }
 

@@ -42,6 +42,14 @@ LogCurve::LogCurve( const MultiID& wellid, const char* lognm )
 }
 
 
+LogCurve::LogCurve( const char* wellnm, const Well::Log& log )
+    : LogData()
+{
+    initLog( wellnm, log );
+    addLog( log );
+}
+
+
 LogCurve::~LogCurve()
 {
     deepErase( series_ );
@@ -95,11 +103,15 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle )
 
 
 void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
-		      float min, float max, bool reverse )
+		      float min, float max, bool reverse, bool show_wellnm,
+		      bool show_uom )
 {
     BufferString logtitle( logname_ );
-    logtitle.add(" - ").add( wellname_ );
-    logtitle.add(" (").add( uomlbl_ ).add(")");
+    if ( show_wellnm )
+	logtitle.add(" - ").add( wellname_ );
+    if ( show_uom )
+	logtitle.add(" (").add( uomlbl_ ).add(")");
+
     StepInterval<float> ni =
 		StepInterval<float>( min, max, 1 ).niceInterval( 10, false );
 
@@ -220,6 +232,7 @@ void LogCurve::removeFrom( uiLogChart& logchart )
     righttolog_.setEmpty();
 
     logchart.removeAxis( axis_ );
+    deleteAndZeroPtr( axis_ );
 }
 
 

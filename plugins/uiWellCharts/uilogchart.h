@@ -11,6 +11,7 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "uichart.h"
+
 #include "enums.h"
 
 class uiChartAxis;
@@ -47,13 +48,20 @@ public:
 
     bool		hasLogCurve(const MultiID&,const char* lognm);
     LogCurve*		getLogCurve(const MultiID&,const char* lognm);
+    LogCurve*		getLogCurve(const char* lognm);
+    void		addLogCurve(LogCurve*,const OD::LineStyle&,
+				    float min,float max,bool reverse,
+				    bool show_wellnm=true,bool show_uom=true);
+			// LogCurve becomes mine
     void		addLogCurve(const MultiID&,const char* lognm);
     void		addLogCurve(const MultiID&,const char* lognm,
 				    const OD::LineStyle&);
     void		addLogCurve(const MultiID&,const char* lognm,
 				    const OD::LineStyle&,float min,float max,
-				    bool reverse);
+				    bool reverse,bool show_wellnm=true,
+				    bool show_uom=true);
     void		removeLogCurve(const MultiID&,const char* lognm);
+    void		removeLogCurve(const char* lognm);
     void		removeAllCurves();
 
     bool		hasMarker(const MultiID&,const char* markernm);

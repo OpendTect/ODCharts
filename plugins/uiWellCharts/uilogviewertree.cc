@@ -11,9 +11,10 @@ ________________________________________________________________________
 
 #include "uilogviewertree.h"
 
-#include "ioobj.h"
 #include "uistrings.h"
 #include "uitreeview.h"
+
+#include "ioobj.h"
 #include "welldata.h"
 #include "wellman.h"
 

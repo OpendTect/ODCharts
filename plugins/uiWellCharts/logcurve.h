@@ -12,6 +12,7 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "logdata.h"
+
 #include "uichartseries.h"
 #include "color.h"
 #include "draw.h"
@@ -27,13 +28,15 @@ mExpClass(uiWellCharts) LogCurve : public LogData
 public:
 			LogCurve();
 			LogCurve(const MultiID&,const char*);
+			LogCurve(const char*,const Well::Log&);
 			~LogCurve();
 
     void		addTo(uiLogChart&);
     void		addTo(uiLogChart&,const IOPar&);
     void		addTo(uiLogChart&,const OD::LineStyle&);
     void		addTo(uiLogChart&,const OD::LineStyle&,float min,
-			      float max,bool reverse);
+			      float max,bool reverse,bool show_wellnm=true,
+			      bool show_uom=true);
     void		addCurveFillTo(uiLogChart&);
     void		removeFrom(uiLogChart&);
 

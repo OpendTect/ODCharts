@@ -10,11 +10,11 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
+#include "uitreeview.h"
 
 #include "bufstring.h"
 #include "multiid.h"
 #include "uistring.h"
-#include "uitreeview.h"
 
 
 class uiTreeViewItem;
