@@ -32,7 +32,7 @@ public:
     const Well::Log*	wellLog() const;
     Interval<float>	zRange() const		{ return dahrange_; }
     Interval<float>	logRange() const	{ return valrange_; }
-    Interval<float>	dispRange() const	{ return disprange_; }
+    Interval<float>	dispRange();
 
     void		setDisplayRange(float left,float right);
     virtual void	setDisplayRange(const Interval<float>& range);

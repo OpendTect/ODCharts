@@ -91,6 +91,17 @@ const Well::Log* LogData::wellLog() const
 }
 
 
+Interval<float> LogData::dispRange()
+{
+    if ( disprange_.isUdf() )
+    {
+	const StepInterval<float> ni( valrange_ );
+	disprange_ = ni.niceInterval( 10, false );
+    }
+    return disprange_;
+}
+
+
 void LogData::setDisplayRange( float left, float right )
 {
     setDisplayRange( Interval<float>(left,right) );

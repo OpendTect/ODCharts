@@ -33,7 +33,8 @@ public:
 
     void		addTo(uiLogChart&);
     void		addTo(uiLogChart&,const IOPar&);
-    void		addTo(uiLogChart&,const OD::LineStyle&);
+    void		addTo(uiLogChart&,const OD::LineStyle&,
+			      bool show_wellnm=true,bool show_uom=true);
     void		addTo(uiLogChart&,const OD::LineStyle&,float min,
 			      float max,bool reverse,bool show_wellnm=true,
 			      bool show_uom=true);

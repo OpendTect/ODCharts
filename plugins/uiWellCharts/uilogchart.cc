@@ -22,13 +22,14 @@ ________________________________________________________________________
 #include "multiid.h"
 #include "separstr.h"
 #include "survinfo.h"
+#include "unitofmeasure.h"
 
 
 mDefineEnumUtils(uiLogChart, Scale, "Log chart scale type")
     { "Linear", "Log10", 0 };
 
 mDefineEnumUtils(uiLogChart, ZType, "Log chart Z type")
-    { "MD", "TVD", "TVDSS", "TWT" };
+    { "MD", "TVD", "TVDSS", "TVDSD", "TWT" };
 
 uiLogChart::uiLogChart( ZType ztype, Scale scale )
     : logChange(this)
@@ -88,13 +89,12 @@ LogCurve* uiLogChart::getLogCurve( const char* lognm )
 
 
 void uiLogChart::addLogCurve( LogCurve* lc, const OD::LineStyle& lstyle,
-			      float min, float max, bool reverse,
 			      bool show_wellnm, bool show_uom )
 {
     if ( !lc )
 	return;
 
-    lc->addTo( *this, lstyle, min, max, reverse, show_wellnm, show_uom );
+    lc->addTo( *this, lstyle, show_wellnm, show_uom );
     logcurves_ += lc;
     logChange.trigger();
 }
@@ -238,6 +238,14 @@ void uiLogChart::removeAllMarkers()
 }
 
 
+void uiLogChart::setZType( ZType ztype )
+{
+    ztype_ = ztype;
+// TODO update logcurves to new ztype
+    updateZAxisTitle();
+}
+
+
 uiValueAxis* uiLogChart::getZAxis() const
 {
     return zaxis_;
@@ -261,6 +269,19 @@ void uiLogChart::setZRange( float minz, float maxz )
 }
 
 
+void uiLogChart::updateZAxisTitle()
+{
+    BufferString axtitle( toString(ztype_) );
+    axtitle.addSpace();
+    if ( ztype_==TWT )
+	axtitle.add( UnitOfMeasure::surveyDefTimeUnitAnnot(true,true) );
+    else
+	axtitle.add( UnitOfMeasure::surveyDefDepthUnitAnnot(true,true) );
+
+    zaxis_->setTitleText( axtitle );
+}
+
+
 void uiLogChart::setZRange( const Interval<float>& zrange )
 {
     setZRange( zrange.start, zrange.stop );
@@ -277,6 +298,7 @@ void uiLogChart::makeZaxis()
     zaxis_->setLabelFormat( "%d" );
     zaxis_->setRange( 0, 1000 );
     zaxis_->setReverse( true );
+    updateZAxisTitle();
     addAxis( zaxis_, OD::Left );
 }
 
