@@ -11,6 +11,7 @@ ________________________________________________________________________
 
 #include "loggradient.h"
 #include "uigradientimg.h"
+
 #include "chartutils.h"
 #include "welllog.h"
 

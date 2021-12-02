@@ -27,6 +27,7 @@ public:
     void		addObject(uiObject*);
 
     bool		isLocked() const;
+    void		setLocked(bool yn=true);
 
 protected:
     uiLogView&		logview_;

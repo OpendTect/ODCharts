@@ -11,11 +11,11 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
+
 #include "multiid.h"
 #include "ranges.h"
 
 namespace Well { class Log; }
-
 
 mExpClass(uiWellCharts) LogData
 {
@@ -32,15 +32,17 @@ public:
     const Well::Log*	wellLog() const;
     Interval<float>	zRange() const		{ return dahrange_; }
     Interval<float>	logRange() const	{ return valrange_; }
-    Interval<float>	dispRange() const	{ return disprange_; }
+    Interval<float>	dispRange();
 
     void		setDisplayRange(float left,float right);
     virtual void	setDisplayRange(const Interval<float>& range);
+    void		setLogName(const char*);
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
 
 protected:
     bool		initLog();
+    bool		initLog(const char*,const Well::Log&);
 
     MultiID		wellid_;
     BufferString 	wellname_;

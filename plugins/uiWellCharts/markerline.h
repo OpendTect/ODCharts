@@ -11,9 +11,10 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
-#include "uichartseries.h"
-#include "multiid.h"
+
 #include "draw.h"
+#include "multiid.h"
+#include "uichartseries.h"
 #include "uistring.h"
 
 class uiLogChart;

@@ -42,6 +42,14 @@ LogCurve::LogCurve( const MultiID& wellid, const char* lognm )
 }
 
 
+LogCurve::LogCurve( const char* wellnm, const Well::Log& log )
+    : LogData()
+{
+    initLog( wellnm, log );
+    addLog( log );
+}
+
+
 LogCurve::~LogCurve()
 {
     deepErase( series_ );
@@ -60,50 +68,45 @@ void LogCurve::addTo( uiLogChart& logchart )
 
     const Mnemonic* mnem = MNC().find( mnemlbl_ );
     OD::LineStyle lstyle;
-    float min, max;
-    bool reverse;
     if ( mnem )
     {
 	const Mnemonic::DispDefs& disp = mnem->disp_;
 	lstyle.color_ = disp.color_;
     }
 
-    if ( !disprange_.isUdf() )
-    {
-	min = disprange_.isRev() ? disprange_.stop : disprange_.start;
-	max = disprange_.isRev() ? disprange_.start : disprange_.stop;
-	reverse = disprange_.isRev();
-	addTo( logchart, lstyle, min, max, reverse );
-    }
+    addTo( logchart, lstyle );
 }
 
 
 void LogCurve::addTo( uiLogChart& logchart, const IOPar& iop )
 {
     usePar( iop );
-    float min = disprange_.isRev() ? disprange_.stop : disprange_.start;
-    float max = disprange_.isRev() ? disprange_.start : disprange_.stop;
-    bool reverse = disprange_.isRev();
-    addTo( logchart, linestyle_, min, max, reverse );
-}
-
-
-void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle )
-{
-    addTo( logchart, lstyle, valrange_.start, valrange_.stop, false );
+    addTo( logchart, linestyle_ );
 }
 
 
 void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
-		      float min, float max, bool reverse )
+		      bool show_wellnm, bool show_uom )
+{
+    const auto& dr = dispRange();
+    const bool reverse = dr.isRev();
+    const float min = reverse ? dr.stop : dr.start;
+    const float max = reverse ? dr.start : dr.stop;
+    addTo( logchart, lstyle, min, max, reverse, show_wellnm, show_uom );
+}
+
+
+void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
+		      float min, float max, bool reverse, bool show_wellnm,
+		      bool show_uom )
 {
     BufferString logtitle( logname_ );
-    logtitle.add(" - ").add( wellname_ );
-    logtitle.add(" (").add( uomlbl_ ).add(")");
-    StepInterval<float> ni =
-		StepInterval<float>( min, max, 1 ).niceInterval( 10, false );
+    if ( show_wellnm )
+	logtitle.add(" - ").add( wellname_ );
+    if ( show_uom )
+	logtitle.add(" (").add( uomlbl_ ).add(")");
 
-    axis_ = logchart.makeLogAxis( logtitle, ni.start, ni.stop, reverse );
+    axis_ = logchart.makeLogAxis( logtitle, min, max, reverse );
     axis_->setLineStyle( lstyle );
     disprange_ = axis_->range();
     logchart.addAxis( axis_, OD::Top );
@@ -220,6 +223,7 @@ void LogCurve::removeFrom( uiLogChart& logchart )
     righttolog_.setEmpty();
 
     logchart.removeAxis( axis_ );
+    deleteAndZeroPtr( axis_ );
 }
 
 
@@ -264,7 +268,7 @@ void LogCurve::setDisplayRange( const Interval<float>& range )
 {
     LogData::setDisplayRange( range );
     if ( axis_ )
-	axis_->setRange( range );
+	axis_->setRange( dispRange() );
 }
 
 

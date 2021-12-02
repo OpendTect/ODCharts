@@ -11,9 +11,7 @@ ________________________________________________________________________
 
 #include "uilogviewpropdlg.h"
 
-#include "datainpspec.h"
-#include "draw.h"
-#include "logcurve.h"
+#include "uichartaxes.h"
 #include "uicolor.h"
 #include "uigeninput.h"
 #include "uilistbox.h"
@@ -21,7 +19,10 @@ ________________________________________________________________________
 #include "uilogcurveprops.h"
 #include "uimain.h"
 #include "uisellinest.h"
-#include "uichartaxes.h"
+
+#include "draw.h"
+#include "logcurve.h"
+
 
 // uiLogViewPropDlg
 uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart& logchart )

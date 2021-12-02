@@ -14,6 +14,7 @@ ________________________________________________________________________
 #include "uilogview.h"
 #include "uitoolbutton.h"
 
+
 // uiLogViewToolGrp
 uiLogViewToolGrp::uiLogViewToolGrp( uiParent* p, uiLogView& logview )
     : uiGroup(p)
@@ -25,7 +26,6 @@ uiLogViewToolGrp::uiLogViewToolGrp( uiParent* p, uiLogView& logview )
 	       mCB(&logview,uiLogView,zoomResetCB), false );
     addButton( "settings", uiStrings::sSetup(),
 	       mCB(&logview,uiLogView,showSettingsCB), false );
-
 }
 
 
@@ -41,18 +41,18 @@ int uiLogViewToolGrp::addButton( const char* icon, const uiString& tooltip,
 {
     uiToolButtonSetup tbs( icon, tooltip, cb );
     tbs.istoggle( toggle );
-    auto* tool = new uiToolButton( this, tbs );
+    auto* tb = new uiToolButton( this, tbs );
     if ( toggle )
-	tool->setOn( false );
+	tb->setOn( false );
 
     if ( id != -1 )
-	tool->setID( id );
+	tb->setID( id );
 
     if ( !addedobjects_.isEmpty() )
-	tool->attach( rightOf, addedobjects_.last() );
+	tb->attach( rightOf, addedobjects_.last() );
 
-    addedobjects_ += tool;
-    return tool->id();
+    addedobjects_ += tb;
+    return tb->id();
 }
 
 
@@ -61,8 +61,8 @@ void uiLogViewToolGrp::addObject( uiObject* obj )
     if ( !obj )
 	return;
 
-    mDynamicCastGet(uiToolButton*,button,obj)
-    if ( !button )
+    mDynamicCastGet(uiToolButton*,tb,obj)
+    if ( !tb )
 	obj->setMaximumHeight( uiObject::iconSize() );
 
     obj->reParent( this );
@@ -75,14 +75,25 @@ void uiLogViewToolGrp::addObject( uiObject* obj )
 
 bool uiLogViewToolGrp::isLocked() const
 {
-    mDynamicCastGet(const uiToolButton*,tool,addedobjects_.first())
-    return tool ? tool->isOn() : false;
+    mDynamicCastGet(const uiToolButton*,tb,addedobjects_.first())
+    return tb ? tb->isOn() : false;
+}
+
+
+void uiLogViewToolGrp::setLocked( bool yn )
+{
+    mDynamicCastGet(uiToolButton*,tb,addedobjects_.first())
+    if ( !tb )
+	return;
+
+    tb->setOn( yn );
+    lockCB( nullptr );
 }
 
 
 void uiLogViewToolGrp::lockCB( CallBacker* )
 {
-    mDynamicCastGet(uiToolButton*,tool,addedobjects_.first());
-    if ( tool )
-	tool->setIcon( tool->isOn() ? "lock" : "unlock" );
+    mDynamicCastGet(uiToolButton*,tb,addedobjects_.first());
+    if ( tb )
+	tb->setIcon( tb->isOn() ? "lock" : "unlock" );
 }

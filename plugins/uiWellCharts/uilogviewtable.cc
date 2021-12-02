@@ -28,11 +28,11 @@ uiLogViewTable::uiLogViewTable( uiParent* p, bool showtools )
 {
     const int nrrows = showtools_ ? 2 : 1;
     logviews_ = new uiTable( this, uiTable::Setup(nrrows,0)
-			    .rowgrow(false).colgrow(true)
-			    .fillrow(true).fillcol(true)
-			    .defrowlbl(false).defcollbl(false)
-			    .insertrowallowed(false).removerowallowed(false)
-			    .mincolwdt(30.0), "" );
+				.rowgrow(false).colgrow(true)
+				.fillrow(true).fillcol(true)
+				.defrowlbl(false).defcollbl(false)
+				.insertrowallowed(false).removerowallowed(false)
+				.mincolwdt(30.0), "" );
     logviews_->setStretch( 2, 2 );
     logviews_->showGrid( false );
     logviews_->setTopHeaderHidden( false );
@@ -81,7 +81,7 @@ void uiLogViewTable::setEmpty()
     for ( int idx=size()-1; idx>=0; idx-- )
 	logviews_->removeColumn( idx );
 
-    masterzrange_.setUdf();
+    primaryzrange_.setUdf();
 }
 
 
@@ -122,23 +122,23 @@ uiLogView* uiLogViewTable::getLogView( int col )
 }
 
 
-Interval<float> uiLogViewTable::masterZRange() const
+Interval<float> uiLogViewTable::primaryZRange() const
 {
-    return masterzrange_;
+    return primaryzrange_;
 }
 
 
-void uiLogViewTable::setMasterZRange( const Interval<float> range, bool apply )
+void uiLogViewTable::setPrimaryZRange( const Interval<float> range, bool apply )
 {
-    if ( !apply && masterzrange_.includes(range) )
+    if ( !apply && primaryzrange_.includes(range) )
 	return;
 
-    masterzrange_ = range;
+    primaryzrange_ = range;
     for ( int idx=0; idx<size(); idx++ )
     {
 	uiLogChart* lchart = getLogChart( idx );
 	if ( lchart )
-	    lchart->getZAxis()->setAxisLimits( masterzrange_, false );
+	    lchart->getZAxis()->setAxisLimits( primaryzrange_, false );
     }
 }
 
@@ -168,7 +168,8 @@ void uiLogViewTable::removeTrackCB( CallBacker* )
 	return;
 
     auto* logchart = getLogChart( selected_ );
-    mDetachCB(logchart->plotAreaChanged, uiLogViewTable::updatePlotAreaCB);
+    mDetachCB(logchart->logChange, uiLogViewTable::updatePrimaryChartCB);
+    mDetachCB(logchart->plotAreaChanged, uiLogViewTable::alignTopCB);
     mDetachCB(logchart->getZAxis()->rangeChanged, uiLogViewTable::syncViewsCB);
     logviews_->removeColumn( selected_ );
     selected_ = -1;
@@ -185,8 +186,8 @@ void uiLogViewTable::trackaddCB( CallBacker* )
 
 void uiLogViewTable::trackremoveCB( CallBacker* )
 {
-    updateMasterZrangeCB( nullptr );
-    updatePlotAreaCB( nullptr );
+    updatePrimaryZrangeCB( nullptr );
+    updatePrimaryChartCB( nullptr );
 }
 
 
@@ -199,57 +200,72 @@ void uiLogViewTable::colSelectCB( CallBacker* cb )
 	selectView( col );
 }
 
-void uiLogViewTable::updatePlotAreaCB( CallBacker* )
+void uiLogViewTable::updatePrimaryChartCB( CallBacker* )
 {
-    uiLogChart* masterchart = getLogChart( 0 );
-    if ( !masterchart )
-	return;
+    if ( !primarychart_ )
+	primarychart_ = getLogChart( 0 );
 
     for ( int idx=0; idx<size(); idx++ )
     {
 	auto* logchart = getLogChart( idx );
-	if ( !logchart )
+	if ( !logchart || logchart->numAxes(OD::Horizontal)==0 ||
+	     logchart==primarychart_ )
 	    continue;
-	if ( logchart->numAxes(OD::Horizontal)==0 )
-	    return;
 
 	if ( logchart->numAxes(OD::Horizontal)>
-					masterchart->numAxes(OD::Horizontal) )
-	    masterchart = logchart;
+					primarychart_->numAxes(OD::Horizontal) )
+	    primarychart_ = logchart;
     }
-
-    masterchart->setMargins( 0, 0, 0, 0 );
-    const Geom::RectF masterrect = masterchart->plotArea();
-    for ( int idx=0; idx<size(); idx++ )
-    {
-	auto* logchart = getLogChart( idx );
-	if ( !logchart || logchart==masterchart )
-	    continue;
-	NotifyStopper ns( logchart->plotAreaChanged );
-	const Geom::RectI m = logchart->margins();
-	const Geom::RectF pa = logchart->plotArea();
-	const int topmargin =  m.top() + (masterrect.top() - pa.top());
-	logchart->setMargins( 0, topmargin, 0, 0 );
-    }
-    uiMain::repaint();
+    primarychart_->setMargins( 0, 0, 0, 0 );
+    alignTopCB( nullptr );
 }
 
 
-void uiLogViewTable::updateMasterZrangeCB( CallBacker* )
+void uiLogViewTable::alignTopCB( CallBacker* cb )
 {
-    masterzrange_.setUdf();
+    if ( !primarychart_ )
+	return;
+
+    mDynamicCastGet(uiLogChart*, logchart, cb);
+    const Geom::RectF primaryrect = primarychart_->plotArea();
+    if ( logchart && logchart!=primarychart_ )
+    {
+	const Geom::RectI m = logchart->margins();
+	const Geom::RectF pa = logchart->plotArea();
+	const int topmargin =  m.top() + (primaryrect.top() - pa.top());
+	logchart->setMargins( 0, topmargin, 0, 0 );
+    }
+    else
+    {
+	for ( int idx=0; idx<size(); idx++ )
+	{
+	    logchart = getLogChart( idx );
+	    if ( !logchart || logchart==primarychart_ )
+		continue;
+	    const Geom::RectI m = logchart->margins();
+	    const Geom::RectF pa = logchart->plotArea();
+	    const int topmargin =  m.top() + (primaryrect.top() - pa.top());
+	    logchart->setMargins( 0, topmargin, 0, 0 );
+	}
+    }
+}
+
+
+void uiLogViewTable::updatePrimaryZrangeCB( CallBacker* )
+{
+    primaryzrange_.setUdf();
     for ( int idx=0; idx<size(); idx++ )
     {
 	const uiLogChart* lchart = getLogChart( idx );
 	if ( lchart )
-	    masterzrange_.include( lchart->getActualZRange() );
+	    primaryzrange_.include( lchart->getActualZRange() );
     }
 
     for ( int idx=0; idx<size(); idx++ )
     {
 	uiLogChart* lchart = getLogChart( idx );
 	if ( lchart )
-	    lchart->getZAxis()->setAxisLimits( masterzrange_, false );
+	    lchart->getZAxis()->setAxisLimits( primaryzrange_, false );
     }
 }
 
@@ -277,9 +293,10 @@ void uiLogViewTable::addViewer( int col )
 
     auto* vwr = new uiLogView( nullptr, "viewer" );
     auto* chart = new uiLogChart;
-    if ( masterzrange_.isUdf() )
-	masterzrange_.set( 0, 1000);
-    chart->setZRange( masterzrange_ );
+    if ( primaryzrange_.isUdf() )
+	primaryzrange_.set( 0, 1000 );
+
+    chart->setZRange( primaryzrange_ );
     vwr->setChart( chart );
     chart->displayLegend( false );
     chart->setMargins( 0, 0, 0, 0 );
@@ -289,8 +306,9 @@ void uiLogViewTable::addViewer( int col )
     if ( showtools_ )
 	addTools( col );
 
-    mAttachCB(chart->plotAreaChanged, uiLogViewTable::updatePlotAreaCB);
-    mAttachCB(chart->getZAxis()->rangeChanged, uiLogViewTable::syncViewsCB);
+    mAttachCB( chart->logChange, uiLogViewTable::updatePrimaryChartCB );
+    mAttachCB( chart->plotAreaChanged, uiLogViewTable::alignTopCB );
+    mAttachCB( chart->getZAxis()->rangeChanged, uiLogViewTable::syncViewsCB );
 }
 
 
@@ -300,8 +318,8 @@ void uiLogViewTable::addTools( int col )
     if ( validIdx(col) && logviews_->getCellGroup(toolscell) )
 	return;
 
-    uiLogViewToolGrp* tools = new uiLogViewToolGrp( nullptr, *getLogView(col) );
-    logviews_->setCellGroup( toolscell, tools );
+    auto* grp = new uiLogViewToolGrp( nullptr, *getLogView(col) );
+    logviews_->setCellGroup( toolscell, grp );
 }
 
 
@@ -313,6 +331,7 @@ void uiLogViewTable::clearSelection()
 	if ( logview )
 	    logview->setBackgroundColor( Color::NoColor() );
     }
+
     selected_ = -1;
     chartSelectionChg.trigger();
 }
@@ -322,13 +341,13 @@ void uiLogViewTable::selectView( int col )
 {
     clearSelection();
     uiLogView* logview = getLogView( col );
-    if ( logview )
-    {
-	logview->setBackgroundColor( Color(205,235,205) );
-	selected_ = col;
-	logviews_->ensureCellVisible( RowCol(0,col) );
-	chartSelectionChg.trigger();
-    }
+    if ( !logview )
+	return;
+
+    logview->setBackgroundColor( Color(205,235,205) );
+    selected_ = col;
+    logviews_->ensureCellVisible( RowCol(0,col) );
+    chartSelectionChg.trigger();
 }
 
 
@@ -337,12 +356,25 @@ bool uiLogViewTable::isViewLocked( int vwidx )
     if ( validIdx(vwidx) && showtools_ )
     {
 	const RowCol curcell( 0, vwidx );
-	mDynamicCastGet(uiLogViewToolGrp*, tools,
+	mDynamicCastGet(uiLogViewToolGrp*,grp,
 			logviews_->getCellGroup(curcell));
-	return tools->isLocked();
+	return grp ? grp->isLocked() : false;
     }
 
     return false;
+}
+
+
+void uiLogViewTable::setViewLocked( int vwidx, bool yn )
+{
+    if ( validIdx(vwidx) && showtools_ )
+    {
+	const RowCol curcell( 0, vwidx );
+	mDynamicCastGet(uiLogViewToolGrp*,grp,
+			logviews_->getCellGroup(curcell));
+	if ( grp )
+	    grp->setLocked( yn );
+    }
 }
 
 
@@ -362,12 +394,12 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
     if ( !isViewLocked(vwidx) )
 	return;
 
-    for (int idx=0; idx<logviews_->nrCols(); idx++ )
+    for ( int idx=0; idx<logviews_->nrCols(); idx++ )
     {
-	if ( idx!=vwidx && isViewLocked( idx ) )
+	if ( idx!=vwidx && isViewLocked(idx) )
 	{
 	    uiLogChart* logchart = getLogChart( idx );
-	    NotifyStopper ns(logchart->getZAxis()->rangeChanged);
+	    NotifyStopper ns( logchart->getZAxis()->rangeChanged );
 	    logchart->setZRange( range );
 	    logchart->needsRedraw.trigger();
 	}

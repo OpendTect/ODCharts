@@ -10,22 +10,27 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
-#include "uimainwin.h"
-#include "menuhandler.h"
+#include "uidialog.h"
 
+#include "menuhandler.h"
 
 class uiLogChart;
 class uiLogView;
 class uiLogViewTable;
+class uiLogViewerTree;
 class uiToolBar;
 class uiToolButton;
-class uiLogViewerTree;
 
-mExpClass(uiWellCharts) uiLogViewWin : public uiMainWin
+mExpClass(uiWellCharts) uiLogViewWin : public uiDialog
 { mODTextTranslationClass(uiLogViewWin)
 public:
 			uiLogViewWin(uiParent*);
 			~uiLogViewWin();
+
+    void		loadFile(const char*);
+    void		loadWells(const BufferStringSet& wellids,
+				  const BufferStringSet& logids);
+    void		addWellData(const DBKey&,const TypeSet<int>& logs);
 
     static const char*	defDirStr()	{ return "WellInfo"; }
     static const char*	extStr()	{ return "lvpar"; }
