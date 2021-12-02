@@ -23,4 +23,4 @@ mGlobal(uiCharts) OD::Color		fromQColor(const QColor&);
 mGlobal(uiCharts) void			toQPen(QPen&,const OD::LineStyle&,
 					       bool usetransp=false,
 					       bool cosmetic=true);
-mGlobal(uiCharts) OD::LineStyle		fromQPen(const QPen&);
+mGlobal(uiCharts) OD::LineStyle	fromQPen(const QPen&);

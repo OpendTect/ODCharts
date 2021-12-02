@@ -294,7 +294,8 @@ void uiLogViewTable::addViewer( int col )
     auto* vwr = new uiLogView( nullptr, "viewer" );
     auto* chart = new uiLogChart;
     if ( primaryzrange_.isUdf() )
-	primaryzrange_.set( 0, 1000);
+	primaryzrange_.set( 0, 1000 );
+
     chart->setZRange( primaryzrange_ );
     vwr->setChart( chart );
     chart->displayLegend( false );

@@ -26,7 +26,7 @@ mExpClass(uiCharts) uiChartFillx : public CallBacker
 public:
     enum FillDir	{ Left, Right };
     mDeclareEnumUtils(FillDir)
-    enum FillType	{ None, Color, Gradient, Pattern };
+    enum FillType	{ NoFill, ColorFill, GradientFill, PatternFill };
     mDeclareEnumUtils(FillType)
 
 			uiChartFillx();

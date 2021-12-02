@@ -60,7 +60,7 @@ public:
 uiChartFillx::uiChartFillx()
     : odfillx_(new ODChartFillx)
 {
-    setFillType( None, false );
+    setFillType( NoFill, false );
     setFillDir( Left, false );
     setColor( OD::Color::NoColor(), false );
     setBaseLine( mUdf(float), false );
@@ -94,7 +94,7 @@ void uiChartFillx::addTo( uiChart* chart, const ObjectSet<uiLineSeries>& lines,
 			  OD::Color col, FillDir fdir )
 {
     addTo( chart, lines, fdir );
-    setFillType( Color, false );
+    setFillType( ColorFill, false );
     setColor( col );
 }
 
@@ -235,12 +235,12 @@ void ODChartFillx::paint( QPainter* painter,
     painter->setPen( QPen(Qt::NoPen) );
     QRectF plotarea = mapRectFromParent( qchart_->plotArea() );
     painter->setClipRect( plotarea );
-    if ( filltype_==uiChartFillx::Color && qcolor_.isValid() )
+    if ( filltype_==uiChartFillx::ColorFill && qcolor_.isValid() )
     {
 	painter->setBrush( qcolor_ );
 	painter->drawPath( qpath_ );
     }
-    else if ( filltype_==uiChartFillx::Gradient && gradientimg_ )
+    else if ( filltype_==uiChartFillx::GradientFill && gradientimg_ )
     {
 	StepInterval<float> si( getAxisRange(Qt::Vertical) );
 	si.step = si.width() / plotarea.height();

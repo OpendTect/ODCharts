@@ -20,7 +20,6 @@ ________________________________________________________________________
 #include "uimain.h"
 #include "uisellinest.h"
 
-#include "datainpspec.h"
 #include "draw.h"
 #include "logcurve.h"
 

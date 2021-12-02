@@ -133,7 +133,7 @@ void uiLogFillProps::setLogFill( int lcidx )
     Well::Man::getLogNamesByID( logcurve_->wellID(), lognms, false );
     if ( lognms.isEmpty() )
     {
-	filltypefld_->setValue( uiChartFillx::Color );
+	filltypefld_->setValue( uiChartFillx::ColorFill );
 	gradientlogfld_->newSpec( StringListInpSpec(), 0 );
     }
     else
@@ -154,13 +154,13 @@ void uiLogFillProps::fillTypeChgCB( CallBacker* )
 {
     const auto filltype =
 		sCast(uiChartFillx::FillType,filltypefld_->getIntValue());
-    const bool isnone = filltype==uiChartFillx::None;
+    const bool isnone = filltype==uiChartFillx::NoFill;
     filllimitfld_->display( !isnone );
-    fillcolorfld_->display( filltype==uiChartFillx::Color );
+    fillcolorfld_->display( filltype==uiChartFillx::ColorFill );
     if ( isnone )
 	filllimitfld_->setValue( uiWellCharts::Track );
 
-    const bool isgradient = filltype==uiChartFillx::Gradient;
+    const bool isgradient = filltype==uiChartFillx::GradientFill;
     gradientlogfld_->display( isgradient );
     fillgradientfld_->display( isgradient );
     if ( isgradient )

@@ -305,13 +305,13 @@ BufferString LogCurve::getFillPar( bool left ) const
     else if ( flim==uiWellCharts::Curve )
 	fms += tolognm;
 
-    if ( fill->fillType()==uiChartFillx::Color )
+    if ( fill->fillType()==uiChartFillx::ColorFill )
     {
 	BufferString col;
 	fill->color().fill( col );
 	fms += FileMultiString( col );
     }
-    else if ( fill->fillType()==uiChartFillx::Gradient )
+    else if ( fill->fillType()==uiChartFillx::GradientFill )
 	fms += fill->gradientImg()->toString();
 
     res = fms;
@@ -344,14 +344,14 @@ void LogCurve::setFillPar( const char* fillstr, bool left )
 	next++;
     }
 
-    if ( ftype==uiChartFillx::Color )
+    if ( ftype==uiChartFillx::ColorFill )
     {
 	FileMultiString colfms( fms.from(next) );
 	OD::Color col;
 	col.use( colfms );
 	fill->setColor( col, false );
     }
-    else if ( ftype==uiChartFillx::Gradient )
+    else if ( ftype==uiChartFillx::GradientFill )
     {
 	FileMultiString gradfms( fms.from(next) );
 	LogGradient* lg = new LogGradient( wellid_ );
