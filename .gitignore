@@ -4,9 +4,11 @@ CMakeFiles
 CMakeLists.txt.user*
 CMakeModules
 CTestCustom.cmake
+CTestTestfile.cmake
 cmake_install.cmake
 .cmake
 Makefile
+qtcsettings.cmake
 
 # Visual Studio related files
 .vs
@@ -27,3 +29,6 @@ Makefile
 
 # Qt
 moc_*
+
+# Others
+*.patch
