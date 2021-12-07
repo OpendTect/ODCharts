@@ -132,7 +132,7 @@ void uiChart::removeAllAxes( OD::Orientation orient, uiChartSeries* series )
 		orient==OD::Vertical ? Qt::Vertical : Qt::Horizontal;
     auto qaxes = odchart_->axes( qorient,
 				 series ? series->getQSeries() : nullptr );
-    for ( auto* qaxis : qaxes )
+    for ( auto* qaxis : qAsConst(qaxes) )
 	odchart_->removeAxis( qaxis );
 }
 
@@ -208,4 +208,10 @@ BufferString uiChart::title() const
 void uiChart::axisRangeChgCB( CallBacker* )
 {
     needsRedraw.trigger();
+}
+
+
+QtCharts::QChart* uiChart::getQChart()
+{
+    return sCast(QtCharts::QChart*,odchart_);
 }

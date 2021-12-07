@@ -258,7 +258,8 @@ Interval<float> ODChartFillx::getAxisRange( Qt::Orientations qor, bool qlines )
     Interval<float> res;
 
     ObjectSet<QLineSeries>& series = qlines ? qlines_ : qbaselines_;
-    QAbstractAxis* axis = qchart_->axes( qor, series.first() )[0];
+    auto axes = qchart_->axes( qor, series.first() );
+    QAbstractAxis* axis = qAsConst( axes )[0];
     auto* qvaxis = dynamic_cast<QValueAxis*>( axis );
     auto* qlvaxis = dynamic_cast<QLogValueAxis*>( axis );
     if ( qvaxis )
@@ -267,7 +268,6 @@ Interval<float> ODChartFillx::getAxisRange( Qt::Orientations qor, bool qlines )
     if ( qlvaxis )
 	qlvaxis->isReverse() ? res.set( qlvaxis->max(), qlvaxis->min() )
 			     : res.set( qlvaxis->min(), qlvaxis->max() );
-
      return res;
 }
 
@@ -285,7 +285,7 @@ QPainterPath ODChartFillx::makePath( bool qlines )
 	QPointF p1 = part->at( part->count()-1 );
 	QPointF p2 = part->at( 0 );
 
-	Interval<float> rng = getAxisRange( Qt::Horizontal, qlines );
+	const Interval<float> rng = getAxisRange( Qt::Horizontal, qlines );
 	if ( filldir_==uiChartFillx::Left )
 	    p1.rx() = qlines ? rng.start : rng.stop;
 	else

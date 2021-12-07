@@ -53,8 +53,7 @@ public:
     void			setTitle(const char*);
     BufferString		title() const;
 
-    QtCharts::QChart*		getQChart()
-				{ return (QtCharts::QChart*)odchart_; }
+    QtCharts::QChart*		getQChart();
 
     Notifier<uiChart>		plotAreaChanged;
     Notifier<uiChart>		needsRedraw;
