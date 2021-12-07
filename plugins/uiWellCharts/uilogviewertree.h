@@ -47,4 +47,5 @@ protected:
     void		logStateChgCB(CallBacker*);
     void		markerStateChgCB(CallBacker*);
     void		allMarkerStateChgCB(CallBacker*);
+    void		wellExpandCB(CallBacker*);
 };

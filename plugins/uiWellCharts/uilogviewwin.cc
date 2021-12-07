@@ -11,6 +11,7 @@ ________________________________________________________________________
 #include "uilogviewwin.h"
 
 #include "uichartaxes.h"
+#include "uicombobox.h"
 #include "uifiledlg.h"
 #include "uilogchart.h"
 #include "uilogview.h"
@@ -112,6 +113,11 @@ void uiLogViewWin::createToolBar()
     tb_->addButton( addbuttonitem_ );
     tb_->addButton( rmvbuttonitem_ );
     tb_->addSeparator();
+
+    zdomainfld_ = new uiComboBox( nullptr, uiWellCharts::ZTypeDef(),
+				  "Z domain" );
+    mAttachCB( zdomainfld_->selectionChanged, uiLogViewWin::zdomainChgCB );
+    tb_->addObject( zdomainfld_);
 }
 
 
@@ -460,4 +466,12 @@ void uiLogViewWin::selTrackChgCB( CallBacker* )
 	const BufferStringSet mrkrs = logchart->getDispMarkersForID( wellid );
 	logviewtree_->checkMarkersFor( wellid, mrkrs );
     }
+}
+
+
+void uiLogViewWin::zdomainChgCB( CallBacker* )
+{
+    const uiWellCharts::ZType ztyp =
+	uiWellCharts::ZTypeDef().getEnumForIndex( zdomainfld_->getIntValue() );
+    logviewtbl_->setZDomain( ztyp );
 }

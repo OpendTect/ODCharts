@@ -11,6 +11,7 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "uichart.h"
+#include "wellchartcommon.h"
 
 #include "enums.h"
 
@@ -38,12 +39,8 @@ namespace sKey
 mClass(uiWellCharts) uiLogChart : public uiChart
 {
 public:
-    enum Scale		{ Linear, Log10 };
-    mDeclareEnumUtils(Scale)
-    enum ZType		{ MD, TVD, TVDSS, TVDSD, TWT };
-    mDeclareEnumUtils(ZType)
-
-			uiLogChart(ZType ztype=MD,Scale scale=Linear);
+			uiLogChart(uiWellCharts::ZType ztype=uiWellCharts::MD,
+				uiWellCharts::Scale scale=uiWellCharts::Linear);
 			~uiLogChart();
 
     bool		hasLogCurve(const MultiID&,const char* lognm);
@@ -70,7 +67,7 @@ public:
     void		removeMarker(const MultiID&,const char* markernm);
     void		removeAllMarkers();
 
-    void		setZType(ZType);
+    void		setZType(uiWellCharts::ZType);
     uiValueAxis*	getZAxis() const;
     Interval<float>	getActualZRange() const;
     void		setZRange(float minz,float maxz);
@@ -82,8 +79,8 @@ public:
     TypeSet<MultiID>	wellIDs() const;
     BufferStringSet	getDispLogsForID(const MultiID&) const;
     BufferStringSet	getDispMarkersForID(const MultiID&) const;
-    void		setScale(Scale);
-    Scale		getScale() const	{ return scale_; }
+    void		setScale(uiWellCharts::Scale);
+    uiWellCharts::Scale	getScale() const	{ return scale_; }
 
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
@@ -95,8 +92,8 @@ public:
     Notifier<uiLogChart>	markerChange;
 
 protected:
-    ZType			ztype_;
-    Scale			scale_;
+    uiWellCharts::ZType		ztype_;
+    uiWellCharts::Scale		scale_;
     uiValueAxis*		zaxis_;
     ObjectSet<LogCurve>		logcurves_;
     ObjectSet<MarkerLine>	markers_;

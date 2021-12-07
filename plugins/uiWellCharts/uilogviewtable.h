@@ -11,6 +11,8 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "uigroup.h"
+#include "uilogchart.h"
+#include "wellchartcommon.h"
 
 class uiLogChart;
 class uiLogView;
@@ -39,6 +41,7 @@ public:
     Interval<float>		primaryZRange() const;
     void			setPrimaryZRange(const Interval<float>,
 						 bool apply=true);
+    void			setZDomain(uiWellCharts::ZType);
 
     uiLogChart*			getCurrentLogChart();
     uiLogChart*			getLogChart(int);

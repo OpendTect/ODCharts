@@ -11,6 +11,8 @@ ________________________________________________________________________
 
 #include "uilogviewpropdlg.h"
 
+#include "draw.h"
+#include "logcurve.h"
 #include "uichartaxes.h"
 #include "uicolor.h"
 #include "uigeninput.h"
@@ -19,9 +21,7 @@ ________________________________________________________________________
 #include "uilogcurveprops.h"
 #include "uimain.h"
 #include "uisellinest.h"
-
-#include "draw.h"
-#include "logcurve.h"
+#include "wellchartcommon.h"
 
 
 // uiLogViewPropDlg
@@ -72,7 +72,7 @@ uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart& lc )
 				   .lbltxt(tr("Background Color")) );
 
     scalefld_ = new uiGenInput( this, tr("Scale Type"),
-				StringListInpSpec(uiLogChart::ScaleDef()) );
+				StringListInpSpec(uiWellCharts::ScaleDef()) );
     scalefld_->attach( rightOf, bgcolorfld_ );
     scalefld_->setValue( lc.getScale() );
 
@@ -156,14 +156,14 @@ void uiLogChartGrp::lgridChgCB( CallBacker* )
 
 void uiLogChartGrp::scaleChgCB( CallBacker* )
 {
-    const uiLogChart::Scale scaletyp =
-			sCast(uiLogChart::Scale,scalefld_->getIntValue());
+    const uiWellCharts::Scale scaletyp =
+	uiWellCharts::ScaleDef().getEnumForIndex( scalefld_->getIntValue() );
     logchart_.setScale( scaletyp );
     uiChartAxis* laxis = logchart_.logcurves()[0]->getAxis();
     minorloggridfld_->setSteps( laxis->getMinorTickCount() );
     majorloggridfld_->setSteps( laxis->getTickCount() );
-    majorloggridfld_->setStepSensitive( scaletyp==uiLogChart::Linear );
-    minorloggridfld_->setStepSensitive( scaletyp==uiLogChart::Linear );
+    majorloggridfld_->setStepSensitive( scaletyp==uiWellCharts::Linear );
+    minorloggridfld_->setStepSensitive( scaletyp==uiWellCharts::Linear );
 }
 
 

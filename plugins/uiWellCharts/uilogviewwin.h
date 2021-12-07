@@ -14,6 +14,7 @@ ________________________________________________________________________
 
 #include "menuhandler.h"
 
+class uiComboBox;
 class uiLogChart;
 class uiLogView;
 class uiLogViewTable;
@@ -50,6 +51,7 @@ protected:
     MenuItem		saveasitem_;
     MenuItem		addbuttonitem_;
     MenuItem		rmvbuttonitem_;
+    uiComboBox*		zdomainfld_;
 
     bool		checkSave();
     void		clearAll();
@@ -74,4 +76,5 @@ protected:
     void		rmvTrackCB(CallBacker*);
     void		closeCB(CallBacker*);
     void		selTrackChgCB(CallBacker*);
+    void		zdomainChgCB(CallBacker*);
 };

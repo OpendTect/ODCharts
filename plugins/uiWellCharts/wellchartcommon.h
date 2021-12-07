@@ -17,6 +17,11 @@ ________________________________________________________________________
 namespace uiWellCharts
 {
     enum FillLimit	{ Track, Baseline, Curve };
-			mDeclareNameSpaceEnumUtils(uiWellCharts,FillLimit);
+			mDeclareNameSpaceEnumUtils(uiWellCharts,FillLimit)
 
+    enum Scale		{ Linear, Log10 };
+			mDeclareNameSpaceEnumUtils(uiWellCharts,Scale)
+
+    enum ZType		{ MD, TVD, TVDSS, TVDSRD, TWT };
+			mDeclareNameSpaceEnumUtils(uiWellCharts,ZType)
 };

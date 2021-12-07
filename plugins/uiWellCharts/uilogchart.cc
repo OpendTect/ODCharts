@@ -25,13 +25,7 @@ ________________________________________________________________________
 #include "unitofmeasure.h"
 
 
-mDefineEnumUtils(uiLogChart, Scale, "Log chart scale type")
-    { "Linear", "Log10", 0 };
-
-mDefineEnumUtils(uiLogChart, ZType, "Log chart Z type")
-    { "MD", "TVD", "TVDSS", "TVDSD", "TWT" };
-
-uiLogChart::uiLogChart( ZType ztype, Scale scale )
+uiLogChart::uiLogChart( uiWellCharts::ZType ztype, uiWellCharts::Scale scale )
     : logChange(this)
     , markerChange(this)
     , ztype_(ztype)
@@ -238,8 +232,11 @@ void uiLogChart::removeAllMarkers()
 }
 
 
-void uiLogChart::setZType( ZType ztype )
+void uiLogChart::setZType( uiWellCharts::ZType ztype )
 {
+    if ( ztype_==ztype )
+	return;
+
     ztype_ = ztype;
 // TODO update logcurves to new ztype
     updateZAxisTitle();
@@ -271,9 +268,9 @@ void uiLogChart::setZRange( float minz, float maxz )
 
 void uiLogChart::updateZAxisTitle()
 {
-    BufferString axtitle( toString(ztype_) );
+    BufferString axtitle( uiWellCharts::toString(ztype_) );
     axtitle.addSpace();
-    if ( ztype_==TWT )
+    if ( ztype_==uiWellCharts::ZType::TWT )
 	axtitle.add( UnitOfMeasure::surveyDefTimeUnitAnnot(true,true) );
     else
 	axtitle.add( UnitOfMeasure::surveyDefDepthUnitAnnot(true,true) );
@@ -292,8 +289,8 @@ void uiLogChart::makeZaxis()
 {
     zaxis_ = new uiValueAxis;
     zaxis_->setTickType( uiValueAxis::TicksDynamic );
-    zaxis_->setTickInterval(
-		ztype_==TWT ? 0.1 : SI().depthsInFeet() ? 500 : 200 );
+    zaxis_->setTickInterval( ztype_==uiWellCharts::ZType::TWT ? 0.1 :
+					(SI().depthsInFeet() ? 500 : 200) );
     zaxis_->setMinorTickCount( 4 );
     zaxis_->setLabelFormat( "%d" );
     zaxis_->setRange( 0, 1000 );
@@ -307,7 +304,7 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float axmin,
 				      float axmax, bool reverse )
 {
     uiChartAxis* axis = nullptr;
-    if ( scale_==Linear )
+    if ( scale_==uiWellCharts::Linear )
     {
 	auto* vaxis = new uiValueAxis;
 	vaxis->setTickType( uiValueAxis::TicksFixed );
@@ -318,7 +315,7 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float axmin,
 	vaxis->setReverse( reverse );
 	axis = vaxis;
     }
-    else if ( scale_==Log10 )
+    else if ( scale_==uiWellCharts::Log10 )
     {
 	auto* vaxis = new uiLogValueAxis;
 	vaxis->setBase( 10 );
@@ -393,7 +390,7 @@ BufferStringSet uiLogChart::getDispMarkersForID( const MultiID& wellid ) const
 }
 
 
-void uiLogChart::setScale( Scale scaletyp )
+void uiLogChart::setScale( uiWellCharts::Scale scaletyp )
 {
     if ( scale_==scaletyp )
 	return;
@@ -477,9 +474,9 @@ void uiLogChart::usePar( const IOPar& iop )
 {
     int ztype, scale;
     iop.get( sKey::Type(), ztype );
-    ztype_ = ZTypeDef().getEnumForIndex( ztype );
+    ztype_ = uiWellCharts::ZTypeDef().getEnumForIndex( ztype );
     iop.get( sKey::Scale(), scale );
-    scale_ = ScaleDef().getEnumForIndex( scale );
+    scale_ = uiWellCharts::ScaleDef().getEnumForIndex( scale );
 
     FileMultiString zfms_major( iop.find(sKey::ZMajorGrid()) );
     FileMultiString zfms_minor( iop.find(sKey::ZMinorGrid()) );

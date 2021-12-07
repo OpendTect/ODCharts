@@ -143,6 +143,17 @@ void uiLogViewTable::setPrimaryZRange( const Interval<float> range, bool apply )
 }
 
 
+void uiLogViewTable::setZDomain( uiWellCharts::ZType ztyp )
+{
+    for ( int idx=0; idx<size(); idx++ )
+    {
+	uiLogChart* lchart = getLogChart( idx );
+	if ( lchart )
+	    lchart->setZType( ztyp );
+    }
+}
+
+
 void uiLogViewTable::selectCB( CallBacker* )
 {
     selectView( logviews_->currentCol() );

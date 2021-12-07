@@ -17,6 +17,7 @@ ________________________________________________________________________
 #include "ioobj.h"
 #include "welldata.h"
 #include "wellman.h"
+#include "uimsg.h"
 
 
 uiLogViewerTree::uiLogViewerTree( uiParent* p )
@@ -42,24 +43,25 @@ void uiLogViewerTree::init()
     setColumnWidthMode( ResizeToContents );
     setSelectionBehavior( SelectRows );
     addWells();
+    mAttachCB( expanded, uiLogViewerTree::wellExpandCB );
 }
 
 
 void uiLogViewerTree::addWells()
 {
-    TypeSet<MultiID> wellids;
-    Well::MGR().getWellKeys( wellids );
-    Well::LoadReqs lreq( Well::Inf );
-    for ( auto& wellid : wellids )
+    BufferStringSet wellnms;
+    Well::MGR().getWellNames( wellnms );
+    for ( const auto* wellnm : wellnms )
     {
-	ConstRefMan<Well::Data> wd = Well::MGR().get( wellid, lreq );
-	if ( !wd )
-	    continue;
-
 	auto* well_tritem = new uiTreeViewItem( this,
-		       uiTreeViewItem::Setup().label(toUiString(wd->name())) );
-	addLogs( wellid, well_tritem );
-	addMarkers( wellid, well_tritem );
+		uiTreeViewItem::Setup().label(toUiString(wellnm->buf())) );
+	new uiTreeViewItem( well_tritem,
+			    uiTreeViewItem::Setup(uiStrings::sLogs()) );
+	auto* mrklbl_tritem = new uiTreeViewItem( well_tritem,
+			uiTreeViewItem::Setup(uiStrings::sMarker(mPlural),
+					      uiTreeViewItem::CheckBox,false) );
+	mAttachCB( mrklbl_tritem->stateChanged,
+		   uiLogViewerTree::allMarkerStateChgCB);
     }
 }
 
@@ -69,34 +71,37 @@ void uiLogViewerTree::addLogs( const MultiID& wellid,
 {
     BufferStringSet lognms;
     Well::MGR().getLogNamesByID( wellid, lognms );
-    auto* loglbl_tritem = new uiTreeViewItem( well_tritem,
-			uiTreeViewItem::Setup(uiStrings::sLogs()) );
+    auto* loglbl_tritem = well_tritem->firstChild();
+    if ( !loglbl_tritem || loglbl_tritem->nrChildren()==lognms.size() )
+	return;
+
     for ( auto* lognm : lognms )
     {
 	auto* log_treeitem = new uiTreeViewItem( loglbl_tritem,
 			uiTreeViewItem::Setup(toUiString(*lognm),
 					      uiTreeViewItem::CheckBox,false) );
-	mAttachCB(log_treeitem->stateChanged,uiLogViewerTree::logStateChgCB);
+	mAttachCB( log_treeitem->stateChanged,
+		   uiLogViewerTree::logStateChgCB );
     }
 }
 
 
 void uiLogViewerTree::addMarkers( const MultiID& wellid,
-						   uiTreeViewItem* well_tritem )
+				  uiTreeViewItem* well_tritem )
 {
     BufferStringSet markernms;
     Well::MGR().getMarkersByID( wellid, markernms );
-    uiTreeViewItem* mrklbl_tritem = new uiTreeViewItem( well_tritem,
-			uiTreeViewItem::Setup(uiStrings::sMarker(mPlural),
-					      uiTreeViewItem::CheckBox,false) );
-    mAttachCB(mrklbl_tritem->stateChanged,uiLogViewerTree::allMarkerStateChgCB);
+    uiTreeViewItem* mrklbl_tritem = well_tritem->lastChild();
+    if ( !mrklbl_tritem || mrklbl_tritem->nrChildren()==markernms.size() )
+	return;
 
     for ( auto* marker : markernms )
     {
 	auto* mrk_treeitem = new uiTreeViewItem( mrklbl_tritem,
 			uiTreeViewItem::Setup(toUiString(*marker ),
 					      uiTreeViewItem::CheckBox,false) );
-	mAttachCB(mrk_treeitem->stateChanged,uiLogViewerTree::markerStateChgCB);
+	mAttachCB( mrk_treeitem->stateChanged,
+		   uiLogViewerTree::markerStateChgCB );
     }
 }
 
@@ -114,12 +119,10 @@ void uiLogViewerTree::checkLogsFor( const MultiID& wellid,
     if ( !loglbl_tritem )
 	return;
 
-    loglbl_tritem->checkAll( false, false );
     for ( int idx=0; idx<loglbl_tritem->nrChildren(); idx++ )
     {
 	uiTreeViewItem* log_tritem = loglbl_tritem->getChild( idx );
-	if ( lognms.isPresent(log_tritem->text()) )
-	    log_tritem->setChecked( true, false );
+	log_tritem->setChecked( lognms.isPresent(log_tritem->text()), false );
     }
 
     well_tritem->setOpen( true );
@@ -140,12 +143,10 @@ void uiLogViewerTree::checkMarkersFor( const MultiID& wellid,
     if ( !mrklbl_tritem )
 	return;
 
-    mrklbl_tritem->checkAll( false, false );
     for ( int idx=0; idx<mrklbl_tritem->nrChildren(); idx++ )
     {
 	uiTreeViewItem* mrk_tritem = mrklbl_tritem->getChild( idx );
-	if ( mrknms.isPresent(mrk_tritem->text()) )
-	    mrk_tritem->setChecked( true, false );
+	mrk_tritem->setChecked( mrknms.isPresent(mrk_tritem->text()), false );
     }
 
     well_tritem->setOpen( true );
@@ -196,4 +197,24 @@ void uiLogViewerTree::allMarkerStateChgCB( CallBacker* cb )
     const bool yn = mrklbl_tritm->isChecked();
     for ( int idx=0; idx<mrklbl_tritm->nrChildren(); idx++ )
 	mrklbl_tritm->getChild(idx)->checkAll( yn, true );
+}
+
+
+void uiLogViewerTree::wellExpandCB( CallBacker* cb )
+{
+    mDynamicCastGet(uiLogViewerTree*,welltree,cb->trueCaller());
+    if ( !welltree )
+	return;
+
+    auto* well_tritem = welltree->itemNotified();
+    if ( !well_tritem || well_tritem->parent() )
+	return;
+
+    const IOObj* ioobj = Well::findIOObj( well_tritem->text(), nullptr );
+    if ( !ioobj )
+	return;
+
+    const MultiID& wid = ioobj->key();
+    addLogs( wid, well_tritem );
+    addMarkers( wid, well_tritem );
 }
