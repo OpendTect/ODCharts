@@ -25,13 +25,17 @@ class uiToolButton;
 mExpClass(uiWellCharts) uiLogViewWin : public uiDialog
 { mODTextTranslationClass(uiLogViewWin)
 public:
-			uiLogViewWin(uiParent*);
+			uiLogViewWin(uiParent*,int nrcol=0);
 			~uiLogViewWin();
 
+    void		setCurrentView(int);
     void		loadFile(const char*);
     void		loadWells(const BufferStringSet& wellids,
 				  const BufferStringSet& logids);
+    void		addWellData(const DBKeySet&,
+				    const ManagedObjectSet<TypeSet<int>>&);
     void		addWellData(const DBKey&,const TypeSet<int>& logs);
+    void		addWellData(int,const DBKey&,const TypeSet<int>& logs);
 
     static const char*	defDirStr()	{ return "WellInfo"; }
     static const char*	extStr()	{ return "lvpar"; }

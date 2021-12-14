@@ -15,6 +15,7 @@ ________________________________________________________________________
 #include "uimain.h"
 #include "uimainwin.h"
 #include "chartutils.h"
+#include "thread.h"
 
 #include <QLineSeries>
 #include <QScatterSeries>
@@ -67,17 +68,22 @@ uiXYChartSeries::uiXYChartSeries( QXYSeries* series )
     , callouttxt_("X: %1\nY:%2")
 {
     qxyseries_ = dynamic_cast<QXYSeries*>(qabstractseries_);
-    msghandler_ = new i_xySeriesMsgHandler( this, qxyseries_ );
-    mAttachCB( this->hoverOn, uiXYChartSeries::showCallout );
-    mAttachCB( this->hoverOff, uiXYChartSeries::hideCallout );
 }
 
 
 uiXYChartSeries::~uiXYChartSeries()
 {
     detachAllNotifiers();
-    delete callout_;
-    delete msghandler_;
+    deleteAndZeroPtr( callout_ );
+    deleteAndZeroPtr( msghandler_ );
+}
+
+
+void uiXYChartSeries::initCallBacks()
+{
+    msghandler_ = new i_xySeriesMsgHandler( this, qxyseries_ );
+    mAttachCB( this->hoverOn, uiXYChartSeries::showCallout );
+    mAttachCB( this->hoverOff, uiXYChartSeries::hideCallout );
 }
 
 
@@ -213,6 +219,12 @@ OD::LineStyle uiLineSeries::lineStyle() const
 }
 
 
+void uiLineSeries::copyPoints( const uiLineSeries& other )
+{
+    qlineseries_->replace( other.qlineseries_->pointsVector() );
+}
+
+
 QLineSeries* uiLineSeries::getQLineSeries()
 {
     return qlineseries_;
@@ -281,4 +293,16 @@ void uiScatterSeries::setBorderColor( OD::Color color )
 void uiScatterSeries::setMarkerSize( float size )
 {
     qscatterseries_->setMarkerSize( qreal(size) );
+}
+
+
+void uiScatterSeries::copyPoints( const uiScatterSeries& other )
+{
+    qscatterseries_->replace( other.qscatterseries_->pointsVector() );
+}
+
+
+QScatterSeries* uiScatterSeries::getQScatterSeries()
+{
+    return qscatterseries_;
 }

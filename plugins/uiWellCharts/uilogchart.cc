@@ -82,6 +82,17 @@ LogCurve* uiLogChart::getLogCurve( const char* lognm )
 }
 
 
+void uiLogChart::addLogCurve( LogCurve* lc, bool show_wellnm, bool show_uom )
+{
+    if ( !lc )
+	return;
+
+    lc->addTo( *this, show_wellnm, show_uom );
+    logcurves_ += lc;
+    logChange.trigger();
+}
+
+
 void uiLogChart::addLogCurve( LogCurve* lc, const OD::LineStyle& lstyle,
 			      bool show_wellnm, bool show_uom )
 {
@@ -90,6 +101,19 @@ void uiLogChart::addLogCurve( LogCurve* lc, const OD::LineStyle& lstyle,
 
     lc->addTo( *this, lstyle, show_wellnm, show_uom );
     logcurves_ += lc;
+    logChange.trigger();
+}
+
+
+void uiLogChart::addLogCurves( ObjectSet<LogCurve>& lcs, bool show_wellnm,
+			       bool show_uom)
+{
+    for ( auto* lc : lcs )
+    {
+	lc->addTo( *this, show_wellnm, show_uom );
+	logcurves_ += lc;
+    }
+
     logChange.trigger();
 }
 

@@ -119,6 +119,9 @@ void uiLogViewerTree::checkLogsFor( const MultiID& wellid,
     if ( !loglbl_tritem )
 	return;
 
+    if ( !loglbl_tritem->nrChildren() )
+	addLogs( wellid, well_tritem );
+
     for ( int idx=0; idx<loglbl_tritem->nrChildren(); idx++ )
     {
 	uiTreeViewItem* log_tritem = loglbl_tritem->getChild( idx );
@@ -142,6 +145,9 @@ void uiLogViewerTree::checkMarkersFor( const MultiID& wellid,
     uiTreeViewItem* mrklbl_tritem = well_tritem->lastChild();
     if ( !mrklbl_tritem )
 	return;
+
+    if ( !mrklbl_tritem->nrChildren() )
+	addMarkers( wellid, well_tritem );
 
     for ( int idx=0; idx<mrklbl_tritem->nrChildren(); idx++ )
     {

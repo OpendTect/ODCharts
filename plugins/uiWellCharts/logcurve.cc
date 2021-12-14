@@ -60,7 +60,52 @@ LogCurve::~LogCurve()
 }
 
 
-void LogCurve::addTo( uiLogChart& logchart )
+void LogCurve::initCallBacks()
+{
+    if ( scatseries_ )
+	scatseries_->initCallBacks();
+
+    for ( auto* series : series_ )
+	series->initCallBacks();
+}
+
+
+LogCurve* LogCurve::clone() const
+{
+    auto* lc = new LogCurve;
+    lc->wellid_ = wellid_;
+    lc->wellname_ = wellname_;
+    lc->uomlbl_ = uomlbl_;
+    lc->logname_ = logname_;
+    lc->mnemlbl_ = mnemlbl_;
+    lc->dahrange_ = dahrange_;
+    lc->valrange_ = valrange_;
+    lc->disprange_ = disprange_;
+    lc->linestyle_ = linestyle_;
+    lc->pointsize_ = pointsize_;
+    lc->axis_ = axis_;
+    lc->leftfill_ = leftfill_;
+    lc->rightfill_ = rightfill_;
+    lc->lefttolog_ = lefttolog_;
+    lc->righttolog_ = righttolog_;
+    if ( scatseries_ )
+    {
+	lc->scatseries_ = new uiScatterSeries;
+	lc->scatseries_->copyPoints( *scatseries_ );
+    }
+
+    for ( const auto* series : series_ )
+    {
+	auto* ns = new uiLineSeries;
+	ns->copyPoints( *series );
+	lc->series_ += ns;
+    }
+
+    return lc;
+}
+
+
+void LogCurve::addTo( uiLogChart& logchart, bool show_wellnm, bool show_uom )
 {
     const Well::Log* log = wellLog();
     if ( !log )
@@ -74,7 +119,7 @@ void LogCurve::addTo( uiLogChart& logchart )
 	lstyle.color_ = disp.color_;
     }
 
-    addTo( logchart, lstyle );
+    addTo( logchart, lstyle, show_wellnm, show_uom );
 }
 
 
@@ -100,6 +145,7 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
 		      float min, float max, bool reverse, bool show_wellnm,
 		      bool show_uom )
 {
+    initCallBacks();
     BufferString logtitle( logname_ );
     if ( show_wellnm )
 	logtitle.add(" - ").add( wellname_ );
@@ -166,8 +212,11 @@ void LogCurve::addLog( const Well::Log& log )
 {
     series_.setEmpty();
     deleteAndZeroPtr( scatseries_ );
+    deleteAndZeroPtr( leftfill_ );
+    deleteAndZeroPtr( rightfill_ );
+    deleteAndZeroPtr( axis_ );
 
-    auto* series = new uiLineSeries();
+    auto* series = new uiLineSeries;
     const UnitOfMeasure* zdisp_uom = UnitOfMeasure::surveyDefDepthUnit();
     const UnitOfMeasure* zstor_uom = UnitOfMeasure::surveyDefDepthStorageUnit();
     dahrange_.start = getConvertedValue(dahrange_.start, zstor_uom, zdisp_uom);
@@ -185,14 +234,14 @@ void LogCurve::addLog( const Well::Log& log )
 	    if ( series->size()==1 )
 	    {
 		if ( !scatseries_ )
-		    scatseries_ = new uiScatterSeries();
+		    scatseries_ = new uiScatterSeries;
 		scatseries_->append( series->x(0), series->y(0) );
 		series->clear();
 	    }
 	    else if ( !series->isEmpty() )
 	    {
 		series_ += series;
-		series = new uiLineSeries();
+		series = new uiLineSeries;
 	    }
 	}
     }
@@ -202,8 +251,6 @@ void LogCurve::addLog( const Well::Log& log )
     else
 	delete series;
 
-    leftfill_ = new uiChartFillx();
-    rightfill_ = new uiChartFillx();
     lefttolog_.setEmpty();
     righttolog_.setEmpty();
 }
@@ -321,6 +368,11 @@ BufferString LogCurve::getFillPar( bool left ) const
 
 void LogCurve::setFillPar( const char* fillstr, bool left )
 {
+    if ( !leftfill_ )
+	leftfill_ = new uiChartFillx();
+    if ( !rightfill_ )
+	rightfill_ = new uiChartFillx();
+
     uiChartFillx* fill = left ? leftfill_ : rightfill_;
     fill->setBaseLine( mUdf(float), false );
 

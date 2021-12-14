@@ -36,7 +36,7 @@ namespace sKey
     inline FixedString LogMinorGridStyle()	{ return "Log Minor Gridstyle";}
 };
 
-mClass(uiWellCharts) uiLogChart : public uiChart
+mExpClass(uiWellCharts) uiLogChart : public uiChart
 {
 public:
 			uiLogChart(uiWellCharts::ZType ztype=uiWellCharts::MD,
@@ -46,9 +46,15 @@ public:
     bool		hasLogCurve(const MultiID&,const char* lognm);
     LogCurve*		getLogCurve(const MultiID&,const char* lognm);
     LogCurve*		getLogCurve(const char* lognm);
+    void		addLogCurve(LogCurve*,
+				    bool show_wellnm=true,bool show_uom=true);
+			// LogCurve becomes mine
     void		addLogCurve(LogCurve*,const OD::LineStyle&,
 				    bool show_wellnm=true,bool show_uom=true);
 			// LogCurve becomes mine
+    void		addLogCurves(ObjectSet<LogCurve>&,
+				     bool show_wellnm=true,bool show_uom=true);
+			// LogCurves become mine
     void		addLogCurve(const MultiID&,const char* lognm);
     void		addLogCurve(const MultiID&,const char* lognm,
 				    const OD::LineStyle&);

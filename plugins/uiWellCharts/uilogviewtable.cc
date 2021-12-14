@@ -11,6 +11,8 @@ ________________________________________________________________________
 
 #include "uilogviewtable.h"
 
+#include "logcurve.h"
+#include "paralleltask.h"
 #include "uichartaxes.h"
 #include "uilogchart.h"
 #include "uilogview.h"
@@ -19,9 +21,10 @@ ________________________________________________________________________
 #include "uimsg.h"
 #include "uipixmap.h"
 #include "uitable.h"
+#include "wellman.h"
 
 
-uiLogViewTable::uiLogViewTable( uiParent* p, bool showtools )
+uiLogViewTable::uiLogViewTable( uiParent* p, int nrcol, bool showtools )
     : uiGroup(p)
     , chartSelectionChg(this)
     , showtools_(showtools)
@@ -44,6 +47,7 @@ uiLogViewTable::uiLogViewTable( uiParent* p, bool showtools )
     logviews_->setColumnResizeMode( uiTable::Stretch );
     logviews_->setSelectionMode( uiTable::SingleColumn );
 
+    setNumViews( nrcol );
 
     mAttachCB( logviews_->colInserted, uiLogViewTable::trackaddCB );
     mAttachCB( logviews_->colDeleted, uiLogViewTable::trackremoveCB );
@@ -61,6 +65,17 @@ uiLogViewTable::~uiLogViewTable()
 int uiLogViewTable::currentView() const
 {
     return logviews_->currentCol();
+}
+
+
+void uiLogViewTable::setCurrentView( int col )
+{
+    if ( !validIdx(col) )
+	return;
+
+    const int row = showtools_ ? 1 : 0;
+    logviews_->setCurrentCell( RowCol(row,col) );
+    selectCB( nullptr );
 }
 
 
@@ -91,6 +106,166 @@ bool uiLogViewTable::isEmpty() const
 }
 
 
+void uiLogViewTable::setNumViews( int nvw )
+{
+    setEmpty();
+    logviews_->setNrCols( nvw );
+    for ( int col=0; col<nvw; col++ )
+	addViewer( col );
+
+    setCurrentView( 0 );
+    selectCB( nullptr );
+}
+
+
+mDefParallelCalc3Pars(SingleLogLoader,
+		  od_static_tr("SingleLogLoader", "Single log loader"),
+		      const BufferStringSet&, wellnms,
+		      const ObjectSet<const Well::Log>&, logs,
+		      ObjectSet<LogCurve>&, logcurves)
+mDefParallelCalcBody( ,
+const BufferString& wellnm = wellnms_.get( idx );
+const Well::Log& log = *logs_[idx];
+delete logcurves_.replace( idx, new LogCurve(wellnm,log) );
+,
+)
+
+
+void uiLogViewTable::addWellData( const BufferStringSet& wellnms,
+				  const ObjectSet<const Well::Log>& logs,
+				  const OD::LineStyle& ls,
+				  const char* suffix )
+{
+    ObjectSet<LogCurve> logcurves;
+    for ( int idx=0; idx<wellnms.size(); idx++ )
+	logcurves += new LogCurve;
+
+    SingleLogLoader loader( wellnms.size(), wellnms, logs, logcurves );
+    loader.execute();
+
+    for ( int vwidx=0; vwidx<wellnms.size(); vwidx++ )
+    {
+        uiLogChart* chart = getLogChart( vwidx );
+	if ( !chart )
+	    continue;
+
+	LogCurve* curvecopy = logcurves[vwidx]->clone();
+	if ( suffix )
+	{
+	    LogCurve* logcurve_in = chart->getLogCurve( curvecopy->logName() );
+	    BufferString lognm( curvecopy->logName(), suffix );
+	    curvecopy->setLogName( lognm );
+	    chart->removeLogCurve( lognm );
+	    if ( logcurve_in )
+	    {
+		const Interval<float>& dr = logcurve_in->dispRange();
+		if ( dr.includes(curvecopy->logRange()) )
+		    curvecopy->setDisplayRange( dr );
+		else
+		    curvecopy->setDisplayRange( StepInterval<float>::udf() );
+	    }
+	}
+
+	chart->addLogCurve( curvecopy, ls, false, true );
+	updateViewLabel( vwidx );
+    }
+
+    updatePrimaryZrangeCB( nullptr );
+    deepErase( logcurves );
+}
+
+
+mDefParallelCalc3Pars(MultiLogLoader,
+		  od_static_tr("MultiLogLoader", "Multi log loader"),
+		      const DBKeySet&, wellids,
+		      const ManagedObjectSet<TypeSet<int>>&, logidxs,
+		      ManagedObjectSet<ObjectSet<LogCurve>>&, logcurves)
+mDefParallelCalcBody( ,
+const DBKey& wkey = wellids_[idx];
+const TypeSet<int>& logidx = *logidxs_[idx];
+BufferStringSet lognms;
+Well::Man::getLogNamesByID( wkey, lognms );
+for ( const auto& lidx : logidx )
+{
+    if ( !lognms.validIdx(lidx) )
+	continue;
+    logcurves_[idx]->add( new LogCurve(wkey, lognms.get(lidx)) );
+}
+,
+)
+
+
+void uiLogViewTable::addWellData( const DBKeySet& wellids,
+				const ManagedObjectSet<TypeSet<int>>& logidxs )
+{
+    ManagedObjectSet<ObjectSet<LogCurve>> logcurves;
+    for ( int idx=0; idx<wellids.size(); idx++ )
+	logcurves += new ObjectSet<LogCurve>();
+
+    MultiLogLoader loader( wellids.size(), wellids, logidxs, logcurves );
+    loader.execute();
+
+    for ( int vwidx=0; vwidx<logcurves.size(); vwidx++ )
+    {
+	if ( logcurves[vwidx]->isEmpty() )
+	    continue;
+
+	uiLogChart* chart = getLogChart( vwidx );
+	if ( !chart )
+	    continue;
+
+	ObjectSet<LogCurve> curvecopy;
+	for ( const auto* curve : *logcurves[vwidx] )
+	    curvecopy += curve->clone();
+
+	chart->addLogCurves( curvecopy, false, true );
+	updateViewLabel( vwidx );
+	deepErase( *logcurves[vwidx] );
+    }
+
+    updatePrimaryZrangeCB( nullptr );
+}
+
+
+mDefParallelCalc3Pars(SingleLogLoader2,
+		  od_static_tr("SingleLogLoader2", "Single log loader 2"),
+		      const DBKeySet&, wellids,
+		      const BufferStringSet, lognms,
+		      ObjectSet<LogCurve>&, logcurves)
+mDefParallelCalcBody( ,
+const DBKey& wkey = wellids_[idx];
+delete logcurves_.replace( idx, new LogCurve(wkey, lognms_.get(idx)) );
+,
+)
+
+
+void uiLogViewTable::addWellData( const DBKeySet& wellids,
+				  const BufferStringSet& lognms,
+				  const OD::LineStyle& ls )
+{
+    ObjectSet<LogCurve> logcurves;
+    for ( int idx=0; idx<wellids.size(); idx++ )
+	logcurves += new LogCurve;
+
+    SingleLogLoader2 loader( wellids.size(), wellids, lognms, logcurves );
+    loader.execute();
+
+    for ( int vwidx=0; vwidx<wellids.size(); vwidx++ )
+    {
+        uiLogChart* chart = getLogChart( vwidx );
+	if ( !chart )
+	    continue;
+
+	LogCurve* curvecopy = logcurves[vwidx]->clone();
+	chart->addLogCurve( curvecopy, ls, false, true );
+	updateViewLabel( vwidx );
+    }
+
+    updatePrimaryZrangeCB( nullptr );
+    deepErase( logcurves );
+}
+
+
 uiLogChart* uiLogViewTable::getCurrentLogChart()
 {
     return selected_==-1 ? nullptr : getLogChart( selected_ );
@@ -117,7 +292,7 @@ uiLogView* uiLogViewTable::getLogView( int col )
 
     const int row = showtools_ ? 1 : 0;
     const RowCol curcell( row, col );
-    mDynamicCastGet(uiLogView*, logview, logviews_->getCellObject( curcell ) );
+    mDynamicCastGet(uiLogView*,logview,logviews_->getCellObject(curcell))
     return logview;
 }
 
@@ -211,22 +386,31 @@ void uiLogViewTable::colSelectCB( CallBacker* cb )
 	selectView( col );
 }
 
-void uiLogViewTable::updatePrimaryChartCB( CallBacker* )
+void uiLogViewTable::updatePrimaryChartCB( CallBacker* cb )
 {
-    if ( !primarychart_ )
-	primarychart_ = getLogChart( 0 );
+    mDynamicCastGet(uiLogChart*,logchart,cb)
 
-    for ( int idx=0; idx<size(); idx++ )
+    if ( !logchart || !primarychart_ )
     {
-	auto* logchart = getLogChart( idx );
-	if ( !logchart || logchart->numAxes(OD::Horizontal)==0 ||
-	     logchart==primarychart_ )
-	    continue;
+	primarychart_ = getLogChart( 0 );
+	for ( int idx=0; idx<size(); idx++ )
+	{
+	    logchart = getLogChart( idx );
+	    if ( !logchart || logchart->numAxes(OD::Horizontal)==0 ||
+		 logchart==primarychart_ )
+		continue;
 
-	if ( logchart->numAxes(OD::Horizontal)>
+	    if ( logchart->numAxes(OD::Horizontal) >
 					primarychart_->numAxes(OD::Horizontal) )
-	    primarychart_ = logchart;
+		primarychart_ = logchart;
+	}
     }
+    else if ( logchart!=primarychart_ && logchart->numAxes(OD::Horizontal)>
+					primarychart_->numAxes(OD::Horizontal) )
+	primarychart_ = logchart;
+    else
+	alignTopCB( cb );
+
     primarychart_->setMargins( 0, 0, 0, 0 );
     alignTopCB( nullptr );
 }
@@ -237,7 +421,7 @@ void uiLogViewTable::alignTopCB( CallBacker* cb )
     if ( !primarychart_ )
 	return;
 
-    mDynamicCastGet(uiLogChart*, logchart, cb);
+    mDynamicCastGet(uiLogChart*,logchart,cb)
     const Geom::RectF primaryrect = primarychart_->plotArea();
     if ( logchart && logchart!=primarychart_ )
     {
@@ -368,7 +552,7 @@ bool uiLogViewTable::isViewLocked( int vwidx )
     {
 	const RowCol curcell( 0, vwidx );
 	mDynamicCastGet(uiLogViewToolGrp*,grp,
-			logviews_->getCellGroup(curcell));
+			logviews_->getCellGroup(curcell))
 	return grp ? grp->isLocked() : false;
     }
 
@@ -382,7 +566,7 @@ void uiLogViewTable::setViewLocked( int vwidx, bool yn )
     {
 	const RowCol curcell( 0, vwidx );
 	mDynamicCastGet(uiLogViewToolGrp*,grp,
-			logviews_->getCellGroup(curcell));
+			logviews_->getCellGroup(curcell))
 	if ( grp )
 	    grp->setLocked( yn );
     }

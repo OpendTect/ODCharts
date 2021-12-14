@@ -31,7 +31,8 @@ public:
 			LogCurve(const char*,const Well::Log&);
 			~LogCurve();
 
-    void		addTo(uiLogChart&);
+    void		addTo(uiLogChart&,bool show_wellnm=true,
+			      bool show_uom=true);
     void		addTo(uiLogChart&,const IOPar&);
     void		addTo(uiLogChart&,const OD::LineStyle&,
 			      bool show_wellnm=true,bool show_uom=true);
@@ -54,6 +55,8 @@ public:
     void		setDisplayRange(const Interval<float>& range) override;
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
+    void		initCallBacks();
+    LogCurve*		clone() const;
 
     ObjectSet<uiLineSeries>&	getSeries()	{ return series_; }
 

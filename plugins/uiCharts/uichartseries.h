@@ -41,6 +41,7 @@ public:
     void		attachAxis(uiChartAxis*);
     BufferString	name() const;
     void		setName(const char*);
+    virtual void	initCallBacks() = 0;
 
     QtCharts::QAbstractSeries*	getQSeries();
 
@@ -68,6 +69,7 @@ public:
 
     void		setPointLabelsVisible(bool yn);
     void		setPointLabelsFormat(const char* fmt);
+    virtual void	initCallBacks() override;
 
     CNotifier<uiXYChartSeries,const Geom::PointF&>	clicked;
     CNotifier<uiXYChartSeries,const Geom::PointF&>	doubleClicked;
@@ -80,14 +82,14 @@ protected:
     void		showCallout(CallBacker*);
     void		hideCallout(CallBacker*);
 
-    QtCharts::QXYSeries*	qxyseries_;
+    QtCharts::QXYSeries*	qxyseries_ = nullptr;
     uiCallout*			callout_ = nullptr;
     BufferString		callouttxt_;
     int				nrdecx_ = 2;
     int				nrdecy_ = 2;
 
 private:
-    i_xySeriesMsgHandler*	msghandler_;
+    i_xySeriesMsgHandler*	msghandler_ = nullptr;
 };
 
 
@@ -100,6 +102,8 @@ public:
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
 
     OD::LineStyle	lineStyle() const;
+
+    void		copyPoints(const uiLineSeries&);
 
     QtCharts::QLineSeries*	getQLineSeries();
 
@@ -127,6 +131,9 @@ public:
     void		setBorderColor(OD::Color);
     void		setMarkerSize(float);
 
+    void		copyPoints(const uiScatterSeries&);
+
+    QtCharts::QScatterSeries*	getQScatterSeries();
 
 protected:
     QtCharts::QScatterSeries*	qscatterseries_;

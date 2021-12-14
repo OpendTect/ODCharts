@@ -10,6 +10,7 @@ ________________________________________________________________________
 
 #include "uilogviewwin.h"
 
+#include "logcurve.h"
 #include "uichartaxes.h"
 #include "uicombobox.h"
 #include "uifiledlg.h"
@@ -27,7 +28,9 @@ ________________________________________________________________________
 
 #include "commandlineparser.h"
 #include "filepath.h"
+#include "dbkey.h"
 #include "iopar.h"
+#include "manobjectset.h"
 #include "oddirs.h"
 #include "welldata.h"
 #include "wellman.h"
@@ -39,7 +42,7 @@ static int sMnuID = 0;
 static const int sWinHeight = 500;
 static const int sWinWidth = 500;
 
-uiLogViewWin::uiLogViewWin( uiParent* p )
+uiLogViewWin::uiLogViewWin( uiParent* p, int nrcol )
     : uiDialog(p,Setup(toUiString("OpendTect - Log Viewer"), mNoDlgTitle,
 		       mTODOHelpKey).modal(false))
     , newitem_(uiStrings::sNew(),"new","",
@@ -63,7 +66,7 @@ uiLogViewWin::uiLogViewWin( uiParent* p )
     logviewtree_ = new uiLogViewerTree( this );
     logviewtree_->setStretch( 0, 2 );
 
-    logviewtbl_ = new uiLogViewTable( this, true );
+    logviewtbl_ = new uiLogViewTable( this, nrcol, true );
     logviewtbl_->attach( rightTo, logviewtree_ );
 
     mAttachCB( postFinalise(), uiLogViewWin::uiInitCB );
@@ -135,6 +138,12 @@ bool uiLogViewWin::checkSave()
     }
 
     return true;
+}
+
+
+void uiLogViewWin::setCurrentView( int vwidx )
+{
+    logviewtbl_->setCurrentView( vwidx );
 }
 
 
@@ -276,6 +285,7 @@ void uiLogViewWin::removeMarkerCB( CallBacker* cb )
     rmMarker( logviewtbl_->currentView(), wellid, markernm );
 }
 
+
 void uiLogViewWin::clearAll()
 {
     logviewtbl_->setEmpty();
@@ -284,10 +294,20 @@ void uiLogViewWin::clearAll()
 }
 
 
-void uiLogViewWin::addWellData( const DBKey& wellkey, const TypeSet<int>& logs )
+void uiLogViewWin::addWellData( const DBKeySet& wellids,
+				const ManagedObjectSet<TypeSet<int>>& logidxs )
 {
-    addTrackCB( nullptr );
-    const int vwidx = logviewtbl_->currentView();
+    logviewtbl_->addWellData( wellids, logidxs );
+    needsave_ = true;
+}
+
+
+void uiLogViewWin::addWellData( int vwidx, const DBKey& wellkey,
+				const TypeSet<int>& logs )
+{
+    if ( !logviewtbl_->validIdx(vwidx) )
+	return;
+
     BufferStringSet lognms;
     Well::Man::getLogNamesByID( wellkey, lognms );
     for ( const auto& lidx : logs )
@@ -297,6 +317,14 @@ void uiLogViewWin::addWellData( const DBKey& wellkey, const TypeSet<int>& logs )
 
 	addLog( vwidx, wellkey, lognms.get(lidx) );
     }
+}
+
+
+void uiLogViewWin::addWellData( const DBKey& wellkey, const TypeSet<int>& logs )
+{
+    addTrackCB( nullptr );
+    const int vwidx = logviewtbl_->currentView();
+    addWellData( vwidx, wellkey, logs );
 }
 
 

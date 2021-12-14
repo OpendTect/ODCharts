@@ -21,14 +21,27 @@ class uiTable;
 mExpClass(uiWellCharts) uiLogViewTable : public uiGroup
 { mODTextTranslationClass(uiLogViewTable);
 public:
-				uiLogViewTable(uiParent*,bool showtools=false);
+				uiLogViewTable(uiParent*,int nrcol=0,
+					       bool showtools=false);
 				~uiLogViewTable();
 
     int				currentView() const;
+    void			setCurrentView(int);
     void			setEmpty();
     bool			isEmpty() const;
     int				size() const;
     bool			validIdx(int) const;
+    void			setNumViews(int);
+
+    void			addWellData(const BufferStringSet&,
+					    const ObjectSet<const Well::Log>&,
+					    const OD::LineStyle&,
+					    const char* lognmsuffix=nullptr);
+    void			addWellData(const DBKeySet&,
+					const ManagedObjectSet<TypeSet<int>>&);
+    void			addWellData(const DBKeySet&,
+					    const BufferStringSet&,
+					    const OD::LineStyle&);
 
     void			addTrackCB(CallBacker*);
     void			alignTopCB(CallBacker*);
