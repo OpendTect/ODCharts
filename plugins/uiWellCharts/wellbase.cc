@@ -165,7 +165,7 @@ float WellData::dahToZ( float dah, ZType zt  )
 			zt==TVDSD ? track->getPos(dah).z+srd :
 			d2t->getTime( dah, *track );
 
-    return zt==TWT ? getConvertedValue( zpos, ztsuom, ztuom );
+    return zt==TWT ? getConvertedValue( zpos, ztsuom, ztuom )
 		   : getConvertedValue( zpos, zsuom, zduom );
 }
 
