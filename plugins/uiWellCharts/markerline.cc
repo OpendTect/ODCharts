@@ -18,19 +18,20 @@ ________________________________________________________________________
 #include "mnemonics.h"
 #include "multiid.h"
 #include "unitofmeasure.h"
+#include "wellbase.h"
 #include "welldata.h"
 #include "wellman.h"
 #include "wellmarker.h"
 
 
 MarkerLine::MarkerLine()
-    : wellid_(MultiID::udf())
+    : WellData()
     , markername_(BufferString::empty())
 { }
 
 
 MarkerLine::MarkerLine( const MultiID& wellid, const char* markernm )
-    : wellid_(wellid)
+    : WellData(wellid)
     , markername_(markernm)
 {
     initMarker();
@@ -51,9 +52,9 @@ bool MarkerLine::initMarker()
     if ( !wd || !wd->markers().isPresent(markername_) )
 	return false;
 
-    wellname_ = wd->name();
     const Well::Marker* marker = wd->markers().getByName( markername_ );
     dah_ = marker->dah();
+    zpos_ = dahToZ( dah_, ztype_ );
     linestyle_.color_ = marker->color();
     return true;
 }
@@ -77,9 +78,8 @@ void MarkerLine::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle )
     logchart.addSeries( series_ );
     series_->attachAxis( logchart.getZAxis() );
     series_->setCalloutTxt( callouttxt );
-
-    label_->setAnchor( Geom::PointF(0.f,dah_), mAlignment(Left,Bottom) );
-    label_->updateCB(nullptr);
+    setZType( logchart.zType(), false );
+    logchart.needsRedraw.trigger();
 }
 
 
@@ -95,6 +95,19 @@ void MarkerLine::removeFrom( uiLogChart& logchart )
     logchart.removeSeries( series_ );
     deleteAndZeroPtr( series_ );
     deleteAndZeroPtr( label_ );
+}
+
+
+void MarkerLine::setZType( uiWellCharts::ZType ztype, bool force )
+{
+    if ( !force && ztype==ztype_ )
+	return;
+
+    WellData::setZType( ztype, true );
+    zpos_ = dahToZ( dah_, ztype );
+    series_->setAll_Y( zpos_ );
+    label_->setAnchor( Geom::PointF(0.f,zpos_), mAlignment(Left,Bottom) );
+    label_->updateCB(nullptr);
 }
 
 
@@ -117,18 +130,16 @@ void MarkerLine::addMarker( uiLogChart& logchart )
     label_ = new uiChartLabel( &logchart,
 			       tr("%1 (%2)").arg(markername_).arg(wellname_),
 			       series_ );
-    const UnitOfMeasure* zdisp_uom = UnitOfMeasure::surveyDefDepthUnit();
-    const UnitOfMeasure* zstor_uom = UnitOfMeasure::surveyDefDepthStorageUnit();
-    dah_ = getConvertedValue(dah_, zstor_uom, zdisp_uom);
 
-    series_->append( 0.f, dah_ );
-    series_->append( 1.f, dah_ );
+    series_->append( 0.f, zpos_ );
+    series_->append( 1.f, zpos_ );
+    setZType( ztype_, true );
 }
 
 
 void MarkerLine::fillPar( IOPar& par ) const
 {
-    par.set( sKey::ID(), wellid_ );
+    WellData::fillPar( par );
     par.set( sKey::Name(), markername_);
 
     BufferString lsstr;
@@ -139,7 +150,7 @@ void MarkerLine::fillPar( IOPar& par ) const
 
 void MarkerLine::usePar( const IOPar& par )
 {
-    par.get( sKey::ID(), wellid_ );
+    WellData::usePar( par );
     par.get( sKey::Name(), markername_ );
     initMarker();
 

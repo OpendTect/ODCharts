@@ -52,6 +52,8 @@ public:
     uiChartAxis*	getAxis() const		{ return axis_; }
     uiChartAxis*	getAxis()		{ return axis_; }
 
+    void		setZType(uiWellCharts::ZType,bool) override;
+
     void		setDisplayRange(const Interval<float>& range) override;
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&);
@@ -68,7 +70,17 @@ protected:
     OD::LineStyle		linestyle_;
     float			pointsize_	= 2.f;
     ObjectSet<uiLineSeries>	series_;
+    ObjectSet<TypeSet<float>>	md_;
+    ObjectSet<TypeSet<float>>	tvd_;
+    ObjectSet<TypeSet<float>>	twt_;
+    ObjectSet<TypeSet<float>>	vals_;
+
     uiScatterSeries*		scatseries_ 	= nullptr;
+    TypeSet<float>		scat_md_;
+    TypeSet<float>		scat_tvd_;
+    TypeSet<float>		scat_twt_;
+    TypeSet<float>		scat_vals_;
+
     uiChartAxis*		axis_ 		= nullptr;
     uiChartFillx*		leftfill_	= nullptr;
     uiChartFillx*		rightfill_ 	= nullptr;

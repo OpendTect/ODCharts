@@ -24,9 +24,13 @@ ________________________________________________________________________
 #include "multiid.h"
 #include "ranges.h"
 #include "separstr.h"
+#include "welld2tmodel.h"
 #include "welldata.h"
 #include "welllog.h"
 #include "wellman.h"
+#include "welltrack.h"
+
+using namespace uiWellCharts;
 
 LogCurve::LogCurve()
     : LogData()
@@ -53,6 +57,10 @@ LogCurve::LogCurve( const char* wellnm, const Well::Log& log )
 LogCurve::~LogCurve()
 {
     deepErase( series_ );
+    deepErase( md_ );
+    deepErase( tvd_ );
+    deepErase( twt_ );
+    deepErase( vals_ );
     deleteAndZeroPtr( scatseries_ );
     deleteAndZeroPtr( leftfill_ );
     deleteAndZeroPtr( rightfill_ );
@@ -73,14 +81,7 @@ void LogCurve::initCallBacks()
 LogCurve* LogCurve::clone() const
 {
     auto* lc = new LogCurve;
-    lc->wellid_ = wellid_;
-    lc->wellname_ = wellname_;
-    lc->uomlbl_ = uomlbl_;
-    lc->logname_ = logname_;
-    lc->mnemlbl_ = mnemlbl_;
-    lc->dahrange_ = dahrange_;
-    lc->valrange_ = valrange_;
-    lc->disprange_ = disprange_;
+    lc->copyFrom( *this );
     lc->linestyle_ = linestyle_;
     lc->pointsize_ = pointsize_;
     lc->axis_ = axis_;
@@ -92,15 +93,22 @@ LogCurve* LogCurve::clone() const
     {
 	lc->scatseries_ = new uiScatterSeries;
 	lc->scatseries_->copyPoints( *scatseries_ );
+	lc->scat_md_ = scat_md_;
+	lc->scat_vals_ = scat_vals_;
     }
 
+    int idx = 0;
     for ( const auto* series : series_ )
     {
 	auto* ns = new uiLineSeries;
 	ns->copyPoints( *series );
 	lc->series_ += ns;
+	lc->md_ += new TypeSet<float>( *md_[idx] );
+	lc->vals_ += new TypeSet<float>( *vals_[idx] );
+	idx++;
     }
 
+    lc->setZType( ztype_, true );
     return lc;
 }
 
@@ -152,11 +160,12 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
     if ( show_uom )
 	logtitle.add(" (").add( uomlbl_ ).add(")");
 
+    setZType( logchart.zType(), false );
     axis_ = logchart.makeLogAxis( logtitle, min, max, reverse );
     axis_->setLineStyle( lstyle );
     disprange_ = axis_->range();
     logchart.addAxis( axis_, OD::Top );
-    logchart.getZAxis()->setAxisLimits( dahrange_ );
+    logchart.getZAxis()->setAxisLimits( zrange_ );
     BufferString callouttxt( wellname_, "\nDepth: %2\n", logname_ );
     callouttxt.add( ": %1" );
     linestyle_ = lstyle;
@@ -211,46 +220,73 @@ void LogCurve::addCurveFillTo( uiLogChart& logchart )
 void LogCurve::addLog( const Well::Log& log )
 {
     series_.setEmpty();
+    md_.setEmpty();
+    tvd_.setEmpty();
+    twt_.setEmpty();
+    vals_.setEmpty();
+    scat_md_.setEmpty();
+    scat_tvd_.setEmpty();
+    scat_twt_.setEmpty();
+    scat_vals_.setEmpty();
     deleteAndZeroPtr( scatseries_ );
     deleteAndZeroPtr( leftfill_ );
     deleteAndZeroPtr( rightfill_ );
     deleteAndZeroPtr( axis_ );
 
-    auto* series = new uiLineSeries;
-    const UnitOfMeasure* zdisp_uom = UnitOfMeasure::surveyDefDepthUnit();
-    const UnitOfMeasure* zstor_uom = UnitOfMeasure::surveyDefDepthStorageUnit();
-    dahrange_.start = getConvertedValue(dahrange_.start, zstor_uom, zdisp_uom);
-    dahrange_.stop = getConvertedValue( dahrange_.stop, zstor_uom, zdisp_uom );
+    auto* mds = new TypeSet<float>;
+    auto* vals = new TypeSet<float>;
 
     for (int idx=0; idx<log.size(); idx++)
     {
-	const float logval = log.value(idx);
-	const float dah = getConvertedValue( log.dah( idx ), zstor_uom,
-					     zdisp_uom );
+	const float logval = log.value( idx );
+	const float dah = dahToZ( log.dah(idx), uiWellCharts::MD );
 	if ( !mIsUdf(logval) )
-	    series->append( logval, dah );
+	{
+	    mds->add( dah );
+	    vals->add( logval );
+	}
 	else
 	{
-	    if ( series->size()==1 )
+	    if ( mds->size()==1 )
 	    {
-		if ( !scatseries_ )
-		    scatseries_ = new uiScatterSeries;
-		scatseries_->append( series->x(0), series->y(0) );
-		series->clear();
+		scat_md_ += mds->get( 0 );
+		scat_vals_ += vals->get( 0 );
+		mds->setEmpty();
+		vals->setEmpty();
 	    }
-	    else if ( !series->isEmpty() )
+	    else if ( !mds->isEmpty() )
 	    {
-		series_ += series;
-		series = new uiLineSeries;
+		md_ += mds;
+		vals_ += vals;
+		mds = new TypeSet<float>;
+		vals = new TypeSet<float>;
 	    }
 	}
     }
 
-    if ( !series->isEmpty() )
-	series_ += series;
+    if ( !mds->isEmpty() )
+    {
+	md_ += mds;
+	vals_ += vals;
+    }
     else
-	delete series;
+    {
+	delete mds;
+	delete vals;
+    }
 
+    if ( !scatseries_ && !scat_md_.isEmpty() )
+	scatseries_ = new uiScatterSeries;
+
+    for ( const auto* md : md_ )
+    {
+	if ( !md )
+	    continue;
+	auto* series = new uiLineSeries;
+	series_ += series;
+    }
+
+    setZType( ztype_, true );
     lefttolog_.setEmpty();
     righttolog_.setEmpty();
 }
@@ -308,6 +344,101 @@ void LogCurve::setFillToLog( const char* lognm, bool left )
 const char* LogCurve::fillToLog( bool left )
 {
     return left ? lefttolog_ : righttolog_;
+}
+
+
+void LogCurve::setZType( ZType ztype, bool force )
+{
+    if ( !force && ztype==ztype_ )
+	return;
+
+    LogData::setZType( ztype, force );
+    const Well::Track* track = wellTrack();
+    const Well::D2TModel* d2t = wellD2TModel();
+
+    const bool istvd = ztype==TVD || ztype==TVDSS || ztype==TVDSD;
+    const UnitOfMeasure* zduom = UnitOfMeasure::surveyDefDepthUnit();
+    const UnitOfMeasure* zsuom = UnitOfMeasure::surveyDefDepthStorageUnit();
+    const UnitOfMeasure* ztuom = UnitOfMeasure::surveyDefTimeUnit();
+
+    if ( istvd && !track )
+	return;
+
+    if ( istvd && scatseries_ && scat_tvd_.isEmpty())
+    {
+	scat_tvd_.setSize( scat_md_.size() );
+	track->getAllTVD( scat_md_.size(), scat_md_.arr(), zduom,
+			  scat_tvd_.arr(), zduom );
+    }
+
+    if ( istvd && tvd_.isEmpty() )
+    {
+	for ( const auto* md : md_ )
+	{
+	    auto* tvd = new TypeSet<float>( md->size(), 0.f );
+	    track->getAllTVD( md->size(), md->arr(), zduom, tvd->arr(), zduom );
+	    tvd_ += tvd;
+	}
+    }
+
+    if ( ztype==TWT && (!d2t || !track) )
+	return;
+
+    if ( ztype==TWT  )
+    {
+	if ( scatseries_ && scat_twt_.isEmpty() )
+	{
+	    scat_twt_.setSize( scat_md_.size() );
+	    d2t->getAllTime( scat_md_.size(), scat_md_.arr(), *track, zduom,
+			  scat_twt_.arr(), ztuom );
+	}
+
+	if ( twt_.isEmpty() )
+	{
+	    for ( const auto* md : md_ )
+	    {
+		auto* twt = new TypeSet<float>( md->size(), 0.f );
+		d2t->getAllTime( md->size(), md->arr(), *track, zduom,
+				 twt->arr(), ztuom );
+		twt_ += twt;
+	    }
+	}
+    }
+
+    const float kb = getConvertedValue( track->getKbElev(), zsuom, zduom );
+    const float srd = getConvertedValue( SI().seismicReferenceDatum(), zsuom,
+					 zduom );
+    const float zshft = ztype==TVD ? kb :
+			ztype==TVDSS ? 0.f :
+			ztype==TVDSD ? srd : 0.f;
+
+    const TypeSet<float>& zs = istvd ? scat_tvd_ :
+			       ztype==TWT ? scat_twt_ : scat_md_;
+
+    if ( scatseries_ && !scatseries_->replace_y(zs.size(),zs.arr(),zshft) )
+	scatseries_->replace( zs.size(), scat_vals_.arr(), zs.arr(), 0.f,
+			      zshft );
+
+    const ObjectSet<TypeSet<float>>& z = istvd ? tvd_ :
+					 ztype==TWT ? twt_ : md_;
+
+    for ( int idx=0; idx<series_.size(); idx++ )
+    {
+	if ( !series_[idx]->replace_y(z[idx]->size(), z[idx]->arr(),zshft) )
+	    series_[idx]->replace( z[idx]->size(), vals_[idx]->arr(),
+				   z[idx]->arr(), 0.f, zshft );
+    }
+
+    if ( leftfill_ && leftfill_->gradientImg() )
+    {
+	mDynamicCastGet(LogGradient*,lg,leftfill_->gradientImg())
+	lg->setZType( ztype, false );
+    }
+    if ( rightfill_ && rightfill_->gradientImg() )
+    {
+	mDynamicCastGet(LogGradient*,lg,rightfill_->gradientImg())
+	lg->setZType( ztype, false );
+    }
 }
 
 

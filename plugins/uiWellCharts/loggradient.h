@@ -33,6 +33,8 @@ public:
     const char*		sequenceName() const;
     void		setColTabMapperSetup(const ColTab::MapperSetup&,
 					     bool update=false);
+
+    void		setZType(uiWellCharts::ZType,bool force) override;
     void		setDisplayRange(const Interval<float>& range) override;
     FileMultiString	toString() const override;
     void		fromString(const FileMultiString&) override;
@@ -44,5 +46,5 @@ protected:
 
     ColTab::Sequence	ctseq_;
     ColTab::Mapper	ctmapper_;
-    StepInterval<float>	zrange_;
+    StepInterval<float>	imgzrange_;
 };

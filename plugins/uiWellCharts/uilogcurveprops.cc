@@ -237,6 +237,7 @@ void uiLogFillProps::fillGradientLogChgCB( CallBacker* )
     if ( !lg )
 	return;
 
+    lg->setZType( logchart_.zType(), false );
     Interval<float> rg = lg->dispRange().isUdf() ? lg->logRange()
 						 : lg->dispRange();
     rg.sort();

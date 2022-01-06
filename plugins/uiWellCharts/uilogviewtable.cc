@@ -124,10 +124,10 @@ mDefParallelCalc3Pars(SingleLogLoader,
 		      const ObjectSet<const Well::Log>&, logs,
 		      ObjectSet<LogCurve>&, logcurves)
 mDefParallelCalcBody( ,
-const BufferString& wellnm = wellnms_.get( idx );
-const Well::Log& log = *logs_[idx];
-delete logcurves_.replace( idx, new LogCurve(wellnm,log) );
-,
+    const BufferString& wellnm = wellnms_.get( idx );
+    const Well::Log& log = *logs_[idx];
+    delete logcurves_.replace( idx, new LogCurve(wellnm,log) );
+    ,
 )
 
 
@@ -181,17 +181,17 @@ mDefParallelCalc3Pars(MultiLogLoader,
 		      const ManagedObjectSet<TypeSet<int>>&, logidxs,
 		      ManagedObjectSet<ObjectSet<LogCurve>>&, logcurves)
 mDefParallelCalcBody( ,
-const DBKey& wkey = wellids_[idx];
-const TypeSet<int>& logidx = *logidxs_[idx];
-BufferStringSet lognms;
-Well::Man::getLogNamesByID( wkey, lognms );
-for ( const auto& lidx : logidx )
-{
-    if ( !lognms.validIdx(lidx) )
-	continue;
-    logcurves_[idx]->add( new LogCurve(wkey, lognms.get(lidx)) );
-}
-,
+    const DBKey& wkey = wellids_[idx];
+    const TypeSet<int>& logidx = *logidxs_[idx];
+    BufferStringSet lognms;
+    Well::Man::getLogNamesByID( wkey, lognms );
+    for ( const auto& lidx : logidx )
+    {
+	if ( !lognms.validIdx(lidx) )
+	    continue;
+	logcurves_[idx]->add( new LogCurve(wkey, lognms.get(lidx)) );
+    }
+    ,
 )
 
 
@@ -233,9 +233,9 @@ mDefParallelCalc3Pars(SingleLogLoader2,
 		      const BufferStringSet, lognms,
 		      ObjectSet<LogCurve>&, logcurves)
 mDefParallelCalcBody( ,
-const DBKey& wkey = wellids_[idx];
-delete logcurves_.replace( idx, new LogCurve(wkey, lognms_.get(idx)) );
-,
+    const DBKey& wkey = wellids_[idx];
+    delete logcurves_.replace( idx, new LogCurve(wkey, lognms_.get(idx)) );
+    ,
 )
 
 
@@ -326,6 +326,8 @@ void uiLogViewTable::setZDomain( uiWellCharts::ZType ztyp )
 	if ( lchart )
 	    lchart->setZType( ztyp );
     }
+
+    updatePrimaryZrangeCB( nullptr );
 }
 
 

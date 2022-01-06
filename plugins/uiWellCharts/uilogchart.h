@@ -73,7 +73,8 @@ public:
     void		removeMarker(const MultiID&,const char* markernm);
     void		removeAllMarkers();
 
-    void		setZType(uiWellCharts::ZType);
+    uiWellCharts::ZType	zType() const		{ return ztype_; }
+    void		setZType(uiWellCharts::ZType,bool force=false);
     uiValueAxis*	getZAxis() const;
     Interval<float>	getActualZRange() const;
     void		setZRange(float minz,float maxz);

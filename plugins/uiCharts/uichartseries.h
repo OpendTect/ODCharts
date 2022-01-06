@@ -62,6 +62,11 @@ public:
     void		append(int sz,float* xarr,float* yarr);
     float		x(int idx) const;
     float		y(int idx) const;
+    void		replace(int sz,const float* xarr,const float* yarr,
+				float xshift=0.f,float yshift=0.f);
+    bool		replace_x(int sz,const float* arr,float xshift=0.f);
+    bool		replace_y(int sz,const float* arr,float yshift=0.f);
+    void		setAll_Y(float);
     int			size() const;
     bool		isEmpty() const;
     bool		validIdx(int) const;

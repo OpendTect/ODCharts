@@ -16,11 +16,12 @@ ________________________________________________________________________
 #include "multiid.h"
 #include "uichartseries.h"
 #include "uistring.h"
+#include "wellbase.h"
 
 class uiLogChart;
 class uiChartLabel;
 
-mExpClass(uiWellCharts) MarkerLine
+mExpClass(uiWellCharts) MarkerLine : public WellData
 { mODTextTranslationClass(MarkerLine)
 public:
 			MarkerLine();
@@ -31,6 +32,7 @@ public:
     void		addTo(uiLogChart&,const IOPar&);
     void		addTo(uiLogChart&,const OD::LineStyle&);
     void		removeFrom(uiLogChart&);
+    void		setZType(uiWellCharts::ZType,bool force) override;
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
     OD::LineStyle	lineStyle() const;
@@ -44,11 +46,13 @@ public:
 protected:
     void		addMarker(uiLogChart&);
     bool		initMarker();
+    const Well::Track*	wellTrack() const;
+    const Well::D2TModel*	wellD2TModel() const;
 
-    MultiID		wellid_;
-    BufferString	wellname_;
     BufferString 	markername_;
     float 		dah_;
+    float		zpos_;
+
     OD::LineStyle	linestyle_;
     uiLineSeries*	series_ = nullptr;
     uiChartLabel*	label_ = nullptr;

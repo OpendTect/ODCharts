@@ -13,20 +13,15 @@ ________________________________________________________________________
 #include "uigradientimg.h"
 
 #include "chartutils.h"
+#include "logdata.h"
 #include "welllog.h"
 
 #include <QImage>
 
 LogGradient::LogGradient( const MultiID& wellid, const char* lognm )
+    : LogData(wellid,lognm)
 {
-    wellid_ = wellid;
-    const FixedString lognmstr = lognm;
-    if ( !lognmstr.isEmpty() )
-    {
-	logname_ = lognm;
-	initLog();
-	ctmapper_.setup_.range_ = disprange_;
-    }
+    ctmapper_.setup_.range_ = disprange_;
 }
 
 
@@ -66,7 +61,7 @@ void LogGradient::setColTabMapperSetup( const ColTab::MapperSetup& su,
 void LogGradient::updateImg( const StepInterval<float>& zrange )
 {
     const int height = zrange.nrSteps() + 1;
-    if ( height==qimg_->height() && zrange.isEqual(zrange_,mDefEpsF) )
+    if ( height==qimg_->height() && zrange.isEqual(imgzrange_,mDefEpsF) )
 	return;
 
     if ( height!=qimg_->height() )
@@ -75,8 +70,18 @@ void LogGradient::updateImg( const StepInterval<float>& zrange )
 	qimg_ = new QImage( 1, height, QImage::Format_ARGB32_Premultiplied );
     }
 
-    zrange_ = zrange;
-    zrange_.sort();
+    imgzrange_ = zrange;
+    imgzrange_.sort();
+    update();
+}
+
+
+void LogGradient::setZType( uiWellCharts::ZType ztype, bool force )
+{
+    if ( !force && zType()==ztype )
+	return;
+
+    LogData::setZType( ztype, force );
     update();
 }
 
@@ -113,13 +118,13 @@ void LogGradient::fromString( const FileMultiString& str )
 void LogGradient::update()
 {
     const Well::Log* log = wellLog();
-    if ( !qimg_ || !log || zrange_==StepInterval<float>() )
+    if ( !qimg_ || !log || imgzrange_==StepInterval<float>() )
 	return;
 
     QColor qcol;
-    for ( int idx=0; idx<=zrange_.nrSteps(); idx++ )
+    for ( int idx=0; idx<=imgzrange_.nrSteps(); idx++ )
     {
-	const float dah = zrange_.atIndex( idx );
+	const float dah = zToDah( imgzrange_.atIndex(idx), ztype_ );
 	const float logval = log->getValue( dah );
 	if ( mIsUdf(logval) )
 	    qcol = QColorConstants::Transparent;

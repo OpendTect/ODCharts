@@ -22,6 +22,6 @@ namespace uiWellCharts
     enum Scale		{ Linear, Log10 };
 			mDeclareNameSpaceEnumUtils(uiWellCharts,Scale)
 
-    enum ZType		{ MD, TVD, TVDSS, TVDSRD, TWT };
+    enum ZType		{ MD, TVD, TVDSS, TVDSD, TWT };
 			mDeclareNameSpaceEnumUtils(uiWellCharts,ZType)
 };

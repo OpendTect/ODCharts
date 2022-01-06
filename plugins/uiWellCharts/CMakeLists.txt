@@ -20,6 +20,7 @@ SET( OD_MODULE_SOURCES
 	uilogviewtoolgrp.cc
 	uilogviewwin.cc
 	uiwellchartspi.cc
+	wellbase.cc
 	wellchartcommon.cc
 )
 

@@ -32,6 +32,7 @@ ________________________________________________________________________
 #include "iopar.h"
 #include "manobjectset.h"
 #include "oddirs.h"
+#include "survinfo.h"
 #include "welldata.h"
 #include "wellman.h"
 #include "welltrack.h"
@@ -117,8 +118,11 @@ void uiLogViewWin::createToolBar()
     tb_->addButton( rmvbuttonitem_ );
     tb_->addSeparator();
 
-    zdomainfld_ = new uiComboBox( nullptr, uiWellCharts::ZTypeDef(),
-				  "Z domain" );
+    EnumDef def = uiWellCharts::ZTypeDef();
+    if ( !SI().zIsTime() )
+	def.remove( def.getKeyForIndex(uiWellCharts::TWT) );
+
+    zdomainfld_ = new uiComboBox( nullptr, def, "Z domain" );
     mAttachCB( zdomainfld_->selectionChanged, uiLogViewWin::zdomainChgCB );
     tb_->addObject( zdomainfld_);
 }
@@ -372,7 +376,8 @@ void uiLogViewWin::loadFile( const char* nm )
 	    chart->usePar( *tmp );
 	    logviewtbl_->updateViewLabel( logviewtbl_->currentView() );
 	}
-
+	uiLogChart* chart = logviewtbl_->getCurrentLogChart();
+	zdomainfld_->setCurrentItem( chart->zType() );
 	logviewtbl_->clearSelection();
 	logviewtbl_->updatePrimaryZrangeCB( nullptr );
 	needsave_ = false;

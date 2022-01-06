@@ -256,14 +256,21 @@ void uiLogChart::removeAllMarkers()
 }
 
 
-void uiLogChart::setZType( uiWellCharts::ZType ztype )
+void uiLogChart::setZType( uiWellCharts::ZType ztype, bool force )
 {
-    if ( ztype_==ztype )
+    if ( !force && ztype_==ztype )
 	return;
 
     ztype_ = ztype;
-// TODO update logcurves to new ztype
     updateZAxisTitle();
+    for ( auto* log : logcurves_ )
+	log->setZType( ztype, false );
+
+    for ( auto* marker : markers_ )
+	marker->setZType( ztype, false );
+
+    logChange.trigger();
+    markerChange.trigger();
 }
 
 
@@ -546,8 +553,8 @@ void uiLogChart::usePar( const IOPar& iop )
 	laxis->setMinorGridLineVisible( lfms_minor.getYN(1) );
 	laxis->setMinorGridStyle( ls_minor );
 	logcurves_ += logcurve;
-	logChange.trigger();
     }
+//    logChange.trigger();
 
     for ( auto* logcurve : logcurves_ )
 	logcurve->addCurveFillTo( *this );
@@ -564,7 +571,8 @@ void uiLogChart::usePar( const IOPar& iop )
 	auto* marker = new MarkerLine;
 	marker->addTo( *this, *tmp );
 	markers_ += marker;
-	markerChange.trigger();
     }
+//    markerChange.trigger();
 
+    setZType( ztype_, true );
 }

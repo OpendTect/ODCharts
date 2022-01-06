@@ -51,7 +51,7 @@ mDefineNameSpaceEnumUtils( uiWellCharts, ZType, "Log chart Z type" )
     "MD",
     "TVD",
     "TVDSS",
-    "TVDSRD",
+    "TVDSD",
     "TWT",
     nullptr
 };
@@ -63,6 +63,6 @@ void EnumDefImpl<uiWellCharts::ZType>::init()
     uistrings_ += uiStrings::sMD();
     uistrings_ += uiStrings::sTVD();
     uistrings_ += uiStrings::sTVDSS();
-    uistrings_ += mEnumTr("TVDSRD");
+    uistrings_ += mEnumTr("TVDSD");
     uistrings_ += uiStrings::sTWT();
 }

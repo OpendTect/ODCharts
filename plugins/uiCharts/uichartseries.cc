@@ -130,6 +130,55 @@ float uiXYChartSeries::y( int idx ) const
 }
 
 
+void uiXYChartSeries::replace( int sz, const float* xarr, const float* yarr,
+			       float xshift, float yshift )
+{
+    QVector<QPointF> points( sz );
+    for ( int idx=0; idx<sz; idx++ )
+	points[idx] = QPointF( xarr[idx]+xshift, yarr[idx]+yshift );
+
+    qxyseries_->replace( points );
+}
+
+
+bool uiXYChartSeries::replace_x( int sz, const float* xarr, float xshift )
+{
+    if ( sz != size() )
+	return false;
+
+    QVector<QPointF> points = qxyseries_->pointsVector();
+    for ( int idx=0; idx<sz; idx++ )
+	points[idx].setX( xarr[idx]+xshift );
+
+    qxyseries_->replace( points );
+    return true;
+}
+
+
+bool uiXYChartSeries::replace_y( int sz, const float* yarr, float yshift )
+{
+    if ( sz != size() )
+	return false;
+
+    QVector<QPointF> points = qxyseries_->pointsVector();
+    for ( int idx=0; idx<sz; idx++ )
+	points[idx].setY( yarr[idx]+yshift );
+
+    qxyseries_->replace( points );
+    return true;
+}
+
+
+void uiXYChartSeries::setAll_Y( float newy )
+{
+    QVector<QPointF> points = qxyseries_->pointsVector();
+    for ( int idx=0; idx<size(); idx++ )
+	points[idx].setY( newy );
+
+    qxyseries_->replace( points );
+}
+
+
 int uiXYChartSeries::size() const
 {
     return qxyseries_->count();
