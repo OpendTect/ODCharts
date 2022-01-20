@@ -53,3 +53,16 @@ OD::LineStyle fromQPen( const QPen& qpen )
     return OD::LineStyle( OD::LineStyle::Type(qpen.style()), qpen.width(),
 			  color );
 }
+
+
+OD::Edge fromSide( uiRect::Side side )
+{
+    if ( side==uiRect::Top )
+	return OD::Edge::Top;
+    if ( side==uiRect::Bottom )
+	return OD::Edge::Bottom;
+    if ( side==uiRect::Left )
+	return OD::Edge::Left;
+
+    return OD::Edge::Right;
+}

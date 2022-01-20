@@ -31,7 +31,10 @@ public:
     void			setMinimumSize(int width,int height);
     void			setZoomStyle(ZoomStyle);
 
+    const Geom::Point2D<float>&	mousePos() const;
+
     Notifier<uiChartView>	doubleClick;
+    Notifier<uiChartView>	mouseMove;
 
 protected:
     ODChartView&		mkbody(uiParent*,const char*);

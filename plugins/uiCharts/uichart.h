@@ -41,6 +41,7 @@ public:
     Geom::RectI			margins() const;
     int				numAxes(OD::Orientation) const;
     Geom::RectF			plotArea() const;
+    uiChartAxis*		getAxis(OD::Orientation,int);
     void			removeAllAxes(OD::Orientation,
 					      uiChartSeries* series=nullptr);
     void			removeAllSeries();
@@ -51,6 +52,7 @@ public:
     void			setMargins(int l,int t,int r,int b);
     void			setPlotArea(const Geom::RectF&);
     void			setTitle(const char*);
+    void			setTitle(const uiString&);
     BufferString		title() const;
 
     QtCharts::QChart*		getQChart();
@@ -60,6 +62,7 @@ public:
 
 protected:
     ODChart*			odchart_;
+    ObjectSet<uiChartAxis>	axes_;
 
     void			axisRangeChgCB(CallBacker*);
 

@@ -27,6 +27,7 @@ namespace OD		{ class LineStyle; }
 namespace QtCharts
 {
     class QAbstractSeries;
+    class QAreaSeries;
     class QLineSeries;
     class QScatterSeries;
     class QXYSeries;
@@ -36,17 +37,21 @@ namespace QtCharts
 mExpClass(uiCharts) uiChartSeries : public CallBacker
 {
 public:
-    virtual		~uiChartSeries();
+    virtual			~uiChartSeries();
 
-    void		attachAxis(uiChartAxis*);
-    BufferString	name() const;
-    void		setName(const char*);
-    virtual void	initCallBacks() = 0;
+    void			attachAxis(uiChartAxis*);
+    BufferString		name() const;
+    void			setName(const char*);
+
+    bool			isVisible() const;
+    void			setVisible(bool);
+
+    virtual void		initCallBacks() = 0;
 
     QtCharts::QAbstractSeries*	getQSeries();
 
 protected:
-			uiChartSeries(QtCharts::QAbstractSeries*);
+				uiChartSeries(QtCharts::QAbstractSeries*);
 
     QtCharts::QAbstractSeries*	qabstractseries_;
 };
@@ -105,8 +110,13 @@ public:
 			~uiLineSeries();
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
-
     OD::LineStyle	lineStyle() const;
+
+    bool		pointsVisible() const;
+    void		setPointsVisible(bool);
+
+    bool		lineVisible() const;
+    void		setLineVisible(bool);
 
     void		copyPoints(const uiLineSeries&);
 
@@ -114,6 +124,7 @@ public:
 
 protected:
     QtCharts::QLineSeries*	qlineseries_;
+    OD::LineStyle::Type		savedlinetype_ = OD::LineStyle::Solid;
 };
 
 
@@ -142,4 +153,40 @@ public:
 
 protected:
     QtCharts::QScatterSeries*	qscatterseries_;
+};
+
+
+mExpClass(uiCharts) uiAreaSeries : public uiChartSeries
+{
+public:
+			uiAreaSeries(uiLineSeries*, uiLineSeries* lwr=nullptr);
+			~uiAreaSeries();
+
+    void		setBorderStyle(const OD::LineStyle&,
+				       bool usetransp=false);
+    OD::LineStyle	borderStyle() const;
+
+    OD::Color		color() const;
+    void		setColor(OD::Color);
+
+    uiLineSeries*	upperSeries() const;
+    uiLineSeries*	lowerSeries() const;
+    void		setUpperSeries(uiLineSeries*);
+    void		setLowerSeries(uiLineSeries*);
+
+    bool		pointsVisible() const;
+    void		setPointsVisible(bool);
+
+    bool		linesVisible() const;
+    void		setLinesVisible(bool);
+
+    void		initCallBacks();
+
+    QtCharts::QAreaSeries*	getQAreaSeries();
+
+protected:
+    QtCharts::QAreaSeries*	qareaseries_;
+    uiLineSeries*		upperseries_ = nullptr;
+    uiLineSeries*		lowerseries_ = nullptr;
+    OD::LineStyle::Type		savedlinetype_ = OD::LineStyle::Solid;
 };

@@ -35,11 +35,18 @@ public:
 
     void		setTitleText(const char*);
     BufferString	titleText() const;
+    void		setTitle(const uiString&);
+    uiString		title() const;
+    void		setTitleColor(OD::Color);
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
     void		setGridStyle(const OD::LineStyle&,bool usetransp=false);
     void		setMinorGridStyle(const OD::LineStyle&,
 					  bool usetransp=false);
+    bool		lineVisible() const;
+    void		setLineVisible(bool);
+    bool		labelsVisible() const;
+    void		setLabelsVisible(bool);
 
     OD::LineStyle	lineStyle() const;
     OD::LineStyle	getGridStyle() const;
@@ -65,7 +72,8 @@ public:
     void		setTickCount(int);
     int			getTickCount() const;
 
-    void		setTickInterval(float);
+    void		setDynamicTicks(float step,float anchor=0.f);
+    float		getTickAnchor() const;
     float		getTickInterval() const;
 
     AxisType		type() const;

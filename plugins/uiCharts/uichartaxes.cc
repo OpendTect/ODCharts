@@ -43,6 +43,31 @@ BufferString uiChartAxis::titleText() const
 }
 
 
+void uiChartAxis::setTitle( const uiString& uistr )
+{
+    QString qstr;
+    uistr.fillQString( qstr );
+    qabstractaxis_->setTitleText( qstr );
+}
+
+
+uiString uiChartAxis::title() const
+{
+    QString qstr = qabstractaxis_->titleText();
+    uiString uistr;
+    uistr.setFrom( qstr );
+    return uistr;
+}
+
+
+void uiChartAxis::setTitleColor( OD::Color odcol )
+{
+    QColor qcol;
+    toQColor( qcol, odcol, true );
+    qabstractaxis_->setTitleBrush( QBrush(qcol) );
+}
+
+
 void uiChartAxis::setLineStyle( const OD::LineStyle& ls, bool usetransp )
 {
     QPen qpen;
@@ -82,6 +107,30 @@ OD::LineStyle uiChartAxis::getGridStyle() const
 OD::LineStyle uiChartAxis::getMinorGridStyle() const
 {
     return fromQPen( qabstractaxis_->minorGridLinePen() );
+}
+
+
+bool uiChartAxis::lineVisible() const
+{
+    return qabstractaxis_->isLineVisible();
+}
+
+
+void uiChartAxis::setLineVisible( bool yn )
+{
+    qabstractaxis_->setLineVisible( yn );
+}
+
+
+bool uiChartAxis::labelsVisible() const
+{
+    return qabstractaxis_->labelsVisible();
+}
+
+
+void uiChartAxis::setLabelsVisible( bool yn )
+{
+    qabstractaxis_->setLabelsVisible( yn );
 }
 
 
@@ -182,7 +231,10 @@ void uiChartAxis::setMinorTickCount( int count )
     auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
     auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
+    {
 	qvalueaxis->setMinorTickCount( count );
+	qvalueaxis->setTickType( QValueAxis::TicksFixed );
+    }
     if ( qlogvalueaxis )
 	qlogvalueaxis->setMinorTickCount( count );
 }
@@ -192,7 +244,7 @@ int uiChartAxis::getMinorTickCount() const
 {
     auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
     auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
-    if ( qvalueaxis )
+    if ( qvalueaxis && qvalueaxis->tickType()==QValueAxis::TicksFixed)
 	return qvalueaxis->minorTickCount();
     if ( qlogvalueaxis )
 	return qlogvalueaxis->minorTickCount();
@@ -205,7 +257,10 @@ void uiChartAxis::setTickCount( int count )
 {
     auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
+    {
 	qvalueaxis->setTickCount( count );
+	qvalueaxis->setTickType( QValueAxis::TicksFixed );
+    }
 }
 
 
@@ -213,7 +268,7 @@ int uiChartAxis::getTickCount() const
 {
     auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
     auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
-    if ( qvalueaxis )
+    if ( qvalueaxis && qvalueaxis->tickType()==QValueAxis::TicksFixed )
 	return qvalueaxis->tickCount();
     if ( qlogvalueaxis )
 	return qlogvalueaxis->tickCount();
@@ -222,11 +277,25 @@ int uiChartAxis::getTickCount() const
 }
 
 
-void uiChartAxis::setTickInterval( float step )
+void uiChartAxis::setDynamicTicks( float step, float anchor )
 {
     auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
+    {
+	qvalueaxis->setTickAnchor( anchor );
 	qvalueaxis->setTickInterval( step );
+	qvalueaxis->setTickType( QValueAxis::TicksDynamic );
+    }
+}
+
+
+float uiChartAxis::getTickAnchor() const
+{
+    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    if ( qvalueaxis )
+	return qvalueaxis->tickAnchor();
+
+    return mUdf(float);
 }
 
 
@@ -238,6 +307,7 @@ float uiChartAxis::getTickInterval() const
 
     return mUdf(float);
 }
+
 
 uiChartAxis::AxisType uiChartAxis::type() const
 {

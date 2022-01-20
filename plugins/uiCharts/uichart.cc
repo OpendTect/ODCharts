@@ -51,6 +51,7 @@ uiChart::~uiChart()
 {
     delete odchart_;
     delete msghandler_;
+    deepErase( axes_ );
     detachAllNotifiers();
 }
 
@@ -63,6 +64,7 @@ void uiChart::addAxis( uiChartAxis* axis, OD::Edge all )
 				       : all==OD::Left ? Qt::AlignLeft
 						       : Qt::AlignRight;
     odchart_->addAxis( axis->getQAxis(), qall );
+    axes_ += axis;
     mAttachCB( axis->rangeChanged, uiChart::axisRangeChgCB );
 }
 
@@ -123,6 +125,24 @@ Geom::RectF uiChart::plotArea() const
     const QRectF qrect = odchart_->plotArea();
     return Geom::RectF( qrect.left(), qrect.top(), qrect.right(),
 			qrect.bottom() );
+}
+
+
+uiChartAxis* uiChart::getAxis( OD::Orientation orient, int idx )
+{
+    int iax = 0;
+    for ( auto* axis : axes_ )
+    {
+	if ( axis->orientation()==orient )
+	{
+	    if ( iax==idx)
+		return axis;
+
+	    iax++;
+	}
+    }
+
+    return nullptr;
 }
 
 
@@ -196,6 +216,14 @@ void uiChart::setMargins( int left, int top, int right, int bottom )
 void uiChart::setTitle( const char* title )
 {
     odchart_->setTitle( title );
+}
+
+
+void uiChart::setTitle( const uiString& title )
+{
+    QString qstr;
+    title.fillQString( qstr );
+    odchart_->setTitle( qstr );
 }
 
 

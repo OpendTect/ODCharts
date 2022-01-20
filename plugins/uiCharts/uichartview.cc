@@ -35,6 +35,8 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
 {
 }
 
+    Geom::PointF	mousepos_;
+
 protected:
     bool		panning_ = false;
     QPointF		lastmousepos_;
@@ -43,7 +45,15 @@ protected:
     void		mouseReleaseEvent(QMouseEvent*) override;
     void		mousePressEvent(QMouseEvent*) override;
     void		mouseDoubleClickEvent(QMouseEvent*) override;
+    void		setMousePos( QMouseEvent*);
 };
+
+
+void ODChartView::setMousePos( QMouseEvent* ev )
+{
+    lastmousepos_ = ev->pos();
+    mousepos_.setXY( lastmousepos_.x(), lastmousepos_.y() );
+}
 
 
 void ODChartView::mouseMoveEvent( QMouseEvent* ev )
@@ -58,9 +68,10 @@ void ODChartView::mouseMoveEvent( QMouseEvent* ev )
 	else
 	    chart()->scroll( dpos.x(), dpos.y() );
 
-	lastmousepos_ = ev->pos();
 	ev->accept();
     }
+    setMousePos( ev );
+    handle_.mouseMove.trigger();
 
     QChartView::mouseMoveEvent( ev );
 }
@@ -79,7 +90,7 @@ void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
 	else
 	    chart()->scroll( dpos.x(), dpos.y() );
 
-	lastmousepos_ = ev->pos();
+	setMousePos( ev );
 	ev->accept();
 	QApplication::restoreOverrideCursor();
     }
@@ -100,7 +111,7 @@ void ODChartView::mousePressEvent( QMouseEvent* ev )
 	    QApplication::setOverrideCursor( QCursor(Qt::SizeAllCursor) );
 
 	panning_ = true;
-	lastmousepos_ = ev->pos();
+	setMousePos( ev );
 	ev->accept();
     }
     else
@@ -113,10 +124,12 @@ void ODChartView::mouseDoubleClickEvent( QMouseEvent* )
     handle_.doubleClick.trigger();
 }
 
+
 // uiChartView
 uiChartView::uiChartView( uiParent* p, const char* nm )
     : uiObject(p,nm,mkbody(p,nm))
     , doubleClick(this)
+    , mouseMove(this)
 {
 }
 
@@ -160,6 +173,7 @@ void uiChartView::setMinimumSize( int w, int h )
     odchartview_->setMinimumSize( w, h );
 }
 
+
 void uiChartView::setZoomStyle( ZoomStyle style )
 {
     QChartView::RubberBand rb = QChartView::NoRubberBand;
@@ -171,4 +185,10 @@ void uiChartView::setZoomStyle( ZoomStyle style )
 	rb = QChartView::RectangleRubberBand;
 
     odchartview_->setRubberBand( rb );
+}
+
+
+const Geom::Point2D<float>& uiChartView::mousePos() const
+{
+    return odchartview_->mousepos_;
 }
