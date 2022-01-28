@@ -77,6 +77,8 @@ QAbstractSeries* uiChartSeries::getQSeries()
 // uiXYChartSeries
 uiXYChartSeries::uiXYChartSeries( QXYSeries* series )
     : uiChartSeries(series)
+    , pressed(this)
+    , released(this)
     , clicked(this)
     , doubleClicked(this)
     , hoverOn(this)
@@ -390,7 +392,7 @@ void uiScatterSeries::setShape( uiScatterSeries::MarkerShape shp )
 void uiScatterSeries::setColor( OD::Color color )
 {
     QColor qcol;
-    toQColor( qcol, color );
+    toQColor( qcol, color, true );
     qscatterseries_->setColor( qcol );
 }
 

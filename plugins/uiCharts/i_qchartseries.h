@@ -27,6 +27,10 @@ protected:
 	: series_(series)
 	, qseries_(qseries)
     {
+	connect( qseries_, SIGNAL(pressed(const QPointF&)),
+		 this, SLOT(pressed(const QPointF&)) );
+	connect( qseries_, SIGNAL(released(const QPointF&)),
+		 this, SLOT(released(const QPointF&)) );
 	connect( qseries_, SIGNAL(clicked(const QPointF&)),
 		 this, SLOT(clicked(const QPointF&)) );
 	connect( qseries_, SIGNAL(doubleClicked(const QPointF&)),
@@ -40,6 +44,12 @@ private:
     QXYSeries*		qseries_;
 
 private slots:
+    void	pressed(const QPointF& p)
+		{ series_->pressed.trigger( Geom::PointF(p.x(),p.y()) ); }
+
+    void	released(const QPointF& p)
+		{ series_->released.trigger( Geom::PointF(p.x(),p.y()) ); }
+
     void	clicked(const QPointF& p)
 		{ series_->clicked.trigger( Geom::PointF(p.x(),p.y()) ); }
 

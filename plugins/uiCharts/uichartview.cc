@@ -34,9 +34,8 @@ ODChartView( uiChartView& hndle, uiParent* p, const char* nm )
 ~ODChartView()
 {
 }
-
-    Geom::PointF	mousepos_;
-
+    Qt::MouseButton		lastmousebut_ = Qt::NoButton;
+    Qt::KeyboardModifiers	lastkeymod_ = Qt::NoModifier;
 protected:
     bool		panning_ = false;
     QPointF		lastmousepos_;
@@ -45,19 +44,15 @@ protected:
     void		mouseReleaseEvent(QMouseEvent*) override;
     void		mousePressEvent(QMouseEvent*) override;
     void		mouseDoubleClickEvent(QMouseEvent*) override;
-    void		setMousePos( QMouseEvent*);
 };
-
-
-void ODChartView::setMousePos( QMouseEvent* ev )
-{
-    lastmousepos_ = ev->pos();
-    mousepos_.setXY( lastmousepos_.x(), lastmousepos_.y() );
-}
 
 
 void ODChartView::mouseMoveEvent( QMouseEvent* ev )
 {
+    lastmousebut_ = ev->button();
+    lastkeymod_ = ev->modifiers();
+    handle_.mouseMove.trigger( Geom::PointF(ev->pos().x(), ev->pos().y()) );
+
     if ( panning_ )
     {
 	auto dpos = ev->pos() - lastmousepos_;
@@ -70,8 +65,6 @@ void ODChartView::mouseMoveEvent( QMouseEvent* ev )
 
 	ev->accept();
     }
-    setMousePos( ev );
-    handle_.mouseMove.trigger();
 
     QChartView::mouseMoveEvent( ev );
 }
@@ -79,6 +72,10 @@ void ODChartView::mouseMoveEvent( QMouseEvent* ev )
 
 void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
 {
+    lastmousebut_ = ev->button();
+    lastkeymod_ = ev->modifiers();
+    handle_.mouseRelease.trigger( Geom::PointF(ev->pos().x(), ev->pos().y()) );
+
     if ( ev->button() == Qt::MiddleButton )
     {
 	panning_ = false;
@@ -90,7 +87,6 @@ void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
 	else
 	    chart()->scroll( dpos.x(), dpos.y() );
 
-	setMousePos( ev );
 	ev->accept();
 	QApplication::restoreOverrideCursor();
     }
@@ -101,6 +97,10 @@ void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
 
 void ODChartView::mousePressEvent( QMouseEvent* ev )
 {
+    lastmousebut_ = ev->button();
+    lastkeymod_ = ev->modifiers();
+    handle_.mousePress.trigger( Geom::PointF(ev->pos().x(), ev->pos().y()) );
+
     if ( ev->button() == Qt::MiddleButton )
     {
 	if ( rubberBand() == VerticalRubberBand )
@@ -111,16 +111,18 @@ void ODChartView::mousePressEvent( QMouseEvent* ev )
 	    QApplication::setOverrideCursor( QCursor(Qt::SizeAllCursor) );
 
 	panning_ = true;
-	setMousePos( ev );
 	ev->accept();
     }
     else
 	QChartView::mousePressEvent( ev );
+
 }
 
 
-void ODChartView::mouseDoubleClickEvent( QMouseEvent* )
+void ODChartView::mouseDoubleClickEvent( QMouseEvent* ev )
 {
+    lastmousebut_ = ev->button();
+    lastkeymod_ = ev->modifiers();
     handle_.doubleClick.trigger();
 }
 
@@ -130,6 +132,8 @@ uiChartView::uiChartView( uiParent* p, const char* nm )
     : uiObject(p,nm,mkbody(p,nm))
     , doubleClick(this)
     , mouseMove(this)
+    , mousePress(this)
+    , mouseRelease(this)
 {
 }
 
@@ -188,7 +192,29 @@ void uiChartView::setZoomStyle( ZoomStyle style )
 }
 
 
-const Geom::Point2D<float>& uiChartView::mousePos() const
+OD::ButtonState uiChartView::mouseButton() const
 {
-    return odchartview_->mousepos_;
+    if ( odchartview_->lastmousebut_ & OD::LeftButton ||
+	 odchartview_->lastmousebut_ & OD::MidButton ||
+	 odchartview_->lastmousebut_ & OD::RightButton )
+	return (OD::ButtonState) odchartview_->lastmousebut_;
+
+    return OD::NoButton;
+}
+
+
+OD::ButtonState uiChartView::keyModifier() const
+{
+    if ( odchartview_->lastkeymod_ == Qt::ShiftModifier )
+	return OD::ShiftButton;
+    if ( odchartview_->lastkeymod_ == Qt::ControlModifier )
+	return OD::ControlButton;
+    if ( odchartview_->lastkeymod_ == Qt::MetaModifier )
+	return OD::MetaButton;
+    if ( odchartview_->lastkeymod_ == Qt::AltModifier )
+	return OD::AltButton;
+    if ( odchartview_->lastkeymod_ == Qt::KeypadModifier )
+	return OD::Keypad;
+
+    return OD::NoButton;
 }

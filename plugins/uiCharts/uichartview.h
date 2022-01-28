@@ -12,6 +12,7 @@ ________________________________________________________________________
 #include "uichartsmod.h"
 
 #include "uiobj.h"
+#include "keyenum.h"
 
 class ODChartView;
 class uiChart;
@@ -30,11 +31,13 @@ public:
     void			setBackgroundColor(const OD::Color&) override;
     void			setMinimumSize(int width,int height);
     void			setZoomStyle(ZoomStyle);
-
-    const Geom::Point2D<float>&	mousePos() const;
+    OD::ButtonState		mouseButton() const;
+    OD::ButtonState		keyModifier() const;
 
     Notifier<uiChartView>	doubleClick;
-    Notifier<uiChartView>	mouseMove;
+    CNotifier<uiChartView,const Geom::PointF&>	mouseMove;
+    CNotifier<uiChartView,const Geom::PointF&>	mousePress;
+    CNotifier<uiChartView,const Geom::PointF&>	mouseRelease;
 
 protected:
     ODChartView&		mkbody(uiParent*,const char*);

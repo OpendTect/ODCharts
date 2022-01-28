@@ -81,6 +81,8 @@ public:
     void		setPointLabelsFormat(const char* fmt);
     virtual void	initCallBacks() override;
 
+    CNotifier<uiXYChartSeries,const Geom::PointF&>	pressed;
+    CNotifier<uiXYChartSeries,const Geom::PointF&>	released;
     CNotifier<uiXYChartSeries,const Geom::PointF&>	clicked;
     CNotifier<uiXYChartSeries,const Geom::PointF&>	doubleClicked;
     CNotifier<uiXYChartSeries,const Geom::PointF&>	hoverOn;
