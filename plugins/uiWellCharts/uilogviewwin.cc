@@ -90,7 +90,7 @@ void uiLogViewWin::uiInitCB( CallBacker* )
     mAttachCB( logviewtree_->markerUnchecked, uiLogViewWin::removeMarkerCB );
 
     CommandLineParser clp;
-    if ( this==uiMain::theMain().topLevel() && !clp.hasKey("odserver") )
+    if ( this==uiMain::instance().topLevel() && !clp.hasKey("odserver") )
     {
         BufferString parfile;
 	if ( clp.getVal("lvpar",parfile) )

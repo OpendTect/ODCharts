@@ -39,7 +39,7 @@ uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart& logchart )
     logsgrp_ = new uiLogsGrp( this, logchart_ );
     logsgrp_->attach( alignedBelow, chartgrp_ );
     mAttachCB( logchart_.logChange, uiLogViewPropDlg::updateCB );
-    mAttachCB( uiMain::theMain().topLevel()->windowClosed,
+    mAttachCB( uiMain::instance().topLevel()->windowClosed,
 	       uiLogViewPropDlg::closeCB );
 }
 
