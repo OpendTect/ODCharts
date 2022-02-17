@@ -231,10 +231,8 @@ void uiChartAxis::setMinorTickCount( int count )
     auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
     auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
-    {
 	qvalueaxis->setMinorTickCount( count );
-	qvalueaxis->setTickType( QValueAxis::TicksFixed );
-    }
+
     if ( qlogvalueaxis )
 	qlogvalueaxis->setMinorTickCount( count );
 }
@@ -360,6 +358,7 @@ void uiValueAxis::setTickType( TickType type )
 void uiValueAxis::setTickInterval( float intv )
 {
     qvalueaxis_->setTickInterval( qreal(intv) );
+    qvalueaxis_->setTickType( QValueAxis::TicksDynamic );
 }
 
 
@@ -407,6 +406,12 @@ void uiValueAxis::snapRange( float min, float max )
 Interval<float> uiValueAxis::getAxisLimits()
 {
     return axislimits_;
+}
+
+
+void uiValueAxis::applyNiceNumbers()
+{
+    qvalueaxis_->applyNiceNumbers();
 }
 
 

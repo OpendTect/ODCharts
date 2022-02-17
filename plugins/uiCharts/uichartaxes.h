@@ -107,6 +107,7 @@ public:
     void		setAxisLimits(float min,float max,bool include=true);
     void		snapRange(float min,float max);
     Interval<float>	getAxisLimits();
+    void		applyNiceNumbers();
 
 protected:
     QtCharts::QValueAxis*	qvalueaxis_;

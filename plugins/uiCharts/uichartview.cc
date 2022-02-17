@@ -63,6 +63,7 @@ void ODChartView::mouseMoveEvent( QMouseEvent* ev )
 	else
 	    chart()->scroll( dpos.x(), dpos.y() );
 
+	lastmousepos_ = ev->pos();
 	ev->accept();
     }
 
@@ -87,11 +88,13 @@ void ODChartView::mouseReleaseEvent( QMouseEvent* ev )
 	else
 	    chart()->scroll( dpos.x(), dpos.y() );
 
+	lastmousepos_ = ev->pos();
 	ev->accept();
 	QApplication::restoreOverrideCursor();
     }
     else
 	QChartView::mouseReleaseEvent( ev );
+
 }
 
 
@@ -111,6 +114,7 @@ void ODChartView::mousePressEvent( QMouseEvent* ev )
 	    QApplication::setOverrideCursor( QCursor(Qt::SizeAllCursor) );
 
 	panning_ = true;
+	lastmousepos_ = ev->pos();
 	ev->accept();
     }
     else

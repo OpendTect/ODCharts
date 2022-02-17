@@ -96,7 +96,9 @@ void uiLogViewTable::setEmpty()
     for ( int idx=size()-1; idx>=0; idx-- )
 	logviews_->removeColumn( idx );
 
+    primarychart_ = nullptr;
     primaryzrange_.setUdf();
+    selected_ = -1;
 }
 
 
