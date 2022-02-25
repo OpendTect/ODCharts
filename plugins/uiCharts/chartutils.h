@@ -12,7 +12,7 @@ ________________________________________________________________________
 #include "uichartsmod.h"
 #include "color.h"
 #include "draw.h"
-#include "oduicommon.h"
+#include "odcommonenums.h"
 #include "uigeom.h"
 
 class QPen;

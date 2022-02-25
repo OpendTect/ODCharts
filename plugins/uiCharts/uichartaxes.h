@@ -13,7 +13,7 @@ ________________________________________________________________________
 
 #include "bufstring.h"
 #include "draw.h"
-#include "oduicommon.h"
+#include "odcommonenums.h"
 
 namespace QtCharts
 {

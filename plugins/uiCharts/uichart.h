@@ -16,7 +16,7 @@ ________________________________________________________________________
 #include "color.h"
 #include "commondefs.h"
 #include "geometry.h"
-#include "oduicommon.h"
+#include "odcommonenums.h"
 
 class ODChart;
 namespace QtCharts { class QChart; }
