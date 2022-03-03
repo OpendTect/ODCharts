@@ -16,6 +16,7 @@ ________________________________________________________________________
 #include "uifiledlg.h"
 #include "uilogchart.h"
 #include "uilogview.h"
+#include "uilogviewpropdlg.h"
 #include "uilogviewertree.h"
 #include "uilogviewtable.h"
 #include "uimain.h"
@@ -23,8 +24,10 @@ ________________________________________________________________________
 #include "uiscrollarea.h"
 #include "uisplitter.h"
 #include "uitable.h"
+#include "uitabstack.h"
 #include "uitoolbar.h"
 #include "uitoolbutton.h"
+#include "uiwellfiltergrp.h"
 
 #include "commandlineparser.h"
 #include "filepath.h"
@@ -43,51 +46,60 @@ static int sMnuID = 0;
 static const int sWinHeight = 500;
 static const int sWinWidth = 500;
 
-uiLogViewWin::uiLogViewWin( uiParent* p, int nrcol )
+
+uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
     : uiDialog(p,Setup(toUiString("OpendTect - Log Viewer"), mNoDlgTitle,
 		       mTODOHelpKey).modal(false))
     , newitem_(uiStrings::sNew(),"new","",
-				mCB(this,uiLogViewWin,newCB),sMnuID++)
+				mCB(this,uiLogViewWinBase,newCB),sMnuID++)
     , openitem_(uiStrings::sOpen(),"open","",
-				mCB(this,uiLogViewWin,openCB),sMnuID++)
+				mCB(this,uiLogViewWinBase,openCB),sMnuID++)
     , saveitem_(uiStrings::sSave(),"save","",
-				mCB(this,uiLogViewWin,saveCB),sMnuID++)
+				mCB(this,uiLogViewWinBase,saveCB),sMnuID++)
     , saveasitem_(uiStrings::sSaveAs(),"saveas","",
-				mCB(this,uiLogViewWin,saveasCB),sMnuID++)
-    , addbuttonitem_(uiStrings::sAdd(),"plus","",
-				mCB(this,uiLogViewWin,addTrackCB),sMnuID++)
-    , rmvbuttonitem_(uiStrings::sRemove(),"minus","",
-				mCB(this,uiLogViewWin,rmvTrackCB),sMnuID++)
+				mCB(this,uiLogViewWinBase,saveasCB),sMnuID++)
 {
     mainObject()->setMinimumHeight( sWinHeight );
     mainObject()->setMinimumWidth( sWinWidth );
     setCtrlStyle( CloseOnly );
-    createToolBar();
 
-    logviewtree_ = new uiLogViewerTree( this );
-    logviewtree_->setStretch( 0, 2 );
+    logviewtbl_ = new uiLogViewTable( this, nrcol, showtools );
 
-    logviewtbl_ = new uiLogViewTable( this, nrcol, true );
-    logviewtbl_->attach( rightTo, logviewtree_ );
-
-    mAttachCB( postFinalise(), uiLogViewWin::uiInitCB );
+    mAttachCB( postFinalise(), uiLogViewWinBase::uiInitCB );
 }
 
 
-uiLogViewWin::~uiLogViewWin()
+uiLogViewWinBase::~uiLogViewWinBase()
 {
     detachAllNotifiers();
 }
 
 
-void uiLogViewWin::uiInitCB( CallBacker* )
+void uiLogViewWinBase::createToolBar()
+{
+    tb_ = new uiToolBar( this, tr("Log Viewer") );
+    tb_->addButton( newitem_ );
+    tb_->addButton( openitem_ );
+    tb_->addButton( saveitem_ );
+    tb_->addButton( saveasitem_ );
+    tb_->addSeparator();
+    addApplicationToolBar();
+    tb_->addSeparator();
+
+    EnumDef def = uiWellCharts::ZTypeDef();
+    if ( !SI().zIsTime() )
+	def.remove( def.getKeyForIndex(uiWellCharts::TWT) );
+
+    zdomainfld_ = new uiComboBox( nullptr, def, "Z domain" );
+    mAttachCB( zdomainfld_->selectionChanged, uiLogViewWinBase::zdomainChgCB );
+    tb_->addObject( zdomainfld_);
+}
+
+
+void uiLogViewWinBase::uiInitCB( CallBacker* )
 {
     mAttachCB( windowClosed, uiLogViewWin::closeCB );
-    mAttachCB( logviewtbl_->chartSelectionChg, uiLogViewWin::selTrackChgCB );
-    mAttachCB( logviewtree_->logChecked, uiLogViewWin::addLogCB );
-    mAttachCB( logviewtree_->logUnchecked, uiLogViewWin::removeLogCB );
-    mAttachCB( logviewtree_->markerChecked, uiLogViewWin::addMarkerCB );
-    mAttachCB( logviewtree_->markerUnchecked, uiLogViewWin::removeMarkerCB );
+    mAttachCB( logviewtbl_->chartSelectionChg, uiLogViewWinBase::selTrackChgCB );
 
     CommandLineParser clp;
     if ( this==uiMain::instance().topLevel() && !clp.hasKey("odserver") )
@@ -106,29 +118,7 @@ void uiLogViewWin::uiInitCB( CallBacker* )
 }
 
 
-void uiLogViewWin::createToolBar()
-{
-    tb_ = new uiToolBar( this, tr("Log Viewer") );
-    tb_->addButton( newitem_ );
-    tb_->addButton( openitem_ );
-    tb_->addButton( saveitem_ );
-    tb_->addButton( saveasitem_ );
-    tb_->addSeparator();
-    tb_->addButton( addbuttonitem_ );
-    tb_->addButton( rmvbuttonitem_ );
-    tb_->addSeparator();
-
-    EnumDef def = uiWellCharts::ZTypeDef();
-    if ( !SI().zIsTime() )
-	def.remove( def.getKeyForIndex(uiWellCharts::TWT) );
-
-    zdomainfld_ = new uiComboBox( nullptr, def, "Z domain" );
-    mAttachCB( zdomainfld_->selectionChanged, uiLogViewWin::zdomainChgCB );
-    tb_->addObject( zdomainfld_);
-}
-
-
-bool uiLogViewWin::checkSave()
+bool uiLogViewWinBase::checkSave()
 {
     if ( logviewtbl_->size()>0 && needsave_ )
     {
@@ -145,9 +135,275 @@ bool uiLogViewWin::checkSave()
 }
 
 
-void uiLogViewWin::setCurrentView( int vwidx )
+void uiLogViewWinBase::setCurrentView( int vwidx )
 {
     logviewtbl_->setCurrentView( vwidx );
+}
+
+
+void uiLogViewWinBase::clearAll()
+{
+    logviewtbl_->setEmpty();
+}
+
+
+void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
+				const ManagedObjectSet<TypeSet<int>>& logidxs )
+{
+    logviewtbl_->addWellData( wellids, logidxs );
+    needsave_ = true;
+}
+
+
+void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
+				    const BufferStringSet& lognms,
+				    const BufferStringSet& mrknms )
+{
+    logviewtbl_->addWellData( wellids, lognms, mrknms );
+    needsave_ = true;
+}
+
+
+void uiLogViewWinBase::newCB( CallBacker* )
+{
+    if ( !checkSave() )
+	return;
+
+    clearAll();
+}
+
+
+void uiLogViewWinBase::openCB( CallBacker* )
+{
+    if ( !checkSave() )
+	return;
+
+    const BufferString defseldir =
+	FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
+    uiFileDialog dlg( this, true, 0, filtStr(),
+		      tr("Load Log View parameters") );
+    dlg.setDirectory(defseldir);
+    if ( !dlg.go() )
+	return;
+
+    loadFile( dlg.fileName() );
+}
+
+
+void uiLogViewWinBase::saveCB( CallBacker* )
+{
+    if ( filename_.isEmpty() )
+	saveasCB( nullptr );
+
+    const int nrviews = logviewtbl_->size();
+    if ( nrviews<1 )
+	return;
+
+    saveFile( filename_ );IOPar iop;
+    needsave_ = false;
+}
+
+
+void uiLogViewWinBase::saveasCB( CallBacker* )
+{
+    if ( logviewtbl_->isEmpty() )
+	return;
+
+    const BufferString defseldir =
+		FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
+    uiFileDialog dlg( this, false, 0, filtStr(),
+		      tr("Save Log View parameters") );
+    dlg.setMode( uiFileDialog::AnyFile );
+    dlg.setDirectory( defseldir );
+    dlg.setDefaultExtension( extStr() );
+    dlg.setConfirmOverwrite( true );
+    dlg.setSelectedFilter( filtStr() );
+    if ( !dlg.go() )
+	return;
+
+    filename_ = dlg.fileName();
+    raise();
+    saveCB( nullptr );
+}
+
+
+void uiLogViewWinBase::closeCB( CallBacker* )
+{
+   checkSave();
+}
+
+
+void uiLogViewWinBase::zdomainChgCB( CallBacker* )
+{
+    const uiWellCharts::ZType ztyp =
+	uiWellCharts::ZTypeDef().getEnumForIndex( zdomainfld_->getIntValue() );
+    logviewtbl_->setZDomain( ztyp );
+}
+
+
+uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
+					const ObjectSet<Well::Data>& wds,
+					const BufferStringSet& lognms,
+					const BufferStringSet& markernms )
+    : uiLogViewWinBase(p, 0, false)
+    , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
+			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
+    , unzoombuttonitem_(tr("View All Z"),"view_all","",
+			    mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
+{
+    createToolBar();
+
+    uiGroup* filtergrp = new uiGroup( this );
+    uiPushButton* applybut = new uiPushButton( filtergrp, uiStrings::sApply(),
+					       true );
+    applybut->setStretch( 2, 0);
+
+    logfiltergrp_ = new uiWellFilterGrp( filtergrp, wds, lognms, markernms,
+					 OD::Vertical );
+    logfiltergrp_->attach( alignedBelow, applybut );
+    mAttachCB(applybut->activated, uiLockedLogViewWin::dataChgCB);
+    filtergrp->setStretch( 0, 2 );
+    filtergrp->attach( leftOf, logviewtbl_ );
+}
+
+
+uiLockedLogViewWin::~uiLockedLogViewWin()
+{
+    detachAllNotifiers();
+    delete propdlg_;
+}
+
+
+void uiLockedLogViewWin::addApplicationToolBar()
+{
+    tb_->addButton( settingsbuttonitem_ );
+    tb_->addButton( unzoombuttonitem_ );
+}
+
+
+void uiLockedLogViewWin::setSelected( const DBKeySet& wellids,
+				      const BufferStringSet& logs,
+				      const BufferStringSet& mrkrs )
+{
+    addWellData( wellids, logs, mrkrs );
+    logviewtbl_->setAllLocked( true );
+    logfiltergrp_->setSelected( wellids, logs, mrkrs );
+}
+
+
+void uiLockedLogViewWin::dataChgCB( CallBacker* )
+{
+    if ( propdlg_ )
+    {
+	propdlg_->close();
+	deleteAndZeroPtr( propdlg_ );
+    }
+    if ( !checkSave() )
+	return;
+
+    DBKeySet wellids;
+    BufferStringSet lognms, mrknms;
+    logfiltergrp_->getSelected( wellids, lognms, mrknms );
+    clearAll();
+    addWellData( wellids, lognms, mrknms );
+    logviewtbl_->setAllLocked( true );
+}
+
+
+void uiLockedLogViewWin::showSettingsCB( CallBacker* )
+{
+    auto* logchart = logviewtbl_->getCurrentLogChart();
+    if ( !logchart )
+    {
+	uiMSG().message( tr("Please select a log chart") );
+	return;
+    }
+    if ( !propdlg_ )
+    {
+	propdlg_ = new uiLogViewPropDlg( parent(), logchart, true );
+	mAttachCB(propdlg_->applyPushed, uiLockedLogViewWin::applySettingsCB);
+	mAttachCB(logviewtbl_->chartSelectionChg,
+		  uiLockedLogViewWin::chartChgCB);
+    }
+    else
+	propdlg_->setLogChart( logchart );
+
+    propdlg_->show();
+}
+
+
+void uiLockedLogViewWin::applySettingsCB( CallBacker* )
+{
+    if ( !propdlg_ )
+	return;
+
+    auto* curlogchart = logviewtbl_->getCurrentLogChart();
+    uiUserShowWait uisw( this, tr("Working: 0%") );
+    IOPar settings = propdlg_->getCurrentSettings();
+    for ( int idx=0; idx<logviewtbl_->size(); idx++ )
+    {
+	auto* logchart = logviewtbl_->getLogChart( idx );
+	if ( !logchart || logchart==curlogchart )
+	    continue;
+	logchart->usePar( settings, true );
+	uisw.setMessage(
+	    tr("Working: %1 %").arg(int((idx+1)/logviewtbl_->size()*100.f)) );
+    }
+}
+
+
+void uiLockedLogViewWin::chartChgCB( CallBacker* )
+{
+    auto* logchart = logviewtbl_->getCurrentLogChart();
+    if ( !propdlg_ || !logchart )
+	return;
+
+    propdlg_->setLogChart( logchart );
+}
+
+
+void uiLockedLogViewWin::zoomResetCB( CallBacker* )
+{
+    for ( int idx=0; idx<logviewtbl_->size(); idx++ )
+	logviewtbl_->getLogView( idx )->zoomResetCB( nullptr );
+}
+
+
+uiLogViewWin::uiLogViewWin( uiParent* p, int nrcol )
+    : uiLogViewWinBase(p, nrcol)
+    , addbuttonitem_(uiStrings::sAdd(),"plus","",
+				mCB(this,uiLogViewWin,addTrackCB),sMnuID++)
+    , rmvbuttonitem_(uiStrings::sRemove(),"minus","",
+				mCB(this,uiLogViewWin,rmvTrackCB),sMnuID++)
+{
+    createToolBar();
+
+    logviewtree_ = new uiLogViewerTree( this );
+    logviewtree_->setStretch( 0, 2 );
+    logviewtree_->attach( leftOf, logviewtbl_ );
+}
+
+
+uiLogViewWin::~uiLogViewWin()
+{
+    detachAllNotifiers();
+}
+
+
+void uiLogViewWin::uiInitCB( CallBacker* cb )
+{
+    uiLogViewWinBase::uiInitCB( cb );
+    mAttachCB( logviewtree_->logChecked, uiLogViewWin::addLogCB );
+    mAttachCB( logviewtree_->logUnchecked, uiLogViewWin::removeLogCB );
+    mAttachCB( logviewtree_->markerChecked, uiLogViewWin::addMarkerCB );
+    mAttachCB( logviewtree_->markerUnchecked, uiLogViewWin::removeMarkerCB );
+}
+
+
+void uiLogViewWin::addApplicationToolBar()
+{
+    tb_->addButton( addbuttonitem_ );
+    tb_->addButton( rmvbuttonitem_ );
 }
 
 
@@ -292,22 +548,22 @@ void uiLogViewWin::removeMarkerCB( CallBacker* cb )
 
 void uiLogViewWin::clearAll()
 {
-    logviewtbl_->setEmpty();
+    uiLogViewWinBase::clearAll();
     logviewtree_->uncheckAll();
     logviewtree_->collapseAll();
 }
 
 
-void uiLogViewWin::addWellData( const DBKeySet& wellids,
-				const ManagedObjectSet<TypeSet<int>>& logidxs )
+void uiLogViewWin::addWell( const DBKey& wellkey, const TypeSet<int>& logs )
 {
-    logviewtbl_->addWellData( wellids, logidxs );
-    needsave_ = true;
+    addTrackCB( nullptr );
+    const int vwidx = logviewtbl_->currentView();
+    addWell( vwidx, wellkey, logs );
 }
 
 
-void uiLogViewWin::addWellData( int vwidx, const DBKey& wellkey,
-				const TypeSet<int>& logs )
+void uiLogViewWin::addWell( int vwidx, const DBKey& wellkey,
+			    const TypeSet<int>& logs )
 {
     if ( !logviewtbl_->validIdx(vwidx) )
 	return;
@@ -321,14 +577,6 @@ void uiLogViewWin::addWellData( int vwidx, const DBKey& wellkey,
 
 	addLog( vwidx, wellkey, lognms.get(lidx) );
     }
-}
-
-
-void uiLogViewWin::addWellData( const DBKey& wellkey, const TypeSet<int>& logs )
-{
-    addTrackCB( nullptr );
-    const int vwidx = logviewtbl_->currentView();
-    addWellData( vwidx, wellkey, logs );
 }
 
 
@@ -347,7 +595,7 @@ void uiLogViewWin::loadWells( const BufferStringSet& wellids,
 	for ( const auto* logid : lognums )
 	    logs += logid->toInt();
 
-	addWellData( wellkey, logs );
+	addWell( wellkey, logs );
     }
 }
 
@@ -385,41 +633,9 @@ void uiLogViewWin::loadFile( const char* nm )
 }
 
 
-void uiLogViewWin::newCB( CallBacker* )
+void uiLogViewWin::saveFile( const char* nm )
 {
-    if ( !checkSave() )
-	return;
-
-    clearAll();
-}
-
-
-void uiLogViewWin::openCB( CallBacker* )
-{
-    if ( !checkSave() )
-	return;
-
-    const BufferString defseldir =
-	FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
-    uiFileDialog dlg( this, true, 0, filtStr(),
-		      tr("Load Log View parameters") );
-    dlg.setDirectory(defseldir);
-    if ( !dlg.go() )
-	return;
-
-    loadFile( dlg.fileName() );
-}
-
-
-void uiLogViewWin::saveCB( CallBacker* )
-{
-    if ( filename_.isEmpty() )
-	saveasCB( nullptr );
-
     const int nrviews = logviewtbl_->size();
-    if ( nrviews<1 )
-	return;
-
     IOPar iop;
     iop.set( sKey::NrItems(), nrviews );
 
@@ -430,31 +646,7 @@ void uiLogViewWin::saveCB( CallBacker* )
 	iop.mergeComp( tmp, IOPar::compKey(sKey::ID(),idx) );
     }
 
-    iop.write( filename_, "Log Display" );
-    needsave_ = false;
-}
-
-
-void uiLogViewWin::saveasCB( CallBacker* )
-{
-    if ( logviewtbl_->isEmpty() )
-	return;
-
-    const BufferString defseldir =
-		FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
-    uiFileDialog dlg( this, false, 0, filtStr(),
-		      tr("Save Log View parameters") );
-    dlg.setMode( uiFileDialog::AnyFile );
-    dlg.setDirectory( defseldir );
-    dlg.setDefaultExtension( extStr() );
-    dlg.setConfirmOverwrite( true );
-    dlg.setSelectedFilter( filtStr() );
-    if ( !dlg.go() )
-	return;
-
-    filename_ = dlg.fileName();
-    raise();
-    saveCB( nullptr );
+    iop.write( nm, "Log Display" );
 }
 
 
@@ -470,12 +662,6 @@ void uiLogViewWin::rmvTrackCB( CallBacker* )
     logviewtbl_->removeTrackCB( nullptr );
     selTrackChgCB( nullptr );
     needsave_ = true;
-}
-
-
-void uiLogViewWin::closeCB( CallBacker* )
-{
-   checkSave();
 }
 
 
@@ -499,12 +685,4 @@ void uiLogViewWin::selTrackChgCB( CallBacker* )
 	const BufferStringSet mrkrs = logchart->getDispMarkersForID( wellid );
 	logviewtree_->checkMarkersFor( wellid, mrkrs );
     }
-}
-
-
-void uiLogViewWin::zdomainChgCB( CallBacker* )
-{
-    const uiWellCharts::ZType ztyp =
-	uiWellCharts::ZTypeDef().getEnumForIndex( zdomainfld_->getIntValue() );
-    logviewtbl_->setZDomain( ztyp );
 }

@@ -40,7 +40,7 @@ public:
     virtual void	setZType(uiWellCharts::ZType, bool) override;
     void		setLogName(const char*);
     void		fillPar(IOPar&) const;
-    void		usePar(const IOPar&);
+    void		usePar(const IOPar&, bool styleonly=false);
 
 protected:
     bool		initLog();

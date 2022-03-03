@@ -25,13 +25,15 @@ mClass(uiWellCharts) uiLogFillProps : public uiGroup
 { mODTextTranslationClass(uiLogFillProps)
 public:
 			uiLogFillProps(uiParent*,uiChartFillx::FillDir,
-				       uiLogChart&);
+				       uiLogChart*);
 			~uiLogFillProps();
 
     void		setLogFill(int);
+    void		setLogChart(uiLogChart*);
+    void		update();
 
 protected:
-    uiLogChart&			logchart_;
+    uiLogChart*			logchart_ = nullptr;
     LogCurve*			logcurve_ = nullptr;
     uiChartFillx*		fill_ = nullptr;
     uiChartFillx::FillDir	filldir_;
@@ -60,13 +62,14 @@ public:
     enum FillLimit	{ Track, Baseline, Curve };
 			mDeclareEnumUtils(FillLimit)
 
-			uiLogCurveProps(uiParent*,uiLogChart&);
+			uiLogCurveProps(uiParent*,uiLogChart*);
 			~uiLogCurveProps();
 
     void		setLogCurve(int);
-
+    void		setLogChart(uiLogChart*);
+    void		update();
 protected:
-    uiLogChart&		logchart_;
+    uiLogChart*		logchart_ = nullptr;
     LogCurve*		logcurve_ = nullptr;
 
     uiGenInput*		rangefld_;

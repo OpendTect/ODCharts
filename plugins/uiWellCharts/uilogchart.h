@@ -90,7 +90,7 @@ public:
     uiWellCharts::Scale	getScale() const	{ return scale_; }
 
     void		fillPar(IOPar&) const;
-    void		usePar(const IOPar&);
+    void		usePar(const IOPar&,bool styleonly=false);
 
     ObjectSet<LogCurve>&	logcurves()	{ return logcurves_; }
     ObjectSet<MarkerLine>&	markers()	{ return markers_; }

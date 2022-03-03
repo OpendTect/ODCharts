@@ -37,11 +37,10 @@ public:
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
     OD::LineStyle	lineStyle() const;
 
-    MultiID		wellID() const		{ return wellid_; }
     BufferString	markerName() const	{ return markername_; }
 
     void		fillPar(IOPar&) const;
-    void		usePar(const IOPar&);
+    void		usePar(const IOPar&, bool styleonly=false);
 
 protected:
     void		addMarker(uiLogChart&);

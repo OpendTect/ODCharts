@@ -10,19 +10,20 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
-#include "uitreeview.h"
+#include "uigroup.h"
 
 #include "bufstring.h"
 #include "multiid.h"
 #include "uistring.h"
 
 
+class uiTreeView;
 class uiTreeViewItem;
 
 typedef std::pair<MultiID,BufferString> LogID;
 typedef std::pair<MultiID,BufferString> MarkerID;
 
-mExpClass(uiWellCharts) uiLogViewerTree : public uiTreeView
+mExpClass(uiWellCharts) uiLogViewerTree : public uiGroup
 { mODTextTranslationClass(uiLogViewerTree)
 public:
 			uiLogViewerTree(uiParent*);
@@ -30,6 +31,8 @@ public:
 
     void		checkLogsFor(const MultiID&,const BufferStringSet&);
     void		checkMarkersFor(const MultiID&,const BufferStringSet&);
+    void		uncheckAll();
+    void		collapseAll();
 
     CNotifier<uiLogViewerTree,const LogID&> logChecked;
     CNotifier<uiLogViewerTree,const LogID&> logUnchecked;

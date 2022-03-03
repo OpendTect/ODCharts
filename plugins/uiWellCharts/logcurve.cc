@@ -544,17 +544,21 @@ void LogCurve::setFillPar( const char* fillstr, bool left )
 }
 
 
-void LogCurve::usePar( const IOPar& par )
+void LogCurve::usePar( const IOPar& par, bool styleonly )
 {
-    LogData::usePar( par );
-    const Well::Log* log = wellLog();
-    if ( log )
-	addLog( *log );
-
+    LogData::usePar( par, styleonly );
+    if ( !styleonly )
+    {
+	const Well::Log* log = wellLog();
+	if ( log )
+	    addLog( *log );
+    }
 
     BufferString lsstr;
     par.get( sKey::LineStyle(), lsstr );
-    linestyle_.fromString( lsstr );
+    OD::LineStyle ls;
+    ls.fromString( lsstr );
+    setLineStyle( ls );
 
     BufferString fillstr;
     par.get( uiChartFillx::toString(uiChartFillx::Left), fillstr );

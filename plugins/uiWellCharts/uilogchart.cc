@@ -247,7 +247,7 @@ void uiLogChart::removeMarker( const MultiID& wellid, const char* markernm )
 
 void uiLogChart::removeAllMarkers()
 {
-    for ( int idx=markers_.size()-1; idx>=0; idx++ )
+    for ( int idx=markers_.size()-1; idx>=0; idx-- )
     {
 	MarkerLine* tbremoved = markers_.removeSingle( idx );
 	tbremoved->removeFrom( *this );
@@ -383,6 +383,9 @@ BufferStringSet uiLogChart::wellNames() const
     for ( const auto* logcurve : logcurves_ )
 	res.addIfNew( logcurve->wellName() );
 
+    for ( const auto* marker : markers_ )
+	res.addIfNew( marker->wellName() );
+
     return res;
 }
 
@@ -442,6 +445,9 @@ void uiLogChart::setScale( uiWellCharts::Scale scaletyp )
 
 void uiLogChart::fillPar( IOPar& iop ) const
 {
+    BufferString colstr;
+    backgroundColor().fill( colstr );
+    iop.set( sKey::Color(), colstr );
     iop.set( sKey::Type(), ztype_ );
     iop.set( sKey::Scale(), scale_ );
     FileMultiString zfms;
@@ -501,8 +507,13 @@ void uiLogChart::fillPar( IOPar& iop ) const
 }
 
 
-void uiLogChart::usePar( const IOPar& iop )
+void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 {
+    BufferString colstr;
+    iop.get( sKey::Color(), colstr );
+    OD::Color col;
+    col.use( colstr );
+    setBackgroundColor( col );
     int ztype, scale;
     iop.get( sKey::Type(), ztype );
     ztype_ = uiWellCharts::ZTypeDef().getEnumForIndex( ztype );
@@ -539,12 +550,25 @@ void uiLogChart::usePar( const IOPar& iop )
     iop.get( sKey::LogMinorGridStyle(), lsstr );
     ls_minor.fromString( lsstr );
 
-    removeAllCurves();
+    if ( !styleonly )
+    {
+	removeAllMarkers();
+	removeAllCurves();
+	for ( int idx=0; idx<nlog; idx++ )
+	{
+	    PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
+	    auto* logcurve = new LogCurve;
+	    logcurve->addTo( *this, *tmp );
+	    logcurves_ += logcurve;
+	}
+    }
+    nlog = nlog>logcurves_.size() ? logcurves_.size() : nlog;
     for ( int idx=0; idx<nlog; idx++ )
     {
-	IOPar* tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
-	auto* logcurve = new LogCurve;
-	logcurve->addTo( *this, *tmp );
+	auto* logcurve = logcurves_[idx];
+	PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
+	if ( styleonly )
+	    logcurve->usePar( *tmp, true );
 	uiChartAxis* laxis = logcurve->getAxis();
 	laxis->setTickCount( lfms_major.getIValue(0) );
 	laxis->setGridLineVisible( lfms_major.getYN(1) );
@@ -552,7 +576,6 @@ void uiLogChart::usePar( const IOPar& iop )
 	laxis->setMinorTickCount( lfms_minor.getIValue(0) );
 	laxis->setMinorGridLineVisible( lfms_minor.getYN(1) );
 	laxis->setMinorGridStyle( ls_minor );
-	logcurves_ += logcurve;
     }
 //    logChange.trigger();
 
@@ -564,15 +587,29 @@ void uiLogChart::usePar( const IOPar& iop )
     if ( nmrkrs<1 )
 	return;
 
-    removeAllMarkers();
-    for ( int idx=0; idx<nmrkrs; idx++ )
+    if ( !styleonly )
     {
-	IOPar* tmp = iop.subselect( IOPar::compKey(sKey::Marker(), idx) );
-	auto* marker = new MarkerLine;
-	marker->addTo( *this, *tmp );
-	markers_ += marker;
+	for ( int idx=0; idx<nmrkrs; idx++ )
+	{
+	    PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Marker(),
+							      idx) );
+	    auto* marker = new MarkerLine;
+	    marker->addTo( *this, *tmp );
+	    markers_ += marker;
+	}
+	setZType( ztype_, true );
+    }
+    else
+    {
+	nmrkrs = nmrkrs>markers_.size() ? markers_.size() : nmrkrs;
+	for ( int idx=0; idx<nmrkrs; idx++ )
+	{
+	    auto* marker = markers_[idx];
+	    PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Marker(),
+							      idx) );
+	    marker->usePar( *tmp, true );
+	}
     }
 //    markerChange.trigger();
 
-    setZType( ztype_, true );
 }

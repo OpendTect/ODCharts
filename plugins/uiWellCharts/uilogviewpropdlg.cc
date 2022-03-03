@@ -13,6 +13,7 @@ ________________________________________________________________________
 
 #include "draw.h"
 #include "logcurve.h"
+#include "markerline.h"
 #include "uichartaxes.h"
 #include "uicolor.h"
 #include "uigeninput.h"
@@ -20,27 +21,42 @@ ________________________________________________________________________
 #include "uilogchart.h"
 #include "uilogcurveprops.h"
 #include "uimain.h"
+#include "uimsg.h"
 #include "uisellinest.h"
+#include "uitabstack.h"
 #include "wellchartcommon.h"
 
 
 // uiLogViewPropDlg
-uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart& logchart )
+uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart* logchart,
+				    bool withapply )
     : uiDialog(p,Setup(tr("Display Properties Editor"),mNoDlgTitle,
-		       mTODOHelpKey))
+		       mTODOHelpKey).applybutton(withapply))
     , logchart_(logchart)
+    , withapply_(withapply)
 {
     setCtrlStyle( CloseOnly );
     setModal( false );
     setShrinkAllowed( true );
 
-    chartgrp_ = new uiLogChartGrp( this, logchart_ );
+    tabs_ = new uiTabStack( this, "Properties" );
+    chartgrp_ = new uiLogChartGrp( tabs_->tabGroup(), logchart_ );
+    logsgrp_ = new uiLogsGrp( tabs_->tabGroup(), logchart_ );
+    markersgrp_ = new uiMarkersGrp( tabs_->tabGroup(), logchart_ );
 
-    logsgrp_ = new uiLogsGrp( this, logchart_ );
-    logsgrp_->attach( alignedBelow, chartgrp_ );
-    mAttachCB( logchart_.logChange, uiLogViewPropDlg::updateCB );
+    tabs_->addTab( chartgrp_, tr("Chart properties") );
+    tabs_->addTab( logsgrp_,  uiStrings::sLog(2) );
+    tabs_->addTab( markersgrp_, uiStrings::sMarker(2) );
+
+    mAttachCB(logchart_->logChange, uiLogViewPropDlg::updateLogsCB);
+    mAttachCB(logchart_->markerChange, uiLogViewPropDlg::updateMarkersCB);
+    if ( withapply_ )
+	mAttachCB(applyPushed, uiLogViewPropDlg::applyCB);
+
     mAttachCB( uiMain::instance().topLevel()->windowClosed,
 	       uiLogViewPropDlg::closeCB );
+
+    logchart_->fillPar( settingsbackup_ );
 }
 
 
@@ -50,9 +66,62 @@ uiLogViewPropDlg::~uiLogViewPropDlg()
 }
 
 
-void uiLogViewPropDlg::updateCB( CallBacker* )
+void uiLogViewPropDlg::setLogChart( uiLogChart* logchart )
+{
+    restoreCB( nullptr );
+    logchart_ = logchart;
+    chartgrp_->setLogChart( logchart );
+    logsgrp_->setLogChart( logchart );
+    markersgrp_->setLogChart( logchart );
+    settingsbackup_.setEmpty();
+    logchart->fillPar( settingsbackup_ );
+}
+
+
+void uiLogViewPropDlg::applyCB( CallBacker* )
+{
+    settingsbackup_.setEmpty();
+    logchart_->fillPar( settingsbackup_ );
+}
+
+
+IOPar uiLogViewPropDlg::getCurrentSettings() const
+{
+    IOPar res;
+    logchart_->fillPar( res );
+    return res;
+}
+
+
+void uiLogViewPropDlg::updateLogsCB( CallBacker* )
 {
     logsgrp_->update();
+}
+
+
+void uiLogViewPropDlg::updateMarkersCB( CallBacker* )
+{
+    markersgrp_->update();
+}
+
+
+void uiLogViewPropDlg::restoreCB( CallBacker* )
+{
+    if ( settingsbackup_.isEmpty() )
+	return;
+
+    logchart_->usePar( settingsbackup_, true );
+    chartgrp_->update();
+    logsgrp_->update();
+    markersgrp_->update();
+}
+
+
+bool uiLogViewPropDlg::rejectOK( CallBacker* )
+{
+    if ( withapply_ )
+	restoreCB( nullptr );
+    return true;
 }
 
 
@@ -63,47 +132,33 @@ void uiLogViewPropDlg::closeCB( CallBacker* )
 
 
 // uiLogChartGrp
-uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart& lc )
+uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart* lc )
     : uiGroup(p,"LogChart")
     , logchart_(lc)
 {
     bgcolorfld_ = new uiColorInput( this,
-				    uiColorInput::Setup(lc.backgroundColor())
+				    uiColorInput::Setup(lc->backgroundColor())
 				   .lbltxt(tr("Background Color")) );
 
     scalefld_ = new uiGenInput( this, tr("Scale Type"),
 				StringListInpSpec(uiWellCharts::ScaleDef()) );
     scalefld_->attach( rightOf, bgcolorfld_ );
-    scalefld_->setValue( lc.getScale() );
 
-    uiValueAxis* zaxis = lc.getZAxis();
     majorzgridfld_ = new uiGridStyleGrp( this, tr("Major Z Grid Step"), false );
     majorzgridfld_->attach( alignedBelow, bgcolorfld_ );
-    majorzgridfld_->setStyle( zaxis->getGridStyle() );
-    majorzgridfld_->setSteps( zaxis->getTickInterval() );
-    majorzgridfld_->setVisible( zaxis->gridVisible() );
 
     minorzgridfld_ = new uiGridStyleGrp( this, tr("Minor Z Grid Count"), true );
     minorzgridfld_->attach( rightAlignedBelow, majorzgridfld_ );
-    minorzgridfld_->setStyle( zaxis->getMinorGridStyle() );
-    minorzgridfld_->setSteps( zaxis->getMinorTickCount() );
-    minorzgridfld_->setVisible( zaxis->minorGridVisible() );
 
-    uiChartAxis* laxis = lc.logcurves()[0]->getAxis();
     majorloggridfld_ =
 		new uiGridStyleGrp( this, tr("Major Log Grid Count"), true );
     majorloggridfld_->attach( rightAlignedBelow, minorzgridfld_ );
-    majorloggridfld_->setStyle( laxis->getGridStyle() );
-    majorloggridfld_->setSteps( laxis->getTickCount() );
-    majorloggridfld_->setVisible( laxis->gridVisible() );
 
     minorloggridfld_ =
 		new uiGridStyleGrp( this, tr("Minor Log Grid Count"), true );
     minorloggridfld_->attach( rightAlignedBelow, majorloggridfld_ );
-    minorloggridfld_->setStyle( laxis->getMinorGridStyle() );
-    minorloggridfld_->setSteps( laxis->getMinorTickCount() );
-    minorloggridfld_->setVisible( laxis->minorGridVisible() );
 
+    update();
     mAttachCB( bgcolorfld_->colorChanged, uiLogChartGrp::bgColorChgCB );
     mAttachCB( scalefld_->valuechanged, uiLogChartGrp::scaleChgCB );
     mAttachCB( majorzgridfld_->changed, uiLogChartGrp::zgridChgCB );
@@ -119,15 +174,45 @@ uiLogChartGrp::~uiLogChartGrp()
 }
 
 
+void uiLogChartGrp::setLogChart( uiLogChart* logchart )
+{
+    logchart_ = logchart;
+    update();
+}
+
+
+void uiLogChartGrp::update()
+{
+    bgcolorfld_->setColor( logchart_->backgroundColor() );
+    scalefld_->setValue( logchart_->getScale() );
+
+    uiValueAxis* zaxis = logchart_->getZAxis();
+    majorzgridfld_->setStyle( zaxis->getGridStyle() );
+    majorzgridfld_->setSteps( zaxis->getTickInterval() );
+    majorzgridfld_->setVisible( zaxis->gridVisible() );
+    minorzgridfld_->setStyle( zaxis->getMinorGridStyle() );
+    minorzgridfld_->setSteps( zaxis->getMinorTickCount() );
+    minorzgridfld_->setVisible( zaxis->minorGridVisible() );
+
+    uiChartAxis* laxis = logchart_->logcurves()[0]->getAxis();
+    majorloggridfld_->setStyle( laxis->getGridStyle() );
+    majorloggridfld_->setSteps( laxis->getTickCount() );
+    majorloggridfld_->setVisible( laxis->gridVisible() );
+    minorloggridfld_->setStyle( laxis->getMinorGridStyle() );
+    minorloggridfld_->setSteps( laxis->getMinorTickCount() );
+    minorloggridfld_->setVisible( laxis->minorGridVisible() );
+}
+
+
 void uiLogChartGrp::bgColorChgCB( CallBacker* )
 {
-    logchart_.setBackgroundColor( bgcolorfld_->color() );
+    logchart_->setBackgroundColor( bgcolorfld_->color() );
 }
 
 
 void uiLogChartGrp::zgridChgCB( CallBacker* )
 {
-    uiValueAxis* zaxis = logchart_.getZAxis();
+    uiValueAxis* zaxis = logchart_->getZAxis();
     zaxis->setTickInterval( majorzgridfld_->getSteps() );
     zaxis->setGridStyle( majorzgridfld_->getStyle() );
     zaxis->setGridLineVisible( majorzgridfld_->isVisible() );
@@ -140,7 +225,7 @@ void uiLogChartGrp::zgridChgCB( CallBacker* )
 
 void uiLogChartGrp::lgridChgCB( CallBacker* )
 {
-    for ( auto* logcurve : logchart_.logcurves() )
+    for ( auto* logcurve : logchart_->logcurves() )
     {
 	uiChartAxis* laxis = logcurve->getAxis();
 	laxis->setTickCount( majorloggridfld_->getSteps() );
@@ -158,8 +243,8 @@ void uiLogChartGrp::scaleChgCB( CallBacker* )
 {
     const uiWellCharts::Scale scaletyp =
 	uiWellCharts::ScaleDef().getEnumForIndex( scalefld_->getIntValue() );
-    logchart_.setScale( scaletyp );
-    uiChartAxis* laxis = logchart_.logcurves()[0]->getAxis();
+    logchart_->setScale( scaletyp );
+    uiChartAxis* laxis = logchart_->logcurves()[0]->getAxis();
     minorloggridfld_->setSteps( laxis->getMinorTickCount() );
     majorloggridfld_->setSteps( laxis->getTickCount() );
     majorloggridfld_->setStepSensitive( scaletyp==uiWellCharts::Linear );
@@ -168,11 +253,10 @@ void uiLogChartGrp::scaleChgCB( CallBacker* )
 
 
 // uiLogsGrp
-uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart& lc )
+uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart* lc )
     : uiGroup(p,"Logs")
     , logchart_(lc)
 {
-    setFrame( true );
     logselfld_ = new uiListBox( this, "Logs", OD::ChooseOnlyOne );
     logselfld_->setAllowNoneChosen( false );
     logselfld_->attach( leftBorder, 5 );
@@ -190,14 +274,23 @@ uiLogsGrp::~uiLogsGrp()
 }
 
 
+void uiLogsGrp::setLogChart( uiLogChart* logchart )
+{
+    logchart_ = logchart;
+    update();
+}
+
+
 void uiLogsGrp::update()
 {
     logselfld_->setEmpty();
-    auto logcurves = logchart_.logcurves();
+    auto wellnames = logchart_->wellNames();
+    auto logcurves = logchart_->logcurves();
     for ( auto* logcurve : logcurves )
     {
 	BufferString str( logcurve->logName() );
-	str.add(" (").add(logcurve->wellName()).add(")");
+	if ( wellnames.size()>1 )
+	    str.add(" (").add(logcurve->wellName()).add(")");
 	logselfld_->addItem( str );
     }
 
@@ -209,9 +302,75 @@ void uiLogsGrp::update()
 void uiLogsGrp::logselCB( CallBacker* )
 {
     const int selidx = logselfld_ ? logselfld_->currentItem() : 0;
-    ObjectSet<LogCurve>& logcurves = logchart_.logcurves();
+    ObjectSet<LogCurve>& logcurves = logchart_->logcurves();
     if ( logcurves.validIdx(selidx) )
 	logpropfld_->setLogCurve( selidx );
+}
+
+
+// uiMarkersGrp
+uiMarkersGrp::uiMarkersGrp( uiParent* p, uiLogChart* lc )
+    : uiGroup(p,"Markers")
+    , logchart_(lc)
+{
+    markerselfld_ = new uiListBox( this, "Markers", OD::ChooseOnlyOne );
+    markerselfld_->setAllowNoneChosen( false );
+    markerselfld_->attach( leftBorder, 5 );
+
+    markerlinefld_ = new uiSelLineStyle( this, OD::LineStyle() );
+    markerlinefld_->attach( rightOf, markerselfld_, 5 );
+    update();
+    mAttachCB( markerselfld_->selectionChanged, uiMarkersGrp::markerselCB );
+    mAttachCB( markerlinefld_->changed, uiMarkersGrp::lineStyleChgCB );
+}
+
+
+uiMarkersGrp::~uiMarkersGrp()
+{
+    detachAllNotifiers();
+}
+
+
+void uiMarkersGrp::setLogChart( uiLogChart* logchart )
+{
+    logchart_ = logchart;
+    update();
+}
+
+
+void uiMarkersGrp::update()
+{
+    markerselfld_->setEmpty();
+    auto wellnames = logchart_->wellNames();
+    auto markers = logchart_->markers();
+    for ( auto* marker : markers )
+    {
+	BufferString str( marker->markerName() );
+	if ( wellnames.size()>1 )
+	    str.add(" (").add(marker->wellName()).add(")");
+	markerselfld_->addItem( str );
+    }
+
+    markerselfld_->setCurrentItem( 0 );
+    markerselCB( nullptr );
+}
+
+
+void uiMarkersGrp::markerselCB( CallBacker* )
+{
+    const int selidx = markerselfld_ ? markerselfld_->currentItem() : 0;
+    ObjectSet<MarkerLine>& markers = logchart_->markers();
+    if ( markers.validIdx(selidx) )
+	markerlinefld_->setStyle( markers[selidx]->lineStyle() );
+}
+
+
+void uiMarkersGrp::lineStyleChgCB( CallBacker* )
+{
+    const int selidx = markerselfld_->currentItem();
+    ObjectSet<MarkerLine>& markers = logchart_->markers();
+    if ( markers.validIdx(selidx) )
+	markers[selidx]->setLineStyle( markerlinefld_->getStyle() );
 }
 
 

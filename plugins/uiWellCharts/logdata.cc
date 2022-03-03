@@ -162,11 +162,14 @@ void LogData::fillPar( IOPar& par ) const
 }
 
 
-void LogData::usePar( const IOPar& par )
+void LogData::usePar( const IOPar& par, bool styleonly )
 {
-    WellData::usePar( par );
-    par.get( sKey::Log(), logname_ );
-    initLog();
+    if ( !styleonly )
+    {
+	WellData::usePar( par );
+	par.get( sKey::Log(), logname_ );
+	initLog();
+    }
     Interval<float> range;
     range.setUdf();
     par.get( sKey::Range(), range );

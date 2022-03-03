@@ -4,7 +4,7 @@
 #	Author:		Nanne Hemstra
 #_______________________________________________________________________________
 
-SET( OD_MODULE_DEPS uiCharts uiTools Well )
+SET( OD_MODULE_DEPS uiCharts uiTools uiWell )
 SET( OD_IS_PLUGIN yes )
 SET( OD_MODULE_SOURCES
 	logcurve.cc

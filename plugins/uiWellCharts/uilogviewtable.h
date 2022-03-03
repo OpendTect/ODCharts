@@ -40,6 +40,9 @@ public:
     void			addWellData(const DBKeySet&,
 					const ManagedObjectSet<TypeSet<int>>&);
     void			addWellData(const DBKeySet&,
+					    const BufferStringSet& lognms,
+					    const BufferStringSet& mrknms);
+    void			addWellData(const DBKeySet&,
 					    const BufferStringSet&,
 					    const OD::LineStyle&);
 
@@ -60,8 +63,11 @@ public:
     uiLogChart*			getLogChart(int);
     uiLogView*			getCurrentLogView();
     uiLogView*			getLogView(int vwidx);
-    bool			isViewLocked(int vwidx);
+    bool			isViewLocked(int vwidx) const;
     void			setViewLocked(int,bool yn=true);
+    bool			isViewVisible(int vwidx) const;
+    bool			allLocked() const	{ return alllocked_; }
+    void			setAllLocked(bool yn);
 
     Notifier<uiLogViewTable>	chartSelectionChg;
 
@@ -71,6 +77,7 @@ protected:
     bool			showtools_;
     Interval<float>		primaryzrange_	= Interval<float>::udf();
     int				selected_	= -1;
+    bool			alllocked_	= false;
 
     void			addViewer(int);
     void			addTools(int);

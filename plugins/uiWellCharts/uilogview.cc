@@ -56,7 +56,7 @@ void uiLogView::showSettingsCB( CallBacker* )
 	return;
 
     if ( !propdlg_ )
-	propdlg_ = new uiLogViewPropDlg( parent(), *logChart() );
+	propdlg_ = new uiLogViewPropDlg( parent(), logChart() );
 
     propdlg_->show();
 }

@@ -148,11 +148,14 @@ void MarkerLine::fillPar( IOPar& par ) const
 }
 
 
-void MarkerLine::usePar( const IOPar& par )
+void MarkerLine::usePar( const IOPar& par, bool styleonly )
 {
-    WellData::usePar( par );
-    par.get( sKey::Name(), markername_ );
-    initMarker();
+    if ( !styleonly )
+    {
+	WellData::usePar( par );
+	par.get( sKey::Name(), markername_ );
+	initMarker();
+    }
 
     BufferString lsstr;
     par.get( sKey::LineStyle(), lsstr );

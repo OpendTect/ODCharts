@@ -19,6 +19,7 @@ class uiListBox;
 class uiLogChart;
 class uiLogCurveProps;
 class uiSelLineStyle;
+class uiTabStack;
 
 namespace OD { class LineStyle; }
 
@@ -55,11 +56,14 @@ protected:
 mClass(uiWellCharts) uiLogChartGrp : public uiGroup
 { mODTextTranslationClass(uiLogChartGrp)
 public:
-			uiLogChartGrp(uiParent*,uiLogChart&);
+			uiLogChartGrp(uiParent*, uiLogChart*);
 			~uiLogChartGrp();
 
+    void		update();
+    void		setLogChart(uiLogChart*);
+
 protected:
-    uiLogChart&		logchart_;
+    uiLogChart*		logchart_;
     uiColorInput*	bgcolorfld_;
     uiGenInput*		scalefld_;
     uiGridStyleGrp*	majorzgridfld_;
@@ -77,13 +81,14 @@ protected:
 mClass(uiWellCharts) uiLogsGrp : public uiGroup
 { mODTextTranslationClass(uiLogsGrp)
 public:
-			uiLogsGrp(uiParent*,uiLogChart&);
+			uiLogsGrp(uiParent*, uiLogChart*);
 			~uiLogsGrp();
 
     void		update();
+    void		setLogChart(uiLogChart*);
 
 protected:
-    uiLogChart&		logchart_;
+    uiLogChart*		logchart_;
     uiListBox*		logselfld_;
     uiLogCurveProps*	logpropfld_;
 
@@ -91,17 +96,48 @@ protected:
 };
 
 
+mClass(uiWellCharts) uiMarkersGrp : public uiGroup
+{ mODTextTranslationClass(uiMarkersGrp)
+public:
+			uiMarkersGrp(uiParent*, uiLogChart*);
+			~uiMarkersGrp();
+
+    void		update();
+    void		setLogChart(uiLogChart*);
+
+protected:
+    uiLogChart*		logchart_;
+    uiListBox*		markerselfld_;
+    uiSelLineStyle*	markerlinefld_;
+
+    void		markerselCB(CallBacker*);
+    void		lineStyleChgCB(CallBacker*);
+};
+
+
 mClass(uiWellCharts) uiLogViewPropDlg : public uiDialog
 { mODTextTranslationClass(uiLogViewPropDlg)
 public:
-			uiLogViewPropDlg(uiParent*,uiLogChart&);
+			uiLogViewPropDlg(uiParent*, uiLogChart*,
+					 bool withapply=false);
 			~uiLogViewPropDlg();
 
+    void		setLogChart(uiLogChart*);
+    IOPar		getCurrentSettings() const;
+
 protected:
-    uiLogChart&		logchart_;
+    uiLogChart*		logchart_;
+    uiTabStack*		tabs_;
     uiLogChartGrp*	chartgrp_;
     uiLogsGrp*		logsgrp_;
+    uiMarkersGrp*	markersgrp_;
+    IOPar		settingsbackup_;
+    bool		withapply_ = false;
 
-    void		updateCB(CallBacker*);
+    void		applyCB(CallBacker*);
+    void		updateLogsCB(CallBacker*);
+    void		updateMarkersCB(CallBacker*);
+    void		restoreCB(CallBacker*);
     void		closeCB(CallBacker*);
+    bool		rejectOK(CallBacker*) override;
 };

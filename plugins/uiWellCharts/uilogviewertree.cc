@@ -21,7 +21,7 @@ ________________________________________________________________________
 
 
 uiLogViewerTree::uiLogViewerTree( uiParent* p )
-    : uiTreeView(p,"LogViewer tree")
+    : uiGroup(p)
     , logChecked(this)
     , logUnchecked(this)
     , markerChecked(this)
@@ -39,11 +39,13 @@ uiLogViewerTree::~uiLogViewerTree()
 
 void uiLogViewerTree::init()
 {
-    showHeader( false );
-    setColumnWidthMode( ResizeToContents );
-    setSelectionBehavior( SelectRows );
+    treeview_ = new uiTreeView( this );
+    treeview_->showHeader( false );
+    treeview_->setColumnWidthMode( uiTreeView::ResizeToContents );
+    treeview_->setSelectionBehavior( uiTreeView::SelectRows );
+    treeview_->setStretch( 2, 2 );
     addWells();
-    mAttachCB( expanded, uiLogViewerTree::wellExpandCB );
+    mAttachCB( treeview_->expanded, uiLogViewerTree::wellExpandCB );
 }
 
 
@@ -53,7 +55,7 @@ void uiLogViewerTree::addWells()
     Well::MGR().getWellNames( wellnms );
     for ( const auto* wellnm : wellnms )
     {
-	auto* well_tritem = new uiTreeViewItem( this,
+	auto* well_tritem = new uiTreeViewItem( treeview_,
 		uiTreeViewItem::Setup().label(toUiString(wellnm->buf())) );
 	new uiTreeViewItem( well_tritem,
 			    uiTreeViewItem::Setup(uiStrings::sLogs()) );
@@ -111,7 +113,7 @@ void uiLogViewerTree::checkLogsFor( const MultiID& wellid,
 {
     Well::LoadReqs lreq( Well::Inf );
     ConstRefMan<Well::Data> wd = Well::MGR().get( wellid, lreq );
-    uiTreeViewItem* well_tritem = findItem( wd->name(), 0, true );
+    uiTreeViewItem* well_tritem = treeview_->findItem( wd->name(), 0, true );
     if ( !well_tritem )
 	return;
 
@@ -138,7 +140,7 @@ void uiLogViewerTree::checkMarkersFor( const MultiID& wellid,
 {
     Well::LoadReqs lreq( Well::Inf );
     ConstRefMan<Well::Data> wd = Well::MGR().get( wellid, lreq );
-    uiTreeViewItem* well_tritem = findItem( wd->name(), 0, true );
+    uiTreeViewItem* well_tritem = treeview_->findItem( wd->name(), 0, true );
     if ( !well_tritem )
 	return;
 
@@ -208,7 +210,7 @@ void uiLogViewerTree::allMarkerStateChgCB( CallBacker* cb )
 
 void uiLogViewerTree::wellExpandCB( CallBacker* cb )
 {
-    mDynamicCastGet(uiLogViewerTree*,welltree,cb->trueCaller());
+    mDynamicCastGet(uiTreeView*,welltree,cb->trueCaller());
     if ( !welltree )
 	return;
 
@@ -223,4 +225,16 @@ void uiLogViewerTree::wellExpandCB( CallBacker* cb )
     const MultiID& wid = ioobj->key();
     addLogs( wid, well_tritem );
     addMarkers( wid, well_tritem );
+}
+
+
+void uiLogViewerTree::uncheckAll()
+{
+    treeview_->uncheckAll();
+}
+
+
+void uiLogViewerTree::collapseAll()
+{
+    treeview_->collapseAll();
 }

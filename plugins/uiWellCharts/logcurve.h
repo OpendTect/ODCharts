@@ -56,7 +56,7 @@ public:
 
     void		setDisplayRange(const Interval<float>& range) override;
     void		fillPar(IOPar&) const;
-    void		usePar(const IOPar&);
+    void		usePar(const IOPar&, bool styleonly=false);
     void		initCallBacks();
     LogCurve*		clone() const;
 

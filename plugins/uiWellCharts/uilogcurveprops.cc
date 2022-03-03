@@ -27,7 +27,7 @@ ________________________________________________________________________
 
 // uiLogFillProps
 uiLogFillProps::uiLogFillProps( uiParent* p, uiChartFillx::FillDir fdir,
-				uiLogChart& lc )
+				uiLogChart* lc )
     : uiGroup(p)
     , logchart_(lc)
     , filldir_(fdir)
@@ -86,11 +86,26 @@ uiLogFillProps::~uiLogFillProps()
 }
 
 
+void uiLogFillProps::setLogChart( uiLogChart* logchart )
+{
+    if ( logchart==logchart_ )
+	return;
+    update();
+}
+
+
+void uiLogFillProps::update()
+{
+    fillTypeChgCB( nullptr );
+    fillLimitChgCB( nullptr );
+}
+
+
 void uiLogFillProps::setLogFill( int lcidx )
 {
     logcurve_ = nullptr;
     fill_ = nullptr;
-    ObjectSet<LogCurve>& logcurves = logchart_.logcurves();
+    ObjectSet<LogCurve>& logcurves = logchart_->logcurves();
     if ( !logcurves.validIdx(lcidx) )
 	return;
 
@@ -110,7 +125,7 @@ void uiLogFillProps::setLogFill( int lcidx )
     filllimitfld_->setValue( flim );
     fillcolorfld_->setColor( fill_->color() );
     fillbasefld_->setValue( baseval );
-    BufferStringSet lognms = logchart_.getDispLogsForID( logcurve_->wellID() );
+    BufferStringSet lognms = logchart_->getDispLogsForID( logcurve_->wellID() );
     lognms.remove( logcurve_->logName() );
     if ( lognms.isEmpty() )
     {
@@ -237,7 +252,7 @@ void uiLogFillProps::fillGradientLogChgCB( CallBacker* )
     if ( !lg )
 	return;
 
-    lg->setZType( logchart_.zType(), false );
+    lg->setZType( logchart_->zType(), false );
     Interval<float> rg = lg->dispRange().isUdf() ? lg->logRange()
 						 : lg->dispRange();
     rg.sort();
@@ -263,7 +278,7 @@ void uiLogFillProps::fillSeriesChgCB( CallBacker* )
     if ( !fill_ )
 	return;
 
-    LogCurve* lc = logchart_.getLogCurve( logcurve_->wellID(),
+    LogCurve* lc = logchart_->getLogCurve( logcurve_->wellID(),
 					  fillseriesfld_->text() );
     logcurve_->setFillToLog( fillseriesfld_->text(),
 			     fill_->fillDir()==uiChartFillx::Left );
@@ -272,7 +287,7 @@ void uiLogFillProps::fillSeriesChgCB( CallBacker* )
 
 
 // uiLogCurveProps
-uiLogCurveProps::uiLogCurveProps( uiParent* p, uiLogChart& lc)
+uiLogCurveProps::uiLogCurveProps( uiParent* p, uiLogChart* lc)
     : uiGroup(p)
     , logchart_(lc)
 {
@@ -301,9 +316,24 @@ uiLogCurveProps::~uiLogCurveProps()
 }
 
 
+void uiLogCurveProps::setLogChart( uiLogChart* logchart )
+{
+    if ( logchart==logchart_ )
+	return;
+    update();
+}
+
+
+void uiLogCurveProps::update()
+{
+    leftfillfld_->setLogChart( logchart_ );
+    rightfillfld_->setLogChart( logchart_ );
+}
+
+
 void uiLogCurveProps::setLogCurve( int idx )
 {
-    ObjectSet<LogCurve>& logcurves = logchart_.logcurves();
+    ObjectSet<LogCurve>& logcurves = logchart_->logcurves();
     if ( !logcurves.validIdx(idx) )
 	return;
 
