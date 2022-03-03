@@ -77,7 +77,7 @@ void uiChart::addSeries( uiChartSeries* series )
 
 OD::Color uiChart::backgroundColor() const
 {
-    QColor qcol = odchart_->backgroundBrush()!=Qt::SolidPattern ? Qt::white
+    QColor qcol = odchart_->backgroundBrush().style()!=Qt::SolidPattern ? Qt::white
 					 : odchart_->backgroundBrush().color();
     return fromQColor( qcol );
 }

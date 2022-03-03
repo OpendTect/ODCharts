@@ -242,7 +242,7 @@ int uiChartAxis::getMinorTickCount() const
 {
     auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
     auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
-    if ( qvalueaxis && qvalueaxis->tickType()==QValueAxis::TicksFixed)
+    if ( qvalueaxis )
 	return qvalueaxis->minorTickCount();
     if ( qlogvalueaxis )
 	return qlogvalueaxis->minorTickCount();
