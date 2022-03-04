@@ -32,7 +32,12 @@ find_package( OpendTect )
 set( PROJECT_OUTPUT_DIR ${OD_BINARY_BASEDIR} )
 
 #Setup the modules
-set ( PLUGINS  uiCharts uiWellCharts )
+set( PLUGINS
+	uiCharts
+	uiWellCharts
+	uiChartTools
+)
+
 OD_ADD_MODULES( plugins ${PLUGINS} )
 
 #Add the plugins
