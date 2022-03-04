@@ -56,7 +56,7 @@ protected:
 };
 
 
-mExpClass(uiChartsTools) uiChartsFunctionDisplay : public uiFuncDispBase
+mExpClass(uiChartTools) uiChartsFunctionDisplay : public uiFuncDispBase
 						 , public uiChartView
 {
 mODTextTranslationClass(uiChartsFunctionDisplay)

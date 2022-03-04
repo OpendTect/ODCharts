@@ -254,15 +254,14 @@ void uiChartsFunctionDisplay::pointSelectedCB( CallBacker* )
 
 uiChartsAxisHandler* uiChartsFunctionDisplay::xAxis() const
 {
-    mDynamicCastGet(uiChartsAxisHandler*, xax, xax_);
-    return xax;
+    return dCast(uiChartsAxisHandler*,xax_);
 }
 
 
 uiChartsAxisHandler* uiChartsFunctionDisplay::yAxis( bool y2 ) const
 {
-    return y2 ? dCast(uiChartsAxisHandler,y2ax_)
-	      : dCast(uiChartsAxisHandler,yax_);
+    return y2 ? dCast(uiChartsAxisHandler*,y2ax_)
+	      : dCast(uiChartsAxisHandler*,yax_);
 }
 
 
