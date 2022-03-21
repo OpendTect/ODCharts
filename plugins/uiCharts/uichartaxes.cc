@@ -403,7 +403,7 @@ void uiValueAxis::snapRange( float min, float max )
 }
 
 
-Interval<float> uiValueAxis::getAxisLimits()
+Interval<float> uiValueAxis::getAxisLimits() const
 {
     return axislimits_;
 }

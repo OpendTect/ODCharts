@@ -105,8 +105,9 @@ public:
 
     void		setAxisLimits(const Interval<float>&,bool include=true);
     void		setAxisLimits(float min,float max,bool include=true);
+
     void		snapRange(float min,float max);
-    Interval<float>	getAxisLimits();
+    Interval<float>	getAxisLimits() const;
     void		applyNiceNumbers();
 
 protected:
