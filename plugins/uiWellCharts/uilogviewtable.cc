@@ -27,6 +27,7 @@ ________________________________________________________________________
 uiLogViewTable::uiLogViewTable( uiParent* p, int nrcol, bool showtools )
     : uiGroup(p)
     , chartSelectionChg(this)
+    , syncRangeChg(this)
     , showtools_(showtools)
 {
     const int nrrows = showtools_ ? 2 : 1;
@@ -59,6 +60,7 @@ uiLogViewTable::uiLogViewTable( uiParent* p, int nrcol, bool showtools )
 uiLogViewTable::~uiLogViewTable()
 {
     detachAllNotifiers();
+    setEmpty();
 }
 
 
@@ -276,7 +278,7 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 	updateViewLabel( vwidx );
 	deepErase( *logcurves[vwidx] );
 	for ( const auto* mrknm : mrknms )
-	    chart->addMarker( wellids[vwidx], *mrknm );
+	    chart->addMarker( wellids[vwidx], *mrknm, false );
 
 	uisw.setMessage(
 		tr("Display: %1%").arg(int((vwidx+1)/logcurves.size()*100.f)) );
@@ -675,10 +677,11 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
 	    break;
 	}
     }
-
-    if ( !(alllocked_ || isViewLocked(vwidx)) )
+    if ( vwidx==-1 || !(alllocked_ || !isViewLocked(vwidx)) )
 	return;
 
+    Interval<float> shrange = range;
+    shrange.shift( -getLogChart(vwidx)->zShift() );
     for ( int idx=0; idx<logviews_->nrCols(); idx++ )
     {
 	if ( idx!=vwidx && (alllocked_ || isViewLocked(idx)) &&
@@ -686,8 +689,9 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
 	{
 	    uiLogChart* logchart = getLogChart( idx );
 	    NotifyStopper ns( logchart->getZAxis()->rangeChanged );
-	    logchart->setZRange( range );
+	    logchart->setZRange( shrange );
 	    logchart->needsRedraw.trigger();
 	}
     }
+    syncRangeChg.trigger( range );
 }

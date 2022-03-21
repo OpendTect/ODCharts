@@ -29,7 +29,6 @@ public:
     void		operator=(const LogData&) = delete;
 
     BufferString	logName() const		{ return logname_; }
-    const Well::Log*	wellLog() const;
     Interval<float>	dahRange() const	{ return dahrange_; }
     Interval<float>	zRange() const		{ return zrange_; }
     Interval<float>	logRange() const	{ return valrange_; }
@@ -47,6 +46,7 @@ protected:
     bool		initLog(const Well::Log&);
     bool		initLog(const char*,const Well::Log&);
     void		copyFrom(const LogData&);
+    ConstRefMan<Well::Data>	getWD() const override;
 
     BufferString	logname_;
     BufferString	uomlbl_;

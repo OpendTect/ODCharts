@@ -44,8 +44,7 @@ WellData::~WellData()
 
 bool WellData::initWell()
 {
-    Well::LoadReqs lreq( Well::Inf );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
+    ConstRefMan<Well::Data> wd = getWD();
     if ( !wd )
 	return false;
 
@@ -74,25 +73,11 @@ void WellData::copyFrom( const WellData& oth )
 }
 
 
-const Well::Track* WellData::wellTrack() const
+ConstRefMan<Well::Data> WellData::getWD() const
 {
-    if ( wellid_.isUdf() )
-	return nullptr;
-
-    Well::LoadReqs lreq( Well::Trck );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
-    return wd ? &wd->track() : nullptr;
-}
-
-
-const Well::D2TModel* WellData::wellD2TModel() const
-{
-    if ( wellid_.isUdf() )
-	return nullptr;
-
-    Well::LoadReqs lreq( Well::D2T );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
-    return wd ? wd->d2TModel() : nullptr;
+    Well::LoadReqs lreqs( Well::D2T, Well::Trck );
+    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_, lreqs );
+    return wd;
 }
 
 
@@ -102,26 +87,30 @@ void WellData::setZType( ZType ztype, bool )
 }
 
 
-float WellData::zToDah( float inz, ZType zt  )
+float WellData::zToDah( float inz, ZType zt ) const
 {
     const UnitOfMeasure* zduom = UnitOfMeasure::surveyDefDepthUnit();
     const UnitOfMeasure* zsuom = UnitOfMeasure::surveyDefDepthStorageUnit();
     if ( zt==MD )
 	return getConvertedValue( inz, zduom, zsuom );
 
-    const Well::Track* track = wellTrack();
-    const Well::D2TModel* d2t = wellD2TModel();
-    const bool istvd = zt==TVD || zt==TVDSS || zt==TVDSD;
-    if ( istvd && !track )
+    ConstRefMan<Well::Data> wd = getWD();
+    if ( !wd )
 	return mUdf(float);
 
-    if ( zt==TWT && (!d2t || !track) )
+    const Well::Track& track = wd->track();
+    const Well::D2TModel* d2t = wd->d2TModel();
+    const bool istvd = zt==TVD || zt==TVDSS || zt==TVDSD;
+    if ( istvd && track.isEmpty() )
+	return mUdf(float);
+
+    if ( zt==TWT && (!d2t || track.isEmpty()) )
 	return mUdf(float);
 
     const UnitOfMeasure* ztuom = UnitOfMeasure::surveyDefTimeUnit();
     const UnitOfMeasure* ztsuom = nullptr;
 
-    const float kb = track->getKbElev();
+    const float kb = track.getKbElev();
     const float srd = SI().seismicReferenceDatum();
 
     float zpos;
@@ -130,47 +119,53 @@ float WellData::zToDah( float inz, ZType zt  )
     else
 	zpos = getConvertedValue( inz, zduom, zsuom );
 
-    const float dah = zt==TVD ? track->getDahForTVD(zpos-kb) :
-			zt==TVDSS ? track->getDahForTVD(zpos) :
-			zt==TVDSD ? track->getDahForTVD(zpos-srd) :
-			d2t->getDah(zpos, *track);
+    const float dah =
+	zt==TVD ? track.getDahForTVD(zpos-kb)
+		: zt==TVDSS ? track.getDahForTVD(zpos)
+			    : zt==TVDSD ? track.getDahForTVD(zpos-srd)
+					: d2t->getDah(zpos,track);
 
     return dah;
 }
 
 
-float WellData::dahToZ( float dah, ZType zt  )
+float WellData::dahToZ( float dah, ZType zt  ) const
 {
     const UnitOfMeasure* zduom = UnitOfMeasure::surveyDefDepthUnit();
     const UnitOfMeasure* zsuom = UnitOfMeasure::surveyDefDepthStorageUnit();
     if ( zt==MD )
 	return getConvertedValue( dah, zsuom, zduom );
 
-    const Well::Track* track = wellTrack();
-    const Well::D2TModel* d2t = wellD2TModel();
-    const bool istvd = zt==TVD || zt==TVDSS || zt==TVDSD;
-    if ( istvd && !track )
+    ConstRefMan<Well::Data> wd = getWD();
+    if ( !wd )
 	return mUdf(float);
 
-    if ( zt==TWT && (!d2t || !track) )
+    const Well::Track& track = wd->track();
+    const Well::D2TModel* d2t = wd->d2TModel();
+    const bool istvd = zt==TVD || zt==TVDSS || zt==TVDSD;
+    if ( istvd && track.isEmpty() )
+	return mUdf(float);
+
+    if ( zt==TWT && (!d2t || track.isEmpty()) )
 	return mUdf(float);
 
     const UnitOfMeasure* ztuom = UnitOfMeasure::surveyDefTimeUnit();
     const UnitOfMeasure* ztsuom = nullptr;
 
-    const float kb = track->getKbElev();
+    const float kb = track.getKbElev();
     const float srd = SI().seismicReferenceDatum();
-    const float zpos = 	zt==TVD ? track->getPos(dah).z+kb :
-			zt==TVDSS ? track->getPos(dah).z :
-			zt==TVDSD ? track->getPos(dah).z+srd :
-			d2t->getTime( dah, *track );
+    const float zpos =
+	zt==TVD ? track.getPos(dah).z+kb
+		: zt==TVDSS ? track.getPos(dah).z
+			    : zt==TVDSD ? track.getPos(dah).z+srd
+					: d2t->getTime(dah,track);
 
     return zt==TWT ? getConvertedValue( zpos, ztsuom, ztuom )
 		   : getConvertedValue( zpos, zsuom, zduom );
 }
 
 
-Interval<float> WellData::dahToZ( const Interval<float>& dahrg, ZType zt )
+Interval<float> WellData::dahToZ( const Interval<float>& dahrg, ZType zt ) const
 {
     const float zstart = dahToZ( dahrg.start, zt );
     const float zstop = dahToZ( dahrg.stop, zt );

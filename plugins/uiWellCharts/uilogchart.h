@@ -67,11 +67,13 @@ public:
     void		removeAllCurves();
 
     bool		hasMarker(const MultiID&,const char* markernm);
-    void		addMarker(const MultiID&,const char* markernm);
     void		addMarker(const MultiID&,const char* markernm,
-				  const OD::LineStyle&);
+				  bool show_wellnm=true);
+    void		addMarker(const MultiID&,const char* markernm,
+				  const OD::LineStyle&,bool show_wellnm=true);
     void		removeMarker(const MultiID&,const char* markernm);
     void		removeAllMarkers();
+    float		getMarkerZ(const char*) const;
 
     uiWellCharts::ZType	zType() const		{ return ztype_; }
     void		setZType(uiWellCharts::ZType,bool force=false);
@@ -83,11 +85,14 @@ public:
     uiChartAxis*	makeLogAxis(const BufferString&,float min,float max,
 				    bool reverse);
     BufferStringSet	wellNames() const;
-    TypeSet<MultiID>	wellIDs() const;
+    DBKeySet		wellIDs() const;
     BufferStringSet	getDispLogsForID(const MultiID&) const;
     BufferStringSet	getDispMarkersForID(const MultiID&) const;
     void		setScale(uiWellCharts::Scale);
     uiWellCharts::Scale	getScale() const	{ return scale_; }
+
+    void		setZShift(float);
+    float		zShift() const		{ return zshift_; }
 
     void		fillPar(IOPar&) const;
     void		usePar(const IOPar&,bool styleonly=false);
@@ -104,6 +109,7 @@ protected:
     uiValueAxis*		zaxis_;
     ObjectSet<LogCurve>		logcurves_;
     ObjectSet<MarkerLine>	markers_;
+    float			zshift_ = 0.f;
 
     void			makeZaxis();
 };

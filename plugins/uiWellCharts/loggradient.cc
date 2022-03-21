@@ -117,7 +117,8 @@ void LogGradient::fromString( const FileMultiString& str )
 
 void LogGradient::update()
 {
-    const Well::Log* log = wellLog();
+    ConstRefMan<Well::Data> wd = getWD();
+    const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
     if ( !qimg_ || !log || imgzrange_==StepInterval<float>() )
 	return;
 

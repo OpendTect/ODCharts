@@ -26,13 +26,16 @@ mExpClass(uiWellCharts) MarkerLine : public WellData
 public:
 			MarkerLine();
 			MarkerLine(const MultiID&,const char*);
-			~MarkerLine();
+    virtual		~MarkerLine();
 
-    void		addTo(uiLogChart&);
+    void		addTo(uiLogChart&,bool show_wellnm=true);
     void		addTo(uiLogChart&,const IOPar&);
-    void		addTo(uiLogChart&,const OD::LineStyle&);
+    void		addTo(uiLogChart&,const OD::LineStyle&,
+			      bool show_wellnm=true);
     void		removeFrom(uiLogChart&);
     void		setZType(uiWellCharts::ZType,bool force) override;
+
+    float		getZ() const		{ return zpos_; }
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
     OD::LineStyle	lineStyle() const;
@@ -43,10 +46,8 @@ public:
     void		usePar(const IOPar&, bool styleonly=false);
 
 protected:
-    void		addMarker(uiLogChart&);
+    void		addMarker(uiLogChart&,bool show_wellnm);
     bool		initMarker();
-    const Well::Track*	wellTrack() const;
-    const Well::D2TModel*	wellD2TModel() const;
 
     BufferString 	markername_;
     float 		dah_;

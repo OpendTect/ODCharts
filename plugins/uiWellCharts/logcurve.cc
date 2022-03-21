@@ -40,7 +40,8 @@ LogCurve::LogCurve()
 LogCurve::LogCurve( const MultiID& wellid, const char* lognm )
     : LogData(wellid,lognm)
 {
-    const Well::Log* log = wellLog();
+    ConstRefMan<Well::Data> wd = getWD();
+    const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
     if ( log )
 	addLog( *log );
 }
@@ -115,7 +116,8 @@ LogCurve* LogCurve::clone() const
 
 void LogCurve::addTo( uiLogChart& logchart, bool show_wellnm, bool show_uom )
 {
-    const Well::Log* log = wellLog();
+    ConstRefMan<Well::Data> wd = getWD();
+    const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
     if ( !log )
 	return;
 
@@ -353,21 +355,25 @@ void LogCurve::setZType( ZType ztype, bool force )
 	return;
 
     LogData::setZType( ztype, force );
-    const Well::Track* track = wellTrack();
-    const Well::D2TModel* d2t = wellD2TModel();
+    ConstRefMan<Well::Data> wd = WellData::getWD();
+    if ( !wd )
+	return;
+
+    const Well::Track& track = wd->track();
+    const Well::D2TModel* d2t = wd->d2TModel();
 
     const bool istvd = ztype==TVD || ztype==TVDSS || ztype==TVDSD;
     const UnitOfMeasure* zduom = UnitOfMeasure::surveyDefDepthUnit();
     const UnitOfMeasure* zsuom = UnitOfMeasure::surveyDefDepthStorageUnit();
     const UnitOfMeasure* ztuom = UnitOfMeasure::surveyDefTimeUnit();
 
-    if ( istvd && !track )
+    if ( istvd && track.isEmpty() )
 	return;
 
     if ( istvd && scatseries_ && scat_tvd_.isEmpty())
     {
 	scat_tvd_.setSize( scat_md_.size() );
-	track->getAllTVD( scat_md_.size(), scat_md_.arr(), zduom,
+	track.getAllTVD( scat_md_.size(), scat_md_.arr(), zduom,
 			  scat_tvd_.arr(), zduom );
     }
 
@@ -376,12 +382,12 @@ void LogCurve::setZType( ZType ztype, bool force )
 	for ( const auto* md : md_ )
 	{
 	    auto* tvd = new TypeSet<float>( md->size(), 0.f );
-	    track->getAllTVD( md->size(), md->arr(), zduom, tvd->arr(), zduom );
+	    track.getAllTVD( md->size(), md->arr(), zduom, tvd->arr(), zduom );
 	    tvd_ += tvd;
 	}
     }
 
-    if ( ztype==TWT && (!d2t || !track) )
+    if ( ztype==TWT && (!d2t || track.isEmpty()) )
 	return;
 
     if ( ztype==TWT  )
@@ -389,7 +395,7 @@ void LogCurve::setZType( ZType ztype, bool force )
 	if ( scatseries_ && scat_twt_.isEmpty() )
 	{
 	    scat_twt_.setSize( scat_md_.size() );
-	    d2t->getAllTime( scat_md_.size(), scat_md_.arr(), *track, zduom,
+	    d2t->getAllTime( scat_md_.size(), scat_md_.arr(), track, zduom,
 			  scat_twt_.arr(), ztuom );
 	}
 
@@ -398,14 +404,14 @@ void LogCurve::setZType( ZType ztype, bool force )
 	    for ( const auto* md : md_ )
 	    {
 		auto* twt = new TypeSet<float>( md->size(), 0.f );
-		d2t->getAllTime( md->size(), md->arr(), *track, zduom,
+		d2t->getAllTime( md->size(), md->arr(), track, zduom,
 				 twt->arr(), ztuom );
 		twt_ += twt;
 	    }
 	}
     }
 
-    const float kb = getConvertedValue( track->getKbElev(), zsuom, zduom );
+    const float kb = getConvertedValue( track.getKbElev(), zsuom, zduom );
     const float srd = getConvertedValue( SI().seismicReferenceDatum(), zsuom,
 					 zduom );
     const float zshft = ztype==TVD ? kb :
@@ -549,7 +555,8 @@ void LogCurve::usePar( const IOPar& par, bool styleonly )
     LogData::usePar( par, styleonly );
     if ( !styleonly )
     {
-	const Well::Log* log = wellLog();
+	ConstRefMan<Well::Data> wd = getWD();
+	const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
 	if ( log )
 	    addLog( *log );
     }

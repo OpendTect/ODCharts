@@ -60,19 +60,23 @@ bool MarkerLine::initMarker()
 }
 
 
-void MarkerLine::addTo( uiLogChart& logchart )
+void MarkerLine::addTo( uiLogChart& logchart, bool show_wellnm )
 {
-    addTo( logchart, linestyle_ );
+    addTo( logchart, linestyle_, show_wellnm );
 }
 
 
-void MarkerLine::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle )
+void MarkerLine::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
+			bool show_wellnm )
 {
     if ( !series_ )
-	addMarker( logchart );
+	addMarker( logchart, show_wellnm );
 
     BufferString callouttxt( markername_ );
-    callouttxt.add("(").add( wellname_ ).add( ") Depth: %2" );
+    if ( show_wellnm )
+	callouttxt.add("(").add(wellname_).add(")");
+
+    callouttxt.add(" Depth: %2" );
 
     series_->setLineStyle( lstyle );
     logchart.addSeries( series_ );
@@ -124,13 +128,16 @@ OD::LineStyle MarkerLine::lineStyle() const
 }
 
 
-void MarkerLine::addMarker( uiLogChart& logchart )
+void MarkerLine::addMarker( uiLogChart& logchart, bool show_wellnm )
 {
     series_ = new uiLineSeries();
-    label_ = new uiChartLabel( &logchart,
-			       tr("%1 (%2)").arg(markername_).arg(wellname_),
-			       series_ );
+    uiString lblstr;
+    if ( show_wellnm )
+	lblstr = tr("%1 (%2)").arg(markername_).arg(wellname_);
+    else
+	lblstr = tr("%1").arg(markername_);
 
+    label_ = new uiChartLabel( &logchart, lblstr, series_ );
     series_->append( 0.f, zpos_ );
     series_->append( 1.f, zpos_ );
     setZType( ztype_, true );

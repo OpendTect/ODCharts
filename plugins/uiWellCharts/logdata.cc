@@ -38,14 +38,18 @@ LogData::~LogData()
 }
 
 
+ConstRefMan<Well::Data> LogData::getWD() const
+{
+    Well::LoadReqs lreqs( Well::LogInfos );
+    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_, lreqs );
+    return wd;
+}
+
+
 bool LogData::initLog()
 {
-    Well::LoadReqs lreq( Well::LogInfos );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
-    if ( !wd || !wd->getLog(logname_) )
-	return false;
-
-    const Well::Log* log = wellLog();
+    ConstRefMan<Well::Data> wd = getWD();
+    const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
     if ( !log )
 	return false;
 
@@ -102,16 +106,6 @@ void LogData::copyFrom( const LogData& oth )
     zrange_ = oth.zrange_;
     valrange_ = oth.valrange_;
     disprange_ = oth.disprange_;
-}
-
-
-const Well::Log* LogData::wellLog() const
-{
-    if ( wellid_.isUdf() )
-	return nullptr;
-    Well::LoadReqs lreq( Well::LogInfos );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
-    return wd ? wd->getLog( logname_ ) : nullptr;
 }
 
 

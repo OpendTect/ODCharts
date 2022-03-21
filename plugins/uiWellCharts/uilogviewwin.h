@@ -15,11 +15,13 @@ ________________________________________________________________________
 #include "menuhandler.h"
 
 class uiComboBox;
+class uiCheckBox;
 class uiLogChart;
 class uiLogView;
 class uiLogViewTable;
 class uiLogViewerTree;
 class uiLogViewPropDlg;
+class uiSpinBox;
 class uiTabStack;
 class uiToolBar;
 class uiToolButton;
@@ -29,8 +31,6 @@ namespace Well { class Data; };
 mExpClass(uiWellCharts) uiLogViewWinBase : public uiDialog
 { mODTextTranslationClass(uiLogViewBase)
 public:
-			uiLogViewWinBase(uiParent*,int nrcol=0,
-					 bool showtools=true);
     virtual		~uiLogViewWinBase();
 
     void		addWellData(const DBKeySet&,
@@ -40,8 +40,8 @@ public:
 				    const BufferStringSet& mrknms);
 
     void		setCurrentView(int);
-    virtual void	loadFile(const char*)		{}
-    virtual void	saveFile(const char*)		{}
+    virtual void	loadFile(const char*);
+    virtual void	saveFile(const char*);
     virtual void	loadWells(const BufferStringSet& wellids,
 				  const BufferStringSet& logids)	{}
     virtual void	setSelected(const DBKeySet&,
@@ -53,6 +53,9 @@ public:
     static const char*	filtStr()	{ return "*.lvpar"; }
 
 protected:
+			uiLogViewWinBase(uiParent*,int nrcol=0,
+					 bool showtools=true);
+
     uiToolBar*		tb_ = nullptr;
     uiLogViewTable*	logviewtbl_;
 
@@ -94,20 +97,31 @@ public:
     void		setSelected(const DBKeySet&,
 				    const BufferStringSet& lognms,
 				    const BufferStringSet& mrkrs) override;
+    void		loadFile(const char*) override;
+
 protected:
     uiWellFilterGrp*	logfiltergrp_;
     uiLogViewPropDlg*	propdlg_ = nullptr;
+    uiCheckBox*		flattenfld_;
+    uiComboBox*		markerfld_;
+    uiSpinBox*		zrangetopfld_;
+    uiSpinBox*		zrangebotfld_;
 
     MenuItem		settingsbuttonitem_;
+    MenuItem		zoombuttonitem_;
     MenuItem		unzoombuttonitem_;
 
     void		addApplicationToolBar() override;
 
     void		chartChgCB(CallBacker*);
     void		dataChgCB(CallBacker*);
+    void 		flattenChgCB(CallBacker*);
     void		showSettingsCB(CallBacker*);
     void		applySettingsCB(CallBacker*);
+    void		zoomRangeCB(CallBacker*);
+    void		zoomRangeChgCB(CallBacker*);
     void		zoomResetCB(CallBacker*);
+    void		zdomainChgCB(CallBacker*) override;
 };
 
 
@@ -119,10 +133,8 @@ public:
 
     void		addWell(const DBKey&,const TypeSet<int>& logs);
     void		addWell(int,const DBKey&,const TypeSet<int>& logs);
-    void		loadFile(const char*) override;
     void		loadWells(const BufferStringSet& wellids,
 				  const BufferStringSet& logids) override;
-    void		saveFile(const char*) override;
 
 protected:
     uiLogViewerTree*	logviewtree_;

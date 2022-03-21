@@ -210,19 +210,20 @@ bool uiLogChart::hasMarker( const MultiID& wellid, const char* markernm )
 }
 
 
-void uiLogChart::addMarker( const MultiID& wellid, const char* markernm )
+void uiLogChart::addMarker( const MultiID& wellid, const char* markernm,
+			    bool show_wellnm )
 {
     auto* marker = new MarkerLine( wellid, markernm );
-    marker->addTo( *this );
+    marker->addTo( *this, show_wellnm );
     markers_ += marker;
     markerChange.trigger();
 }
 
 
 void uiLogChart::addMarker( const MultiID& wellid, const char* markernm,
-			      const OD::LineStyle& lstyle )
+			      const OD::LineStyle& lstyle, bool show_wellnm )
 {
-    addMarker( wellid, markernm );
+    addMarker( wellid, markernm, show_wellnm );
     markers_.last()->setLineStyle( lstyle );
 }
 
@@ -256,11 +257,27 @@ void uiLogChart::removeAllMarkers()
 }
 
 
+float uiLogChart::getMarkerZ( const char* markernm ) const
+{
+    float res = mUdf(float);
+    for ( const auto* marker : markers_ )
+    {
+	if ( marker->markerName()!=markernm )
+	    continue;
+	res = marker->getZ();
+	break;
+    }
+
+    return res;
+}
+
+
 void uiLogChart::setZType( uiWellCharts::ZType ztype, bool force )
 {
     if ( !force && ztype_==ztype )
 	return;
 
+    setZShift( 0.f );
     ztype_ = ztype;
     updateZAxisTitle();
     for ( auto* log : logcurves_ )
@@ -287,13 +304,14 @@ Interval<float> uiLogChart::getActualZRange() const
     for ( const auto* logcurve : logcurves_ )
 	range.include( logcurve->zRange() );
 
+    range.shift( zshift_ );
     return range;
 }
 
 
 void uiLogChart::setZRange( float minz, float maxz )
 {
-    zaxis_->setRange( minz, maxz );
+    zaxis_->setRange( minz+zshift_, maxz+zshift_ );
 }
 
 
@@ -390,9 +408,9 @@ BufferStringSet uiLogChart::wellNames() const
 }
 
 
-TypeSet<MultiID> uiLogChart::wellIDs() const
+DBKeySet uiLogChart::wellIDs() const
 {
-    TypeSet<MultiID> res;
+    DBKeySet res;
     for ( const auto* logcurve : logcurves_ )
 	res.addIfNew( logcurve->wellID() );
 
@@ -440,6 +458,20 @@ void uiLogChart::setScale( uiWellCharts::Scale scaletyp )
 	logcurve->addTo( *this, logcurve->lineStyle(), min, max, reverse );
     }
     logChange.trigger();
+}
+
+
+void uiLogChart::setZShift( float zshift )
+{
+    const float rngshift = zshift - zshift_;
+    zshift_ = zshift;
+    Interval<float> zrange = zaxis_->getAxisLimits();
+    zrange.shift( rngshift );
+    zaxis_->setAxisLimits( zrange, false );
+
+    zrange = zaxis_->range();
+    zrange.shift( rngshift );
+    zaxis_->setRange( zrange.start, zrange.stop );
 }
 
 
@@ -526,9 +558,7 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
     BufferString lsstr;
 
     zaxis_->setTickInterval( zfms_major.getFValue(0) );
-    zaxis_->setGridLineVisible( zfms_major.getYN(1) );
     zaxis_->setMinorTickCount( zfms_minor.getIValue(0) );
-    zaxis_->setMinorGridLineVisible( zfms_minor.getYN(1) );
 
     iop.get( sKey::ZMajorGridStyle(), lsstr );
     ls_major.fromString( lsstr );
@@ -536,7 +566,9 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
     ls_minor.fromString( lsstr );
 
     zaxis_->setGridStyle( ls_major );
+    zaxis_->setGridLineVisible( zfms_major.getYN(1) );
     zaxis_->setMinorGridStyle( ls_minor );
+    zaxis_->setMinorGridLineVisible( zfms_minor.getYN(1) );
 
     int nlog;
     iop.get( sKey::NrItems(), nlog );
@@ -571,11 +603,11 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 	    logcurve->usePar( *tmp, true );
 	uiChartAxis* laxis = logcurve->getAxis();
 	laxis->setTickCount( lfms_major.getIValue(0) );
-	laxis->setGridLineVisible( lfms_major.getYN(1) );
 	laxis->setGridStyle( ls_major );
+	laxis->setGridLineVisible( lfms_major.getYN(1) );
 	laxis->setMinorTickCount( lfms_minor.getIValue(0) );
-	laxis->setMinorGridLineVisible( lfms_minor.getYN(1) );
 	laxis->setMinorGridStyle( ls_minor );
+	laxis->setMinorGridLineVisible( lfms_minor.getYN(1) );
     }
 //    logChange.trigger();
 

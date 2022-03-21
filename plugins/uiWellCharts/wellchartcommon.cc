@@ -63,6 +63,6 @@ void EnumDefImpl<uiWellCharts::ZType>::init()
     uistrings_ += uiStrings::sMD();
     uistrings_ += uiStrings::sTVD();
     uistrings_ += uiStrings::sTVDSS();
-    uistrings_ += mEnumTr("TVDSD");
+    uistrings_ += uiStrings::sTVDSD();
     uistrings_ += uiStrings::sTWT();
 }

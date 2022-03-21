@@ -70,6 +70,7 @@ public:
     void			setAllLocked(bool yn);
 
     Notifier<uiLogViewTable>	chartSelectionChg;
+    CNotifier<uiLogViewTable,const Interval<float>&>	syncRangeChg;
 
 protected:
     uiTable*			logviews_;

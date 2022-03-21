@@ -29,7 +29,7 @@ public:
 			LogCurve();
 			LogCurve(const MultiID&,const char*);
 			LogCurve(const char*,const Well::Log&);
-			~LogCurve();
+    virtual		~LogCurve();
 
     void		addTo(uiLogChart&,bool show_wellnm=true,
 			      bool show_uom=true);

@@ -13,8 +13,10 @@ ________________________________________________________________________
 #include "uiwellchartsmod.h"
 
 #include "multiid.h"
+#include "ptrman.h"
 #include "ranges.h"
 #include "wellchartcommon.h"
+#include "welldata.h"
 
 namespace Well { class Track; class D2TModel; }
 
@@ -31,14 +33,12 @@ public:
     MultiID			wellID() const		{ return wellid_; }
     BufferString		wellName() const	{ return wellname_; }
     uiWellCharts::ZType		zType() const		{ return ztype_; }
-    const Well::Track*		wellTrack() const;
-    const Well::D2TModel*	wellD2TModel() const;
 
     virtual void		setZType(uiWellCharts::ZType,bool);
-    float			zToDah(float, uiWellCharts::ZType);
-    float			dahToZ(float, uiWellCharts::ZType);
+    float			zToDah(float,uiWellCharts::ZType) const;
+    float			dahToZ(float,uiWellCharts::ZType) const;
     Interval<float>		dahToZ(const Interval<float>&,
-				       uiWellCharts::ZType);
+				       uiWellCharts::ZType) const;
 
     void			fillPar(IOPar&) const;
     void			usePar(const IOPar&);
@@ -47,6 +47,7 @@ protected:
     bool			initWell();
     bool			initWell(const char*);
     void			copyFrom(const WellData&);
+    virtual ConstRefMan<Well::Data>	getWD() const;
 
 
     uiWellCharts::ZType		ztype_;
