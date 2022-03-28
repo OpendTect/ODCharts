@@ -70,7 +70,7 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
 
     logviewtbl_ = new uiLogViewTable( this, nrcol, showtools );
 
-    mAttachCB( postFinalise(), uiLogViewWinBase::uiInitCB );
+    mAttachCB( postFinalize(), uiLogViewWinBase::uiInitCB );
 }
 
 
