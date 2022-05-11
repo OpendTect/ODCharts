@@ -24,6 +24,7 @@ ________________________________________________________________________
 #include "uilogviewtable.h"
 #include "uimain.h"
 #include "uimsg.h"
+#include "uiseparator.h"
 #include "uiscrollarea.h"
 #include "uispinbox.h"
 #include "uisplitter.h"
@@ -32,6 +33,7 @@ ________________________________________________________________________
 #include "uitoolbar.h"
 #include "uitoolbutton.h"
 #include "uiwellfiltergrp.h"
+#include "uizrangeselect.h"
 
 #include "commandlineparser.h"
 #include "filepath.h"
@@ -41,17 +43,18 @@ ________________________________________________________________________
 #include "oddirs.h"
 #include "survinfo.h"
 #include "welldata.h"
+#include "wellextractdata.h"
 #include "wellman.h"
 #include "welltrack.h"
-
-#include <QChart>
+#include "zdomain.h"
 
 static int sMnuID = 0;
 static const int sWinHeight = 500;
 static const int sWinWidth = 500;
 
 
-uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
+uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools,
+				    bool showfilter )
     : uiDialog(p,Setup(toUiString("OpendTect - Log Viewer"), mNoDlgTitle,
 		       mTODOHelpKey).modal(false))
     , newitem_(uiStrings::sNew(),"new","",
@@ -62,6 +65,8 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
 				mCB(this,uiLogViewWinBase,saveCB),sMnuID++)
     , saveasitem_(uiStrings::sSaveAs(),"saveas","",
 				mCB(this,uiLogViewWinBase,saveasCB),sMnuID++)
+    , showFilter(this)
+    , showfilter_(showfilter)
 {
     mainObject()->setMinimumHeight( sWinHeight );
     mainObject()->setMinimumWidth( sWinWidth );
@@ -87,6 +92,9 @@ void uiLogViewWinBase::createToolBar()
     tb_->addButton( openitem_ );
     tb_->addButton( saveitem_ );
     tb_->addButton( saveasitem_ );
+    if ( showfilter_ )
+	tb_->addButton( "filter", tr("Set Display Filter"),
+			mCB(this,uiLogViewWinBase,filterCB) );
     tb_->addSeparator();
 
     EnumDef def = uiWellCharts::ZTypeDef();
@@ -123,6 +131,12 @@ void uiLogViewWinBase::uiInitCB( CallBacker* )
 	    loadWells( wellids, welllogs );
 	}
     }
+}
+
+
+void uiLogViewWinBase::filterCB( CallBacker* )
+{
+    showFilter.trigger();
 }
 
 
@@ -305,10 +319,11 @@ void uiLogViewWinBase::saveFile( const char* nm )
 uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 					const ObjectSet<Well::Data>& wds,
 					const BufferStringSet& lognms,
-					const BufferStringSet& markernms )
-    : uiLogViewWinBase(p, 0, false)
+					const BufferStringSet& markernms,
+					bool showfilter )
+    : uiLogViewWinBase(p,0,false,showfilter)
     , unzoombuttonitem_(tr("View All Z"),"view_all","",
-			    mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
+			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
     , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
 {
@@ -318,15 +333,30 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
     uiPushButton* applybut = new uiPushButton( filtergrp, uiStrings::sApply(),
 					       true );
     applybut->setStretch( 2, 0);
+    mAttachCB( applybut->activated, uiLockedLogViewWin::dataChgCB );
+
+    zrangeselfld_ = new uiZRangeSelect( filtergrp );
+    zrangeselfld_->attach( rightBorder );
+    zrangeselfld_->attach( ensureBelow, applybut );
+    zrangeselfld_->setMarkers( markernms );
+
+    auto* hsep = new uiSeparator( filtergrp );
+    hsep->attach( alignedWith, applybut );
+    hsep->attach( ensureBelow, zrangeselfld_ );
+    hsep->setStretch( 2, 0 );
 
     logfiltergrp_ = new uiWellFilterGrp( filtergrp, wds, lognms, markernms,
 					 OD::Vertical );
-    logfiltergrp_->attach( alignedBelow, applybut );
-    mAttachCB(applybut->activated, uiLockedLogViewWin::dataChgCB);
+    logfiltergrp_->attach( alignedWith, applybut );
+    logfiltergrp_->attach( ensureBelow, hsep );
+
     filtergrp->setStretch( 0, 2 );
     filtergrp->attach( leftOf, logviewtbl_ );
 
-    mAttachCB(zdomainfld_->selectionChanged, uiLockedLogViewWin::flattenChgCB);
+    mAttachCB( zdomainfld_->selectionChanged, uiLockedLogViewWin::flattenChgCB);
+    mAttachCB( logfiltergrp_->markerSelectionChg,
+	       uiLockedLogViewWin::updateMarkersCB );
+    mAttachCB( postFinalize(), uiLockedLogViewWin::initCB );
 }
 
 
@@ -336,6 +366,11 @@ uiLockedLogViewWin::~uiLockedLogViewWin()
     delete propdlg_;
 }
 
+
+void uiLockedLogViewWin::initCB( CallBacker* )
+{
+    zdomainChgCB( nullptr );
+}
 
 void uiLockedLogViewWin::loadFile( const char* nm )
 {
@@ -369,61 +404,60 @@ void uiLockedLogViewWin::addApplicationToolBar()
     mAttachCB(markerfld_->selectionChanged, uiLockedLogViewWin::flattenChgCB);
     tb_->addObject( markerfld_ );
 
-    auto* lbl = new uiLabel( nullptr, tr(" Z Range") );
-    tb_->addObject( lbl );
-    zrangetopfld_ = new uiSpinBox( nullptr, 0 );
-    zrangetopfld_->setHSzPol( uiObject::Small );
-    tb_->addObject( zrangetopfld_ );
-    tb_->addObject( new uiLabel(nullptr, tr("-")) );
-    zrangebotfld_ = new uiSpinBox( nullptr, 0 );
-    zrangebotfld_->setHSzPol( uiObject::Small );
-    tb_->addObject( zrangebotfld_ );
-    mAttachCB(zrangetopfld_->valueChanged, uiLockedLogViewWin::zoomRangeCB);
-    mAttachCB(zrangebotfld_->valueChanged, uiLockedLogViewWin::zoomRangeCB);
-    mAttachCB(logviewtbl_->syncRangeChg,uiLockedLogViewWin::zoomRangeChgCB);
-
     tb_->addButton( unzoombuttonitem_ );
     tb_->addButton( settingsbuttonitem_ );
 }
 
 
-void uiLockedLogViewWin::setSelected( const DBKeySet& wellids,
-				      const BufferStringSet& logs,
-				      const BufferStringSet& mrkrs )
-{
-    addWellData( wellids, logs, mrkrs );
-    markerfld_->setEmpty();
-    markerfld_->addItems( mrkrs );
-    logviewtbl_->setAllLocked( true );
-    logfiltergrp_->setSelected( wellids, logs, mrkrs );
-    const Interval<float> zrange = logviewtbl_->primaryZRange();
-    zrangetopfld_->setValue( zrange.start );
-    zrangebotfld_->setValue( zrange.stop );
-}
-
-
-void uiLockedLogViewWin::dataChgCB( CallBacker* )
+void uiLockedLogViewWin::closePropertiesDlg()
 {
     if ( propdlg_ )
     {
 	propdlg_->close();
 	deleteAndZeroPtr( propdlg_ );
     }
+}
 
-    if ( !checkSave() )
-	return;
+void uiLockedLogViewWin::setSelected( const DBKeySet& wellids,
+				      const BufferStringSet& logs,
+				      const BufferStringSet& mrkrs,
+				      bool show)
+{
+    logfiltergrp_->setSelected( wellids, logs, mrkrs );
+    markerfld_->setEmpty();
+    markerfld_->addItems( mrkrs );
+    if ( show )
+    {
+	addWellData( wellids, logs, mrkrs );
+	logviewtbl_->setAllLocked( true );
+	selwells_ = wellids;
+	sellogs_ = logs;
+	selmrkrs_ = mrkrs;
+    }
+}
 
+
+void uiLockedLogViewWin::dataChgCB( CallBacker* )
+{
     DBKeySet wellids;
     BufferStringSet lognms, mrknms;
     logfiltergrp_->getSelected( wellids, lognms, mrknms );
-    clearAll();
-    addWellData( wellids, lognms, mrknms );
-    markerfld_->setEmpty();
-    markerfld_->addItems( mrknms );
-    logviewtbl_->setAllLocked( true );
-    const Interval<float> zrange = logviewtbl_->primaryZRange();
-    zrangetopfld_->setValue( zrange.start );
-    zrangebotfld_->setValue( zrange.stop );
+    if ( selwells_!=wellids || sellogs_!=lognms || selmrkrs_!=mrknms )
+    {
+	closePropertiesDlg();
+	if ( !checkSave() )
+	    return;
+	selwells_ = wellids;
+	sellogs_ = lognms;
+	selmrkrs_ = mrknms;
+	clearAll();
+	addWellData( wellids, lognms, mrknms );
+	markerfld_->setEmpty();
+	markerfld_->addItems( mrknms );
+	logviewtbl_->setAllLocked( true );
+    }
+
+    zoomRangeCB( nullptr );
 }
 
 
@@ -436,17 +470,16 @@ void uiLockedLogViewWin::flattenChgCB( CallBacker* )
 	uiMSG().message( tr("Please select a log chart") );
 	flattenfld_->setChecked( false );
 	markerfld_->setSensitive( false );
-	zrangetopfld_->setSensitive( true );
-	zrangebotfld_->setSensitive( true );
+	zrangeselfld_->setSensitive( true, true, true, true );
 	return;
     }
-
+    zrangeselfld_->reset();
+    zrangeselfld_->setSensitive( !ischecked, !ischecked, true, !ischecked );
     markerfld_->setSensitive( ischecked );
-    zrangetopfld_->setSensitive( !ischecked );
-    zrangebotfld_->setSensitive( !ischecked );
     if ( ischecked )
     {
 	BufferString marker = markerfld_->text();
+	zrangeselfld_->setSelectedMarkers( marker, marker );
 	float curmarkerz = curlogchart->getMarkerZ( marker );
 
 	for ( int idx=0; idx<logviewtbl_->size(); idx++ )
@@ -466,6 +499,7 @@ void uiLockedLogViewWin::flattenChgCB( CallBacker* )
     }
     else
     {
+	zrangeselfld_->setSelectedMarkers( nullptr, nullptr );
 	for ( int idx=0; idx<logviewtbl_->size(); idx++ )
 	{
 	    auto* lc = logviewtbl_->getLogChart( idx );
@@ -529,38 +563,66 @@ void uiLockedLogViewWin::chartChgCB( CallBacker* )
 }
 
 
+void uiLockedLogViewWin::updateMarkersCB( CallBacker* )
+{
+    zrangeselfld_->setMarkers( logfiltergrp_->getSelectedMarkers() );
+}
+
+
 void uiLockedLogViewWin::zoomRangeCB( CallBacker* )
 {
-    if ( flattenfld_->isChecked() )
-	return;
+    const uiWellCharts::ZType ztyp =
+	uiWellCharts::ZTypeDef().getEnumForIndex( zdomainfld_->getIntValue() );
+    const Well::ZRangeSelector zparams = zrangeselfld_->zRangeSel();
+    Interval<float> zrange = zparams.getFixedRange();
+    const bool istwt = ztyp==uiWellCharts::TWT;
+    const float twtfac = ZDomain::Time().userFactor();
 
-    const float zmin = zrangetopfld_->getFValue();
-    const float zmax = zrangebotfld_->getFValue();
-    if ( zmin>=zmax )
+    if ( flattenfld_->isChecked() )
     {
-	uiMSG().message( tr("Please check the z range specified") );
+	const BufferString marker( zparams.topMarker() );
+	const float topoff = zparams.topOffset();
+	const float botoff = zparams.botOffset();
+	uiLogChart* lc = logviewtbl_->getLogChart( 0 );
+	if ( !lc )
+	    return;
+
+	zrange.include( lc->getMarkerZ(marker) );
+	zrange.start -= istwt ? topoff*twtfac : topoff;
+	zrange.stop += istwt ? botoff*twtfac : botoff;
+	zrange.shift( -lc->zShift() );
+    }
+    else if ( zrangeselfld_->inMarkerMode() )
+    {
+	const BufferString topmarker( zparams.topMarker() );
+	const BufferString botmarker( zparams.botMarker() );
+	const float topoff = zparams.topOffset();
+	const float botoff = zparams.botOffset();
+	for ( int idx=0; idx<logviewtbl_->size(); idx++ )
+	{
+	    const uiLogChart* lc = logviewtbl_->getLogChart( idx );
+	    zrange.include( lc->getMarkerZ(topmarker) );
+	    zrange.include( lc->getMarkerZ(botmarker) );
+	}
+
+	zrange.start -= istwt ? topoff*twtfac : topoff;
+	zrange.stop += istwt ? botoff*twtfac : botoff;
+    }
+    else if ( zrange.isUdf() )
+    {
+	zoomResetCB( nullptr );
 	return;
     }
+    else if ( istwt )
+	zrange.scale( twtfac );
 
     for ( int idx=0; idx<logviewtbl_->size(); idx++ )
     {
 	uiLogChart* lc = logviewtbl_->getLogChart( idx );
 	NotifyStopper ns( lc->getZAxis()->rangeChanged );
-	lc->setZRange( zmin, zmax);
+	lc->setZRange( zrange );
+	lc->needsRedraw.trigger();
     }
-}
-
-
-void uiLockedLogViewWin::zoomRangeChgCB( CallBacker* cb )
-{
-    if ( flattenfld_->isChecked() )
-	return;
-
-    mCBCapsuleUnpack(const Interval<float>&,range,cb);
-    NotifyStopper ns1( zrangetopfld_->valueChanged );
-    NotifyStopper ns2( zrangebotfld_->valueChanged );
-    zrangetopfld_->setValue( range.start );
-    zrangebotfld_->setValue( range.stop );
 }
 
 
@@ -568,11 +630,22 @@ void uiLockedLogViewWin::zoomResetCB( CallBacker* )
 {
     for ( int idx=0; idx<logviewtbl_->size(); idx++ )
 	logviewtbl_->getLogView( idx )->zoomResetCB( nullptr );
+
+    const uiWellCharts::ZType ztyp =
+	uiWellCharts::ZTypeDef().getEnumForIndex( zdomainfld_->getIntValue() );
+
+    zrangeselfld_->setZinTime( ztyp==uiWellCharts::TWT );
+    zrangeselfld_->reset();
 }
 
 
 void uiLockedLogViewWin::zdomainChgCB( CallBacker* cb )
 {
+    const uiWellCharts::ZType ztyp = uiWellCharts::ZTypeDef().
+				getEnumForIndex( zdomainfld_->getIntValue() );
+
+    zrangeselfld_->setZinTime( ztyp==uiWellCharts::TWT );
+    zrangeselfld_->reset();
     uiLogViewWinBase::zdomainChgCB( cb );
     flattenChgCB( nullptr );
 }

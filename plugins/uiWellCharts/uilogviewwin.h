@@ -11,6 +11,7 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 #include "uidialog.h"
+#include "wellextractdata.h"
 
 #include "menuhandler.h"
 
@@ -26,7 +27,10 @@ class uiTabStack;
 class uiToolBar;
 class uiToolButton;
 class uiWellFilterGrp;
-namespace Well { class Data; };
+class uiZRangeSelect;
+
+namespace Well { class Data; }
+
 
 mExpClass(uiWellCharts) uiLogViewWinBase : public uiDialog
 { mODTextTranslationClass(uiLogViewBase)
@@ -46,15 +50,19 @@ public:
 				  const BufferStringSet& logids)	{}
     virtual void	setSelected(const DBKeySet&,
 				    const BufferStringSet& lognms,
-				    const BufferStringSet& mrknms)	{}
+				    const BufferStringSet& mrknms,
+				    bool show=true)	{}
 
     static const char*	defDirStr()	{ return "WellInfo"; }
     static const char*	extStr()	{ return "lvpar"; }
     static const char*	filtStr()	{ return "*.lvpar"; }
 
+    Notifier<uiLogViewWinBase>	showFilter;
+
 protected:
 			uiLogViewWinBase(uiParent*,int nrcol=0,
-					 bool showtools=true);
+					 bool showtools=true,
+					 bool showFilter=false);
 
     uiToolBar*		tb_ = nullptr;
     uiLogViewTable*	logviewtbl_;
@@ -67,6 +75,7 @@ protected:
     MenuItem		openitem_;
     MenuItem		saveitem_;
     MenuItem		saveasitem_;
+    bool		showfilter_;
 
     bool		checkSave();
     void		createToolBar();
@@ -74,6 +83,7 @@ protected:
     virtual void	clearAll();
 
     virtual void	uiInitCB(CallBacker*);
+    void		filterCB(CallBacker*);
     virtual void	newCB(CallBacker*);
     virtual void	openCB(CallBacker*);
     virtual void	saveCB(CallBacker*);
@@ -91,12 +101,14 @@ public:
 			uiLockedLogViewWin(uiParent*,
 					   const ObjectSet<Well::Data>&,
 					   const BufferStringSet& lognms,
-					   const BufferStringSet& markernms);
+					   const BufferStringSet& markernms,
+					   bool showfilter=false);
 			~uiLockedLogViewWin();
 
     void		setSelected(const DBKeySet&,
 				    const BufferStringSet& lognms,
-				    const BufferStringSet& mrkrs) override;
+				    const BufferStringSet& mrkrs,
+				    bool show=true) override;
     void		loadFile(const char*) override;
 
 protected:
@@ -104,22 +116,27 @@ protected:
     uiLogViewPropDlg*	propdlg_ = nullptr;
     uiCheckBox*		flattenfld_;
     uiComboBox*		markerfld_;
-    uiSpinBox*		zrangetopfld_;
-    uiSpinBox*		zrangebotfld_;
+    uiZRangeSelect*	zrangeselfld_;
 
     MenuItem		settingsbuttonitem_;
-    MenuItem		zoombuttonitem_;
     MenuItem		unzoombuttonitem_;
 
-    void		addApplicationToolBar() override;
+    DBKeySet		selwells_;
+    BufferStringSet	sellogs_;
+    BufferStringSet	selmrkrs_;
+    Well::ZRangeSelector selzrng_;
 
+    void		addApplicationToolBar() override;
+    void		closePropertiesDlg();
+
+    void		initCB(CallBacker*);
     void		chartChgCB(CallBacker*);
     void		dataChgCB(CallBacker*);
     void 		flattenChgCB(CallBacker*);
     void		showSettingsCB(CallBacker*);
     void		applySettingsCB(CallBacker*);
+    void		updateMarkersCB(CallBacker*);
     void		zoomRangeCB(CallBacker*);
-    void		zoomRangeChgCB(CallBacker*);
     void		zoomResetCB(CallBacker*);
     void		zdomainChgCB(CallBacker*) override;
 };
