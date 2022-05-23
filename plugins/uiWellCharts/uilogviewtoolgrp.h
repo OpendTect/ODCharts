@@ -15,7 +15,7 @@ ________________________________________________________________________
 class uiLogView;
 
 
-mClass(uiWellCharts) uiLogViewToolGrp : public uiGroup
+mExpClass(uiWellCharts) uiLogViewToolGrp : public uiGroup
 { mODTextTranslationClass(uiLogViewToolGrp)
 public:
 			uiLogViewToolGrp(uiParent*,uiLogView&);

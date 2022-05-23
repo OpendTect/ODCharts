@@ -21,7 +21,7 @@ class uiColorInput;
 class uiColorTableGroup;
 class uiLogChart;
 
-mClass(uiWellCharts) uiLogFillProps : public uiGroup
+mExpClass(uiWellCharts) uiLogFillProps : public uiGroup
 { mODTextTranslationClass(uiLogFillProps)
 public:
 			uiLogFillProps(uiParent*,uiChartFillx::FillDir,
@@ -56,7 +56,7 @@ protected:
 };
 
 
-mClass(uiWellCharts) uiLogCurveProps : public uiGroup
+mExpClass(uiWellCharts) uiLogCurveProps : public uiGroup
 { mODTextTranslationClass(uiLogCurveProps)
 public:
     enum FillLimit	{ Track, Baseline, Curve };

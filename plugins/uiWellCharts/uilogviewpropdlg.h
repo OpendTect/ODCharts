@@ -23,7 +23,7 @@ class uiTabStack;
 
 namespace OD { class LineStyle; }
 
-mClass(uiWellCharts) uiGridStyleGrp : public uiGroup
+mExpClass(uiWellCharts) uiGridStyleGrp : public uiGroup
 { mODTextTranslationClass(uiGridStyleGrp)
 public:
 			uiGridStyleGrp(uiParent*,const uiString&,
@@ -53,7 +53,7 @@ protected:
 };
 
 
-mClass(uiWellCharts) uiLogChartGrp : public uiGroup
+mExpClass(uiWellCharts) uiLogChartGrp : public uiGroup
 { mODTextTranslationClass(uiLogChartGrp)
 public:
 			uiLogChartGrp(uiParent*, uiLogChart*);
@@ -78,7 +78,7 @@ protected:
 };
 
 
-mClass(uiWellCharts) uiLogsGrp : public uiGroup
+mExpClass(uiWellCharts) uiLogsGrp : public uiGroup
 { mODTextTranslationClass(uiLogsGrp)
 public:
 			uiLogsGrp(uiParent*, uiLogChart*);
@@ -96,7 +96,7 @@ protected:
 };
 
 
-mClass(uiWellCharts) uiMarkersGrp : public uiGroup
+mExpClass(uiWellCharts) uiMarkersGrp : public uiGroup
 { mODTextTranslationClass(uiMarkersGrp)
 public:
 			uiMarkersGrp(uiParent*, uiLogChart*);
@@ -115,7 +115,7 @@ protected:
 };
 
 
-mClass(uiWellCharts) uiLogViewPropDlg : public uiDialog
+mExpClass(uiWellCharts) uiLogViewPropDlg : public uiDialog
 { mODTextTranslationClass(uiLogViewPropDlg)
 public:
 			uiLogViewPropDlg(uiParent*, uiLogChart*,
