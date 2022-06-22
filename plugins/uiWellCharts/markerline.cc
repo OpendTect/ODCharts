@@ -34,7 +34,7 @@ MarkerLine::MarkerLine( const MultiID& wellid, const char* markernm )
     : WellData(wellid)
     , markername_(markernm)
 {
-    initMarker();
+    valid_ = initMarker();
 }
 
 
@@ -69,6 +69,9 @@ void MarkerLine::addTo( uiLogChart& logchart, bool show_wellnm )
 void MarkerLine::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
 			bool show_wellnm )
 {
+    if ( !valid_ )
+	return;
+
     if ( !series_ )
 	addMarker( logchart, show_wellnm );
 
@@ -96,6 +99,9 @@ void MarkerLine::addTo( uiLogChart& logchart, const IOPar& iop )
 
 void MarkerLine::removeFrom( uiLogChart& logchart )
 {
+    if ( !valid_ )
+	return;
+
     logchart.removeSeries( series_ );
     deleteAndZeroPtr( series_ );
     deleteAndZeroPtr( label_ );
@@ -104,7 +110,7 @@ void MarkerLine::removeFrom( uiLogChart& logchart )
 
 void MarkerLine::setZType( uiWellCharts::ZType ztype, bool force )
 {
-    if ( !force && ztype==ztype_ )
+    if ( !valid_ || (!force && ztype==ztype_) )
 	return;
 
     WellData::setZType( ztype, true );
@@ -130,6 +136,9 @@ OD::LineStyle MarkerLine::lineStyle() const
 
 void MarkerLine::addMarker( uiLogChart& logchart, bool show_wellnm )
 {
+    if ( !valid_ )
+	return;
+
     series_ = new uiLineSeries();
     uiString lblstr;
     if ( show_wellnm )
@@ -161,7 +170,7 @@ void MarkerLine::usePar( const IOPar& par, bool styleonly )
     {
 	WellData::usePar( par );
 	par.get( sKey::Name(), markername_ );
-	initMarker();
+	valid_ = initMarker();
     }
 
     BufferString lsstr;

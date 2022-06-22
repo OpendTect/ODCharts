@@ -396,7 +396,7 @@ void uiLockedLogViewWin::addApplicationToolBar()
 {
     flattenfld_ = new uiCheckBox( nullptr, tr("Flatten on") );
     flattenfld_->setChecked( false );
-    mAttachCB(flattenfld_->activated, uiLockedLogViewWin::flattenChgCB);
+    mAttachCB( flattenfld_->activated, uiLockedLogViewWin::flattenChgCB );
     tb_->addObject( flattenfld_ );
 
     markerfld_ = new uiComboBox( nullptr, nullptr );
@@ -456,7 +456,6 @@ void uiLockedLogViewWin::dataChgCB( CallBacker* )
 	markerfld_->addItems( mrknms );
 	logviewtbl_->setAllLocked( true );
     }
-
     zoomRangeCB( nullptr );
 }
 
@@ -603,6 +602,12 @@ void uiLockedLogViewWin::zoomRangeCB( CallBacker* )
 	    const uiLogChart* lc = logviewtbl_->getLogChart( idx );
 	    zrange.include( lc->getMarkerZ(topmarker) );
 	    zrange.include( lc->getMarkerZ(botmarker) );
+	}
+
+	if ( zrange.isUdf() )
+	{
+	    zoomResetCB( nullptr );
+	    return;
 	}
 
 	zrange.start -= istwt ? topoff*twtfac : topoff;

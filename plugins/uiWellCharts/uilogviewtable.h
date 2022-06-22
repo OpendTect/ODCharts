@@ -70,7 +70,6 @@ public:
     void			setAllLocked(bool yn);
 
     Notifier<uiLogViewTable>	chartSelectionChg;
-    CNotifier<uiLogViewTable,const Interval<float>&>	syncRangeChg;
 
 protected:
     uiTable*			logviews_;
@@ -78,6 +77,8 @@ protected:
     bool			showtools_;
     Interval<float>		primaryzrange_	= Interval<float>::udf();
     int				selected_	= -1;
+    Interval<float>		syncrange_	= Interval<float>::udf();
+    int				syncview_	= -1;
     bool			alllocked_	= false;
 
     void			addViewer(int);
@@ -89,4 +90,5 @@ protected:
     void			colSelectCB(CallBacker*);
     void			selectCB(CallBacker*);
     void			syncViewsCB(CallBacker*);
+    void			zRangeChangeCB(CallBacker*);
 };

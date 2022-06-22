@@ -52,6 +52,7 @@ protected:
     BufferString 	markername_;
     float 		dah_;
     float		zpos_;
+    bool		valid_;
 
     OD::LineStyle	linestyle_;
     uiLineSeries*	series_ = nullptr;

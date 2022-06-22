@@ -27,7 +27,6 @@ ________________________________________________________________________
 uiLogViewTable::uiLogViewTable( uiParent* p, int nrcol, bool showtools )
     : uiGroup(p)
     , chartSelectionChg(this)
-    , syncRangeChg(this)
     , showtools_(showtools)
 {
     const int nrrows = showtools_ ? 2 : 1;
@@ -417,9 +416,10 @@ void uiLogViewTable::removeTrackCB( CallBacker* )
 	return;
 
     auto* logchart = getLogChart( selected_ );
-    mDetachCB(logchart->logChange, uiLogViewTable::updatePrimaryChartCB);
-    mDetachCB(logchart->plotAreaChanged, uiLogViewTable::alignTopCB);
-    mDetachCB(logchart->getZAxis()->rangeChanged, uiLogViewTable::syncViewsCB);
+    mDetachCB( logchart->logChange, uiLogViewTable::updatePrimaryChartCB );
+    mDetachCB( logchart->plotAreaChanged, uiLogViewTable::alignTopCB );
+    mDetachCB( logchart->getZAxis()->rangeChanged,
+	       uiLogViewTable::zRangeChangeCB);
     logviews_->removeColumn( selected_ );
     selected_ = -1;
     trackremoveCB( nullptr );
@@ -566,7 +566,7 @@ void uiLogViewTable::addViewer( int col )
 
     mAttachCB( chart->logChange, uiLogViewTable::updatePrimaryChartCB );
     mAttachCB( chart->plotAreaChanged, uiLogViewTable::alignTopCB );
-    mAttachCB( chart->getZAxis()->rangeChanged, uiLogViewTable::syncViewsCB );
+    mAttachCB( chart->getZAxis()->rangeChanged, uiLogViewTable::zRangeChangeCB );
 }
 
 
@@ -664,7 +664,7 @@ void uiLogViewTable::setAllLocked( bool yn )
 }
 
 
-void uiLogViewTable::syncViewsCB( CallBacker* cb )
+void uiLogViewTable::zRangeChangeCB( CallBacker* cb )
 {
     mCBCapsuleUnpackWithCaller(const Interval<float>&,range,cber,cb);
     int vwidx = -1;
@@ -679,11 +679,22 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
     if ( vwidx==-1 || !(alllocked_ || !isViewLocked(vwidx)) )
 	return;
 
-    Interval<float> shrange = range;
-    shrange.shift( -getLogChart(vwidx)->zShift() );
+    syncrange_ = range;
+    syncrange_.shift( -getLogChart(vwidx)->zShift() );
+    syncview_ = vwidx;
+    syncViewsCB( nullptr );
+}
+
+
+void uiLogViewTable::syncViewsCB( CallBacker* )
+{
+    if ( syncview_==-1 || !(alllocked_ || !isViewLocked(syncview_)) )
+	return;
+
+    Interval<float> shrange = syncrange_;
     for ( int idx=0; idx<logviews_->nrCols(); idx++ )
     {
-	if ( idx!=vwidx && (alllocked_ || isViewLocked(idx)) &&
+	if ( idx!=syncview_ && (alllocked_ || isViewLocked(idx)) &&
 	     isViewVisible(idx) )
 	{
 	    uiLogChart* logchart = getLogChart( idx );
@@ -692,5 +703,4 @@ void uiLogViewTable::syncViewsCB( CallBacker* cb )
 	    logchart->needsRedraw.trigger();
 	}
     }
-    syncRangeChg.trigger( range );
 }
