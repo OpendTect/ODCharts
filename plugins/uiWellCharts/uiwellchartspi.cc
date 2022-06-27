@@ -16,11 +16,11 @@ ________________________________________________________________________
 mDefODPluginInfo(uiWellCharts)
 {
     mDefineStaticLocalObject( PluginInfo, retpi,(
-	"Charts for Well Data",
+	"Charts for Well Data (GUI)",
 	"OpendTect",
-	"dGB",
+	"dGB Earth Sciences",
 	"=od",
-	""));
+	"" ))
     return &retpi;
 }
 

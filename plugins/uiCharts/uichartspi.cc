@@ -16,10 +16,10 @@ ________________________________________________________________________
 
 mDefODPluginInfo(uiCharts)
 {
-    mDefineStaticLocalObject( PluginInfo, retpi,(
-	"Isolation layer for QtCharts",
+    mDefineStaticLocalObject( PluginInfo, retpi, (
+	"Isolation layer for QtCharts (GUI)",
 	"OpendTect",
-	"dGB (Nanne)",
+	"dGB Earth Sciences",
 	"=od",
 	""));
     return &retpi;
