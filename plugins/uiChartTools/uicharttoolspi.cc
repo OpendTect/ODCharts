@@ -18,12 +18,12 @@ ________________________________________________________________________
 
 mDefODPluginInfo(uiChartTools)
 {
-    mDefineStaticLocalObject( PluginInfo, retpi,(
-	"ChartTools",
+    mDefineStaticLocalObject( PluginInfo, retpi, (
+	"Charts Tools (GUI)",
 	"OpendTect",
-	"dGB",
+	"dGB Earth Sciences",
 	"=od",
-	""));
+	"" ))
     return &retpi;
 }
 
