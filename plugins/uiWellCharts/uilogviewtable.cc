@@ -200,6 +200,7 @@ mDefParallelCalcBody( ,
 void uiLogViewTable::addWellData( const DBKeySet& wellids,
 				const ManagedObjectSet<TypeSet<int>>& logidxs )
 {
+    setNumViews( wellids.size() );
     ManagedObjectSet<ObjectSet<LogCurve>> logcurves;
     for ( int idx=0; idx<wellids.size(); idx++ )
 	logcurves += new ObjectSet<LogCurve>();
@@ -230,6 +231,23 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
     }
 
     updatePrimaryZrangeCB( nullptr );
+}
+
+
+void uiLogViewTable::addWellData( const DBKeySet& wellids,
+				  const ManagedObjectSet<TypeSet<int>>& logidxs,
+				  const BufferStringSet& mrknms )
+{
+    addWellData( wellids, logidxs );
+    for ( int vwidx=0; vwidx<size(); vwidx++ )
+    {
+	uiLogChart* chart = getLogChart( vwidx );
+	if ( !chart )
+	    continue;
+
+	for ( const auto* mrknm : mrknms )
+	    chart->addMarker( wellids[vwidx], *mrknm, false );
+    }
 }
 
 
@@ -611,6 +629,9 @@ void uiLogViewTable::selectView( int col )
 
 bool uiLogViewTable::isViewLocked( int vwidx ) const
 {
+    if ( alllocked_ )
+	return validIdx( vwidx );
+
     if ( validIdx(vwidx) && showtools_ )
     {
 	const RowCol curcell( 0, vwidx );
@@ -627,9 +648,10 @@ bool uiLogViewTable::isViewVisible( int vwidx ) const
 {
     if ( validIdx(vwidx) )
     {
-	    const int row = showtools_ ? 1 : 0;
-	    return logviews_->isCellVisible( RowCol(row, vwidx) );
+	const int row = showtools_ ? 1 : 0;
+	return logviews_->isCellVisible( RowCol(row, vwidx) );
     }
+
     return false;
 }
 
@@ -676,7 +698,7 @@ void uiLogViewTable::zRangeChangeCB( CallBacker* cb )
 	    break;
 	}
     }
-    if ( vwidx==-1 || !(alllocked_ || !isViewLocked(vwidx)) )
+    if ( vwidx==-1 || !isViewLocked(vwidx) )
 	return;
 
     syncrange_ = range;
@@ -688,14 +710,13 @@ void uiLogViewTable::zRangeChangeCB( CallBacker* cb )
 
 void uiLogViewTable::syncViewsCB( CallBacker* )
 {
-    if ( syncview_==-1 || !(alllocked_ || !isViewLocked(syncview_)) )
+    if ( syncview_==-1 || !isViewLocked(syncview_) )
 	return;
 
     Interval<float> shrange = syncrange_;
     for ( int idx=0; idx<logviews_->nrCols(); idx++ )
     {
-	if ( idx!=syncview_ && (alllocked_ || isViewLocked(idx)) &&
-	     isViewVisible(idx) )
+	if ( idx!=syncview_ && isViewLocked(idx) && isViewVisible(idx) )
 	{
 	    uiLogChart* logchart = getLogChart( idx );
 	    NotifyStopper ns( logchart->getZAxis()->rangeChanged );

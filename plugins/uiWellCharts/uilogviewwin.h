@@ -15,13 +15,14 @@ ________________________________________________________________________
 
 #include "menuhandler.h"
 
-class uiComboBox;
+class MnemonicSelection;
 class uiCheckBox;
+class uiComboBox;
 class uiLogChart;
 class uiLogView;
+class uiLogViewPropDlg;
 class uiLogViewTable;
 class uiLogViewerTree;
-class uiLogViewPropDlg;
 class uiSpinBox;
 class uiTabStack;
 class uiToolBar;
@@ -40,6 +41,9 @@ public:
     void		addWellData(const DBKeySet&,
 				    const ManagedObjectSet<TypeSet<int>>&);
     void		addWellData(const DBKeySet&,
+				    const ManagedObjectSet<TypeSet<int>>&,
+				    const BufferStringSet& mrknms);
+    void		addWellData(const DBKeySet&,
 				    const BufferStringSet& lognms,
 				    const BufferStringSet& mrknms);
 
@@ -50,6 +54,10 @@ public:
 				  const BufferStringSet& logids)	{}
     virtual void	setSelected(const DBKeySet&,
 				    const BufferStringSet& lognms,
+				    const BufferStringSet& mrknms,
+				    bool show=true)	{}
+    virtual void	setSelected(const DBKeySet&,
+				    const MnemonicSelection& mns,
 				    const BufferStringSet& mrknms,
 				    bool show=true)	{}
 
@@ -103,10 +111,19 @@ public:
 					   const BufferStringSet& lognms,
 					   const BufferStringSet& markernms,
 					   bool showfilter=false);
+			uiLockedLogViewWin(uiParent*,
+					   const ObjectSet<Well::Data>&,
+					   const MnemonicSelection& mns,
+					   const BufferStringSet& markernms,
+					   bool showfilter=false);
 			~uiLockedLogViewWin();
 
     void		setSelected(const DBKeySet&,
 				    const BufferStringSet& lognms,
+				    const BufferStringSet& mrkrs,
+				    bool show=true) override;
+    void		setSelected(const DBKeySet&,
+				    const MnemonicSelection& mns,
 				    const BufferStringSet& mrkrs,
 				    bool show=true) override;
     void		loadFile(const char*) override;
@@ -130,6 +147,7 @@ protected:
     void		closePropertiesDlg();
 
     void		initCB(CallBacker*);
+    uiObject*		initCommonUI(uiGroup*);
     void		chartChgCB(CallBacker*);
     void		dataChgCB(CallBacker*);
     void 		flattenChgCB(CallBacker*);

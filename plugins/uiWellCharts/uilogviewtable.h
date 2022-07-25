@@ -40,6 +40,9 @@ public:
     void			addWellData(const DBKeySet&,
 					const ManagedObjectSet<TypeSet<int>>&);
     void			addWellData(const DBKeySet&,
+					const ManagedObjectSet<TypeSet<int>>&,
+					    const BufferStringSet& mrknms);
+    void			addWellData(const DBKeySet&,
 					    const BufferStringSet& lognms,
 					    const BufferStringSet& mrknms);
     void			addWellData(const DBKeySet&,

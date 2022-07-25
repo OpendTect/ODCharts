@@ -12,6 +12,7 @@ ________________________________________________________________________
 
 #include "logcurve.h"
 #include "markerline.h"
+
 #include "uibutton.h"
 #include "uichartaxes.h"
 #include "uicombobox.h"
@@ -19,13 +20,13 @@ ________________________________________________________________________
 #include "uilabel.h"
 #include "uilogchart.h"
 #include "uilogview.h"
-#include "uilogviewpropdlg.h"
 #include "uilogviewertree.h"
+#include "uilogviewpropdlg.h"
 #include "uilogviewtable.h"
 #include "uimain.h"
 #include "uimsg.h"
-#include "uiseparator.h"
 #include "uiscrollarea.h"
+#include "uiseparator.h"
 #include "uispinbox.h"
 #include "uisplitter.h"
 #include "uitable.h"
@@ -36,10 +37,11 @@ ________________________________________________________________________
 #include "uizrangeselect.h"
 
 #include "commandlineparser.h"
-#include "filepath.h"
 #include "dbkey.h"
+#include "filepath.h"
 #include "iopar.h"
 #include "manobjectset.h"
+#include "mnemonics.h"
 #include "oddirs.h"
 #include "survinfo.h"
 #include "welldata.h"
@@ -55,7 +57,7 @@ static const int sWinWidth = 500;
 
 uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools,
 				    bool showfilter )
-    : uiDialog(p,Setup(toUiString("OpendTect - Log Viewer"), mNoDlgTitle,
+    : uiDialog(p,Setup(toUiString("OpendTect - Log Viewer"),mNoDlgTitle,
 		       mTODOHelpKey).modal(false))
     , newitem_(uiStrings::sNew(),"new","",
 				mCB(this,uiLogViewWinBase,newCB),sMnuID++)
@@ -115,7 +117,7 @@ void uiLogViewWinBase::createToolBar()
 void uiLogViewWinBase::uiInitCB( CallBacker* )
 {
     mAttachCB( windowClosed, uiLogViewWin::closeCB );
-    mAttachCB( logviewtbl_->chartSelectionChg, uiLogViewWinBase::selTrackChgCB );
+    mAttachCB( logviewtbl_->chartSelectionChg, uiLogViewWinBase::selTrackChgCB);
 
     CommandLineParser clp;
     if ( this==uiMain::instance().topLevel() && !clp.hasKey("odserver") )
@@ -173,6 +175,15 @@ void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
 				const ManagedObjectSet<TypeSet<int>>& logidxs )
 {
     logviewtbl_->addWellData( wellids, logidxs );
+    needsave_ = true;
+}
+
+
+void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
+				const ManagedObjectSet<TypeSet<int>>& logidxs,
+				const BufferStringSet& mrknms )
+{
+    logviewtbl_->addWellData( wellids, logidxs, mrknms );
     needsave_ = true;
 }
 
@@ -328,34 +339,46 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
 {
     createToolBar();
-
     uiGroup* filtergrp = new uiGroup( this );
-    uiPushButton* applybut = new uiPushButton( filtergrp, uiStrings::sApply(),
-					       true );
-    applybut->setStretch( 2, 0);
-    mAttachCB( applybut->activated, uiLockedLogViewWin::dataChgCB );
-
-    zrangeselfld_ = new uiZRangeSelect( filtergrp );
-    zrangeselfld_->attach( rightBorder );
-    zrangeselfld_->attach( ensureBelow, applybut );
-    zrangeselfld_->setMarkers( markernms );
-
-    auto* hsep = new uiSeparator( filtergrp );
-    hsep->attach( alignedWith, applybut );
-    hsep->attach( ensureBelow, zrangeselfld_ );
-    hsep->setStretch( 2, 0 );
+    uiObject* lastobj = initCommonUI( filtergrp );
 
     logfiltergrp_ = new uiWellFilterGrp( filtergrp, wds, lognms, markernms,
 					 OD::Vertical );
-    logfiltergrp_->attach( alignedWith, applybut );
-    logfiltergrp_->attach( ensureBelow, hsep );
+    logfiltergrp_->attach( alignedWith, lastobj );
+    logfiltergrp_->attach( ensureBelow, lastobj );
 
     filtergrp->setStretch( 0, 2 );
     filtergrp->attach( leftOf, logviewtbl_ );
 
-    mAttachCB( zdomainfld_->selectionChanged, uiLockedLogViewWin::flattenChgCB);
-    mAttachCB( logfiltergrp_->markerSelectionChg,
-	       uiLockedLogViewWin::updateMarkersCB );
+    zrangeselfld_->setMarkers( markernms );
+    mAttachCB( postFinalize(), uiLockedLogViewWin::initCB );
+}
+
+
+uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
+					const ObjectSet<Well::Data>& wds,
+					const MnemonicSelection& mns,
+					const BufferStringSet& markernms,
+					bool showfilter )
+    : uiLogViewWinBase(p,0,false,showfilter)
+    , unzoombuttonitem_(tr("View All Z"),"view_all","",
+			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
+    , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
+			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
+{
+    createToolBar();
+    uiGroup* filtergrp = new uiGroup( this );
+    uiObject* lastobj = initCommonUI( filtergrp );
+
+    logfiltergrp_ = new uiWellFilterGrp( filtergrp, wds, mns, markernms,
+					 OD::Vertical );
+    logfiltergrp_->attach( alignedWith, lastobj );
+    logfiltergrp_->attach( ensureBelow, lastobj );
+
+    filtergrp->setStretch( 0, 2 );
+    filtergrp->attach( leftOf, logviewtbl_ );
+
+    zrangeselfld_->setMarkers( markernms );
     mAttachCB( postFinalize(), uiLockedLogViewWin::initCB );
 }
 
@@ -367,10 +390,32 @@ uiLockedLogViewWin::~uiLockedLogViewWin()
 }
 
 
+uiObject* uiLockedLogViewWin::initCommonUI( uiGroup* filtergrp )
+{
+    auto* applybut = new uiPushButton( filtergrp, uiStrings::sApply(), true );
+    applybut->setStretch( 2, 0);
+    mAttachCB( applybut->activated, uiLockedLogViewWin::dataChgCB );
+
+    zrangeselfld_ = new uiZRangeSelect( filtergrp );
+    zrangeselfld_->attach( rightBorder );
+    zrangeselfld_->attach( ensureBelow, applybut );
+
+    auto* hsep = new uiSeparator( filtergrp );
+    hsep->attach( alignedWith, applybut );
+    hsep->attach( ensureBelow, zrangeselfld_ );
+    hsep->setStretch( 2, 0 );
+    return hsep;
+}
+
+
 void uiLockedLogViewWin::initCB( CallBacker* )
 {
+    mAttachCB( zdomainfld_->selectionChanged, uiLockedLogViewWin::flattenChgCB);
+    mAttachCB( logfiltergrp_->markerSelectionChg,
+	       uiLockedLogViewWin::updateMarkersCB );
     zdomainChgCB( nullptr );
 }
+
 
 void uiLockedLogViewWin::loadFile( const char* nm )
 {
@@ -418,6 +463,7 @@ void uiLockedLogViewWin::closePropertiesDlg()
     }
 }
 
+
 void uiLockedLogViewWin::setSelected( const DBKeySet& wellids,
 				      const BufferStringSet& logs,
 				      const BufferStringSet& mrkrs,
@@ -437,11 +483,46 @@ void uiLockedLogViewWin::setSelected( const DBKeySet& wellids,
 }
 
 
+void uiLockedLogViewWin::setSelected( const DBKeySet& wellids,
+				      const MnemonicSelection& mns,
+				      const BufferStringSet& mrkrs,
+				      bool show)
+{
+    logfiltergrp_->setSelected( wellids, mns, mrkrs );
+    markerfld_->setEmpty();
+    markerfld_->addItems( mrkrs );
+    if ( !show )
+	return;
+
+    ManagedObjectSet<TypeSet<int>> logidxs;
+    for ( const auto* wid : wellids )
+    {
+	auto* logs = new TypeSet<int>;
+	Well::MGR().getLogIDs( *wid, mns, *logs );
+	logidxs += logs;
+    }
+
+    addWellData( wellids, logidxs, mrkrs );
+    logviewtbl_->setAllLocked( true );
+    selwells_ = wellids;
+    mns.getNames( sellogs_ );
+    selmrkrs_ = mrkrs;
+}
+
+
 void uiLockedLogViewWin::dataChgCB( CallBacker* )
 {
     DBKeySet wellids;
     BufferStringSet lognms, mrknms;
-    logfiltergrp_->getSelected( wellids, lognms, mrknms );
+    MnemonicSelection mns;
+    if ( logfiltergrp_->isLogMode() )
+	logfiltergrp_->getSelected( wellids, lognms, mrknms );
+    else
+    {
+	logfiltergrp_->getSelected( wellids, mns, mrknms );
+	mns.getNames( lognms );
+    }
+
     if ( selwells_!=wellids || sellogs_!=lognms || selmrkrs_!=mrknms )
     {
 	closePropertiesDlg();
@@ -451,11 +532,25 @@ void uiLockedLogViewWin::dataChgCB( CallBacker* )
 	sellogs_ = lognms;
 	selmrkrs_ = mrknms;
 	clearAll();
-	addWellData( wellids, lognms, mrknms );
+	if ( logfiltergrp_->isLogMode() )
+	    addWellData( wellids, lognms, mrknms );
+	else
+	{
+	    ManagedObjectSet<TypeSet<int>> logidxs;
+	    for ( const auto* wid : wellids )
+	    {
+		auto* logs = new TypeSet<int>;
+		Well::MGR().getLogIDs( *wid, mns, *logs );
+		logidxs += logs;
+	    }
+	    addWellData( wellids, logidxs, mrknms );
+	}
+
 	markerfld_->setEmpty();
 	markerfld_->addItems( mrknms );
 	logviewtbl_->setAllLocked( true );
     }
+
     zoomRangeCB( nullptr );
 }
 
