@@ -26,14 +26,14 @@ namespace Well { class Log; }
 
 namespace sKey
 {
-    inline FixedString ZMajorGrid()		{ return "Z Major Grid"; }
-    inline FixedString ZMajorGridStyle()	{ return "Z Major Gridstyle"; }
-    inline FixedString ZMinorGrid()		{ return "Z Minor Grid"; }
-    inline FixedString ZMinorGridStyle()	{ return "Z Minor Gridstyle"; }
-    inline FixedString LogMajorGrid()		{ return "Log Major Grid"; }
-    inline FixedString LogMajorGridStyle()	{ return "Log Major Gridstyle";}
-    inline FixedString LogMinorGrid()		{ return "Log Minor Grid"; }
-    inline FixedString LogMinorGridStyle()	{ return "Log Minor Gridstyle";}
+    inline StringView ZMajorGrid()		{ return "Z Major Grid"; }
+    inline StringView ZMajorGridStyle()	{ return "Z Major Gridstyle"; }
+    inline StringView ZMinorGrid()		{ return "Z Minor Grid"; }
+    inline StringView ZMinorGridStyle()	{ return "Z Minor Gridstyle"; }
+    inline StringView LogMajorGrid()		{ return "Log Major Grid"; }
+    inline StringView LogMajorGridStyle()	{ return "Log Major Gridstyle";}
+    inline StringView LogMinorGrid()		{ return "Log Minor Grid"; }
+    inline StringView LogMinorGridStyle()	{ return "Log Minor Gridstyle";}
 };
 
 mExpClass(uiWellCharts) uiLogChart : public uiChart
