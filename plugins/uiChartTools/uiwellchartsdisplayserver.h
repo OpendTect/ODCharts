@@ -29,7 +29,7 @@ public:
 };
 
 
-mExpClass(uiWellChartsTools) uiWellChartsLogToolWinGrp
+mExpClass(uiChartTools) uiWellChartsLogToolWinGrp
 					: public uiWellLogToolWinGrp
 {
 mODTextTranslationClass(uiWellChartsDisplayServer)
