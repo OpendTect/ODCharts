@@ -5,12 +5,13 @@
 #________________________________________________________________________
 #
 
-SET( OD_MODULE_DEPS uiCharts uiTools )
+SET( OD_MODULE_DEPS uiWellCharts )
 SET( OD_IS_PLUGIN yes )
 SET( OD_MODULE_SOURCES
 	uicharttoolspi.cc
 	uichartsfunctiondisplay.cc
 	uichartsfunctiondisplayserver.cc
+	uiwellchartsdisplayserver.cc
 )
 
 SET( OD_PLUGIN_ALO_EXEC ${OD_MAIN_EXEC} )
