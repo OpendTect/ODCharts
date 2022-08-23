@@ -5,7 +5,7 @@
 #________________________________________________________________________
 #
 
-SET( OD_MODULE_DEPS uiWellCharts )
+SET( OD_MODULE_DEPS uiCharts uiTools uiWellCharts )
 SET( OD_IS_PLUGIN yes )
 SET( OD_MODULE_SOURCES
 	uicharttoolspi.cc
