@@ -32,7 +32,7 @@ class uiZRangeSelect;
 namespace Well { class Data; }
 
 
-mExpClass(uiWellCharts) uiLogViewWinBase : public uiDialog
+mExpClass(uiWellCharts) uiLogViewWinBase : public uiMainWin
 { mODTextTranslationClass(uiLogViewBase)
 public:
     virtual		~uiLogViewWinBase();

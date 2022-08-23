@@ -56,8 +56,8 @@ static const int sWinWidth = 500;
 
 uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools,
 				    bool showfilter )
-    : uiDialog(p,Setup(toUiString("OpendTect - Log Viewer"),mNoDlgTitle,
-		       mTODOHelpKey).modal(false))
+    : uiMainWin(p,toUiString("OpendTect - Log Viewer"))
+    , showFilter(this)
     , newitem_(uiStrings::sNew(),"new","",
 				mCB(this,uiLogViewWinBase,newCB),sMnuID++)
     , openitem_(uiStrings::sOpen(),"open","",
@@ -66,12 +66,10 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools,
 				mCB(this,uiLogViewWinBase,saveCB),sMnuID++)
     , saveasitem_(uiStrings::sSaveAs(),"saveas","",
 				mCB(this,uiLogViewWinBase,saveasCB),sMnuID++)
-    , showFilter(this)
     , showfilter_(showfilter)
 {
     mainObject()->setMinimumHeight( sWinHeight );
     mainObject()->setMinimumWidth( sWinWidth );
-    setCtrlStyle( CloseOnly );
     setDeleteOnClose( true );
 
     logviewtbl_ = new uiLogViewTable( this, nrcol, showtools );
@@ -212,7 +210,7 @@ void uiLogViewWinBase::openCB( CallBacker* )
 
     const BufferString defseldir =
 	FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
-    uiFileDialog dlg( this, true, 0, filtStr(),
+    uiFileDialog dlg( this, true, nullptr, filtStr(),
 		      tr("Load Log View parameters") );
     dlg.setDirectory(defseldir);
     if ( !dlg.go() )
@@ -243,7 +241,7 @@ void uiLogViewWinBase::saveasCB( CallBacker* )
 
     const BufferString defseldir =
 		FilePath( GetDataDir() ).add( defDirStr() ).fullPath();
-    uiFileDialog dlg( this, false, 0, filtStr(),
+    uiFileDialog dlg( this, false, nullptr, filtStr(),
 		      tr("Save Log View parameters") );
     dlg.setMode( uiFileDialog::AnyFile );
     dlg.setDirectory( defseldir );
@@ -332,10 +330,10 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 					const BufferStringSet& markernms,
 					bool showfilter )
     : uiLogViewWinBase(p,0,false,showfilter)
-    , unzoombuttonitem_(tr("View All Z"),"view_all","",
-			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
     , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
+    , unzoombuttonitem_(tr("View All Z"),"view_all","",
+			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
 {
     createToolBar();
     uiGroup* filtergrp = new uiGroup( this );
@@ -360,10 +358,10 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 					const BufferStringSet& markernms,
 					bool showfilter )
     : uiLogViewWinBase(p,0,false,showfilter)
-    , unzoombuttonitem_(tr("View All Z"),"view_all","",
-			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
     , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
+    , unzoombuttonitem_(tr("View All Z"),"view_all","",
+			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
 {
     createToolBar();
     uiGroup* filtergrp = new uiGroup( this );
