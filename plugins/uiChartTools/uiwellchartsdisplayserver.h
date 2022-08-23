@@ -22,10 +22,23 @@ public:
 			uiWellChartsDisplayServer();
 			~uiWellChartsDisplayServer();
 
-    uiDialog*		createMultiWellDisplay(uiParent*, const DBKeySet&,
+    uiMainWin*		createMultiWellDisplay(uiParent*, const DBKeySet&,
 					    const BufferStringSet&) override;
-    uiWellLogToolWinGrp*	createWellLogToolGrp(uiParent*,
+    uiWellLogToolWinGrp* createWellLogToolGrp(uiParent*,
 			const ObjectSet<uiWellLogToolWin::LogData>&) override;
+
+    uiMainWin*		createLogViewWin(uiParent*,
+					const ObjectSet<Well::Data>&,
+					const BufferStringSet& lognms,
+					const BufferStringSet& markernms)
+					override;
+    uiMainWin*		createLogViewWin(uiParent*,
+					const ObjectSet<Well::Data>&,
+					const MnemonicSelection&,
+					const BufferStringSet& markernms)
+					override;
+
+    uiGroup*		createLogMergeGrp(uiParent*) override;
 };
 
 

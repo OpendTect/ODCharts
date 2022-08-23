@@ -10,15 +10,18 @@ ________________________________________________________________________
 #include "uiwellchartsdisplayserver.h"
 
 #include "draw.h"
+#include "logcurve.h"
 #include "welldata.h"
 #include "welllog.h"
 #include "welllogset.h"
 #include "wellman.h"
+
 #include "uilogchart.h"
-#include "logcurve.h"
+#include "uilogmergegrp.h"
 #include "uilogviewtable.h"
 #include "uilogviewwin.h"
 #include "uiwelllogtoolsgrp.h"
+
 
 uiWellChartsDisplayServer::uiWellChartsDisplayServer()
     : uiWellDisplayServer()
@@ -29,7 +32,7 @@ uiWellChartsDisplayServer::~uiWellChartsDisplayServer()
 {}
 
 
-uiDialog* uiWellChartsDisplayServer::createMultiWellDisplay( uiParent* p,
+uiMainWin* uiWellChartsDisplayServer::createMultiWellDisplay( uiParent* p,
 							 const DBKeySet& wells,
 						 const BufferStringSet& loglst )
 {
@@ -56,10 +59,41 @@ uiDialog* uiWellChartsDisplayServer::createMultiWellDisplay( uiParent* p,
 }
 
 
-uiWellLogToolWinGrp* uiWellChartsDisplayServer::createWellLogToolGrp(uiParent* p,
+uiMainWin* uiWellChartsDisplayServer::createLogViewWin( uiParent* p,
+			const ObjectSet<Well::Data>& wd,
+			const BufferStringSet& lognms,
+			const BufferStringSet& markernms )
+{
+    auto* dlg = new uiLockedLogViewWin( p, wd, lognms, markernms, true );
+    dlg->setDeleteOnClose( true );
+    dlg->setCurrentView( 0 );
+    return dlg;
+}
+
+
+uiMainWin* uiWellChartsDisplayServer::createLogViewWin( uiParent* p,
+			const ObjectSet<Well::Data>& wd,
+			const MnemonicSelection& sel,
+			const BufferStringSet& markernms )
+{
+    auto* dlg = new uiLockedLogViewWin( p, wd, sel, markernms, true );
+    dlg->setDeleteOnClose( true );
+    dlg->setCurrentView( 0 );
+    return dlg;
+}
+
+
+uiWellLogToolWinGrp*
+	uiWellChartsDisplayServer::createWellLogToolGrp(uiParent* p,
 			const ObjectSet<uiWellLogToolWin::LogData>& logs )
 {
     return new uiWellChartsLogToolWinGrp( p, logs );
+}
+
+
+uiGroup* uiWellChartsDisplayServer::createLogMergeGrp( uiParent* p )
+{
+    return new uiLogMergeGrp( p );
 }
 
 
