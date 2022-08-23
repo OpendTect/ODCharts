@@ -10,7 +10,6 @@ ________________________________________________________________________
 
 #include "uicharttoolsmod.h"
 
-#include "dgbcommon.h"
 #include "uiwelldisplayserver.h"
 #include "uiwelllogtoolsgrp.h"
 
@@ -18,7 +17,7 @@ class uiLogViewTable;
 
 mExpClass(uiChartTools) uiWellChartsDisplayServer : public uiWellDisplayServer
 {
-mdGBTextTranslationClass(uiWellChartsDisplayServer)
+mODTextTranslationClass(uiWellChartsDisplayServer)
 public:
 			uiWellChartsDisplayServer();
 			~uiWellChartsDisplayServer();
@@ -33,7 +32,7 @@ public:
 mExpClass(uiWellChartsTools) uiWellChartsLogToolWinGrp
 					: public uiWellLogToolWinGrp
 {
-mdGBTextTranslationClass(uiWellChartsDisplayServer)
+mODTextTranslationClass(uiWellChartsDisplayServer)
 public:
 			uiWellChartsLogToolWinGrp(uiParent*,
 				const ObjectSet<uiWellLogToolWin::LogData>&);
