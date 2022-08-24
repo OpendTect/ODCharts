@@ -25,7 +25,7 @@ public:
     uiMainWin*		createMultiWellDisplay(uiParent*, const DBKeySet&,
 					    const BufferStringSet&) override;
     uiWellLogToolWinGrp* createWellLogToolGrp(uiParent*,
-			const ObjectSet<uiWellLogToolWin::LogData>&) override;
+			const ObjectSet<LogSelection>&) override;
 
     uiMainWin*		createLogViewWin(uiParent*,
 					const ObjectSet<Well::Data>&,
@@ -38,7 +38,7 @@ public:
 					const BufferStringSet& markernms)
 					override;
 
-    uiGroup*		createLogMergeGrp(uiParent*) override;
+    uiLogDisplayGrp*	createLogDisplayGrp(uiParent*) override;
 };
 
 
@@ -48,7 +48,7 @@ mExpClass(uiChartTools) uiWellChartsLogToolWinGrp
 mODTextTranslationClass(uiWellChartsDisplayServer)
 public:
 			uiWellChartsLogToolWinGrp(uiParent*,
-				const ObjectSet<uiWellLogToolWin::LogData>&);
+				const ObjectSet<LogSelection>&);
 			~uiWellChartsLogToolWinGrp();
 
     void		displayLogs() override;

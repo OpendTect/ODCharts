@@ -10,6 +10,7 @@ ________________________________________________________________________
 #include "uicharttoolsmod.h"
 
 #include "uichartsfunctiondisplayserver.h"
+#include "uiwellchartsdisplayserver.h"
 
 #include "ioman.h"
 #include "odplugin.h"
@@ -47,6 +48,7 @@ void afterSurveyChangeCB( CallBacker* )
 void activateDisplayServer()
 {
     GetFunctionDisplayServer( true, new uiChartsFunctionDisplayServer );
+    GetWellDisplayServer( true, new uiWellChartsDisplayServer );
 }
 
 

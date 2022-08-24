@@ -11,7 +11,7 @@ SET( OD_MODULE_SOURCES
 	uicharttoolspi.cc
 	uichartsfunctiondisplay.cc
 	uichartsfunctiondisplayserver.cc
-	uichartslogmergegrp.cc
+	uichartslogdisplaygrp.cc
 	uiwellchartsdisplayserver.cc
 )
 

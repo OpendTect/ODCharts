@@ -16,8 +16,8 @@ ________________________________________________________________________
 #include "welllogset.h"
 #include "wellman.h"
 
+#include "uichartslogmergegrp.h"
 #include "uilogchart.h"
-#include "uilogmergegrp.h"
 #include "uilogviewtable.h"
 #include "uilogviewwin.h"
 #include "uiwelllogtoolsgrp.h"
@@ -85,15 +85,15 @@ uiMainWin* uiWellChartsDisplayServer::createLogViewWin( uiParent* p,
 
 uiWellLogToolWinGrp*
 	uiWellChartsDisplayServer::createWellLogToolGrp(uiParent* p,
-			const ObjectSet<uiWellLogToolWin::LogData>& logs )
+			const ObjectSet<LogSelection>& logs )
 {
     return new uiWellChartsLogToolWinGrp( p, logs );
 }
 
 
-uiGroup* uiWellChartsDisplayServer::createLogMergeGrp( uiParent* p )
+uiLogDisplayGrp* uiWellChartsDisplayServer::createLogDisplayGrp( uiParent* p )
 {
-    return new uiLogMergeGrp( p );
+    return new uiChartsLogDisplayGrp( p );
 }
 
 
@@ -101,7 +101,7 @@ static const int cPrefWidth = 500;
 static const int cPrefHeight = 450;
 
 uiWellChartsLogToolWinGrp::uiWellChartsLogToolWinGrp( uiParent* p,
-			  const ObjectSet<uiWellLogToolWin::LogData>& logs )
+			  const ObjectSet<LogSelection>& logs )
     :uiWellLogToolWinGrp(p, logs)
 {
     int nrvw = 0;
@@ -130,7 +130,7 @@ void uiWellChartsLogToolWinGrp::displayLogs()
     {
 	for ( const auto* log : logdata->inpLogs() )
 	{
-	    wellnms.add( logdata->wellname_ );
+	    wellnms.add( logdata->wellName() );
 	    inplogs += log;
 	    outplogs += logdata->logs().getLog( log->name() );
 	}
