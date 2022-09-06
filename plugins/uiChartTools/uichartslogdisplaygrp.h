@@ -32,7 +32,8 @@ public:
 			uiChartsLogDisplayGrp(uiParent*);
 			~uiChartsLogDisplayGrp();
 
-    void		setLogs(const ObjectSet<LogSelection>&) override;
+    void		addLogSelection(const ObjectSet<Well::SubSelData>&)
+								override;
     void		update() override;
 
 protected:
@@ -42,7 +43,7 @@ protected:
     void			settingsChgCB(CallBacker*);
 
     int				wellidx_		= 0;
-    ObjectSet<LogSelection>	logdatas_;
+    ObjectSet<Well::SubSelData>	logdatas_;
     Interval<float>		disprange_		=Interval<float>::udf();
     TypeSet<OD::LineStyle>	ls_;
 

@@ -16,10 +16,11 @@ ________________________________________________________________________
 #include "welllogset.h"
 #include "wellman.h"
 
-#include "uichartslogmergegrp.h"
+#include "uichartslogdisplaygrp.h"
 #include "uilogchart.h"
 #include "uilogviewtable.h"
 #include "uilogviewwin.h"
+#include "uiwelllogtools.h"
 #include "uiwelllogtoolsgrp.h"
 
 
@@ -85,7 +86,7 @@ uiMainWin* uiWellChartsDisplayServer::createLogViewWin( uiParent* p,
 
 uiWellLogToolWinGrp*
 	uiWellChartsDisplayServer::createWellLogToolGrp(uiParent* p,
-			const ObjectSet<LogSelection>& logs )
+			const ObjectSet<WellLogToolData>& logs )
 {
     return new uiWellChartsLogToolWinGrp( p, logs );
 }
@@ -101,7 +102,7 @@ static const int cPrefWidth = 500;
 static const int cPrefHeight = 450;
 
 uiWellChartsLogToolWinGrp::uiWellChartsLogToolWinGrp( uiParent* p,
-			  const ObjectSet<LogSelection>& logs )
+			  const ObjectSet<WellLogToolData>& logs )
     :uiWellLogToolWinGrp(p, logs)
 {
     int nrvw = 0;

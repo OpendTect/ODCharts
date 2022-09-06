@@ -10,6 +10,7 @@ ________________________________________________________________________
 #include "uichartslogdisplaygrp.h"
 
 #include "logcurve.h"
+#include "uibuttongroup.h"
 #include "uigeninput.h"
 #include "uilogchart.h"
 #include "uilogview.h"
@@ -17,6 +18,7 @@ ________________________________________________________________________
 #include "uisellinest.h"
 #include "uitabstack.h"
 #include "uitoolbutton.h"
+#include "uiwelllogtools.h"
 
 #include "welldata.h"
 #include "welllog.h"
@@ -37,26 +39,18 @@ uiChartsLogDisplayGrp::uiChartsLogDisplayGrp( uiParent* p )
     chart->setMargins( 0, 0, 0, 0 );
     logdisp_->setStretch( 2, 2 );
 
-    auto* butgrp = new uiGroup( this, "change log" );
+    auto* butgrp = new uiButtonGroup( this, "change log", OD::Horizontal );
     CallBack cbm = mCB(this,uiChartsLogDisplayGrp,changeWellButPush);
     prevlog_ = new uiToolButton( butgrp, uiToolButton::LeftArrow,
-				    tr("Previous log"), cbm );
-    prevlog_->setHSzPol( uiObject::Undef );
+				 tr("Previous log"), cbm );
     nextlog_ = new uiToolButton( butgrp, uiToolButton::RightArrow,
-				    tr("Next log"), cbm );
-    nextlog_->attach( rightOf, prevlog_ );
-    nextlog_->setHSzPol( uiObject::Undef );
+				 tr("Next log"), cbm );
 
-    auto* zoomreset = new uiToolButton( butgrp, "view_all",
-					tr("View All Z"),
-					mCB(logdisp_,uiLogView,zoomResetCB) );
-    if ( nextlog_ )
-	zoomreset->attach( rightOf, nextlog_ );
+    new uiToolButton( butgrp, "view_all", tr("View all"),
+			mCB(logdisp_,uiLogView,zoomResetCB) );
 
-    auto* settings = new uiToolButton( butgrp, "settings",
-				uiStrings::sSettings(),
-				mCB(this,uiChartsLogDisplayGrp,showSettingsCB) );
-    settings->attach( rightOf, zoomreset );
+    new uiToolButton( butgrp, "settings", uiStrings::sSettings(),
+			mCB(this,uiChartsLogDisplayGrp,showSettingsCB));
 
     butgrp->attach( centeredBelow, logdisp_ );
 }
@@ -66,7 +60,8 @@ uiChartsLogDisplayGrp::~uiChartsLogDisplayGrp()
 {}
 
 
-void uiChartsLogDisplayGrp::setLogs( const ObjectSet<LogSelection>& data )
+void uiChartsLogDisplayGrp::addLogSelection(
+				const ObjectSet<Well::SubSelData>& data )
 {
     logdatas_ = data;
 }
@@ -74,13 +69,15 @@ void uiChartsLogDisplayGrp::setLogs( const ObjectSet<LogSelection>& data )
 
 void uiChartsLogDisplayGrp::update()
 {
+    closeAndNullPtr( propdlg_ );
+
     uiLogChart* lc = logdisp_->logChart();
     lc->removeAllCurves();
 
     if ( !logdatas_.validIdx(wellidx_) )
 	return;
 
-    const LogSelection* logsel = logdatas_[wellidx_];
+    const Well::SubSelData* logsel = logdatas_[wellidx_];
     const Well::LogSet& logs = logsel->logs();
     ls_.setSize( logs.size(), OD::LineStyle() );
     for ( int idx=0; idx<logs.size(); idx++ )
