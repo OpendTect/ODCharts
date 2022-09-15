@@ -969,7 +969,7 @@ void uiLogViewWin::loadWells( const BufferStringSet& wellids,
 
     for ( int idx=0; idx<wellids.size(); idx++ )
     {
-	const DBKey wellkey( MultiID(wellids.get(idx)) );
+	const DBKey wellkey( MultiID(wellids.get(idx).buf()) );
 	BufferStringSet lognums;
 	lognums.unCat( logids.get(idx), "," );
 	TypeSet<int> logs;
