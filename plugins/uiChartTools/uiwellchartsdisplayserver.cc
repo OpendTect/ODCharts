@@ -133,7 +133,7 @@ void uiWellChartsLogToolWinGrp::displayLogs()
 	{
 	    wellnms.add( logdata->wellName() );
 	    inplogs += log;
-	    outplogs += logdata->logs().getLog( log->name() );
+	    outplogs += logdata->logs().getLog( log->name().buf() );
 	}
     }
 
