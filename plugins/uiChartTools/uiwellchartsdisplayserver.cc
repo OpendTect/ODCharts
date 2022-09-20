@@ -152,6 +152,20 @@ void uiWellChartsLogToolWinGrp::displayLogs()
 	logviewtbl_->addWellData( wellnms, outplogs, ls, "_out" );
     }
 
+    logviewtbl_->setAllLocked( true );
+}
+
+
+void uiWellChartsLogToolWinGrp::displayMarkers( const BufferStringSet& mrknms )
+{
     for ( int idx=0; idx<logviewtbl_->size(); idx++ )
-	logviewtbl_->setViewLocked( idx, true );
+    {
+	uiLogChart* chart = logviewtbl_->getLogChart( idx );
+	if ( !chart )
+	    continue;
+
+	const DBKeySet wellids = chart->wellIDs();
+	for ( const auto* mrknm : mrknms )
+	    chart->addMarker( wellids[0], mrknm->buf(), false );
+    }
 }

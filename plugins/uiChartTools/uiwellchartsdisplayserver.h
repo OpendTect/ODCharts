@@ -52,6 +52,7 @@ public:
 			~uiWellChartsLogToolWinGrp();
 
     void		displayLogs() override;
+    void		displayMarkers(const BufferStringSet& mrknms) override;
 
 protected:
     uiLogViewTable*	logviewtbl_;
