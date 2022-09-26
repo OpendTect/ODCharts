@@ -80,15 +80,15 @@ void uiChartsLogDisplayGrp::update()
     const Well::SubSelData* logsel = logdatas_[wellidx_];
     const Well::LogSet& logs = logsel->logs();
     ls_.setSize( logs.size(), OD::LineStyle() );
+    ls_.last().color_ = OD::Color::stdDrawColor( 0 );
     for ( int idx=0; idx<logs.size(); idx++ )
     {
-	auto* log = new LogCurve( logsel->wellID(), logs.getLog(idx).name() );
+	auto* log = new LogCurve( logsel->wellName(), logs.getLog(idx) );
 	lc->addLogCurve( log, ls_[idx], false, true );
 	if ( !disprange_.isUdf() )
 	    log->setDisplayRange( disprange_ );
     }
 
-    ls_.last().color_ = OD::Color::stdDrawColor( 0 );
     lc->setTitle( toUiString(logsel->wellName()) );
 
     prevlog_->display( logdatas_.size()>1 );
