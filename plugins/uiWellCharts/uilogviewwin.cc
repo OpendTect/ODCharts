@@ -229,7 +229,7 @@ void uiLogViewWinBase::saveCB( CallBacker* )
     if ( nrviews<1 )
 	return;
 
-    saveFile( filename_ );IOPar iop;
+    saveFile( filename_ );
     needsave_ = false;
 }
 
@@ -271,15 +271,21 @@ void uiLogViewWinBase::zdomainChgCB( CallBacker* )
 }
 
 
-void uiLogViewWinBase::loadFile( const char* nm )
+void uiLogViewWinBase::fillPar( IOPar& iop ) const
 {
-    clearAll();
+    const int nrviews = logviewtbl_->size();
+    iop.set( sKey::NrItems(), nrviews );
+    for ( int idx=0; idx<nrviews; idx++ )
+    {
+	IOPar tmp;
+	logviewtbl_->getLogChart(idx)->fillPar( tmp );
+	iop.mergeComp( tmp, IOPar::compKey(sKey::ID(),idx) );
+    }
+}
 
-    filename_ = nm;
-    IOPar iop;
-    if ( !iop.read(filename_,"Log Display",true) )
-	return;
 
+void uiLogViewWinBase::usePar( const IOPar& iop )
+{
     int nitems = 0;
     iop.get( sKey::NrItems(), nitems );
     if ( nitems<1 )
@@ -296,7 +302,19 @@ void uiLogViewWinBase::loadFile( const char* nm )
 	chart->usePar( *tmp );
 	logviewtbl_->updateViewLabel( logviewtbl_->currentView() );
     }
+}
 
+
+void uiLogViewWinBase::loadFile( const char* nm )
+{
+    clearAll();
+
+    filename_ = nm;
+    IOPar iop;
+    if ( !iop.read(filename_,"Log Display",true) )
+	return;
+
+    usePar( iop );
     uiLogChart* chart = logviewtbl_->getCurrentLogChart();
     zdomainfld_->setCurrentItem( chart->zType() );
     logviewtbl_->clearSelection();
@@ -307,17 +325,8 @@ void uiLogViewWinBase::loadFile( const char* nm )
 
 void uiLogViewWinBase::saveFile( const char* nm )
 {
-    const int nrviews = logviewtbl_->size();
     IOPar iop;
-    iop.set( sKey::NrItems(), nrviews );
-
-    for ( int idx=0; idx<nrviews; idx++ )
-    {
-	IOPar tmp;
-	logviewtbl_->getLogChart(idx)->fillPar( tmp );
-	iop.mergeComp( tmp, IOPar::compKey(sKey::ID(),idx) );
-    }
-
+    fillPar( iop );
     iop.write( nm, "Log Display" );
 }
 
@@ -414,22 +423,42 @@ void uiLockedLogViewWin::initCB( CallBacker* )
 }
 
 
-void uiLockedLogViewWin::loadFile( const char* nm )
+void uiLockedLogViewWin::fillPar( IOPar& iop ) const
 {
-    uiLogViewWinBase::loadFile( nm );
+    const bool islogmode = logfiltergrp_->isLogMode();
+    iop.setYN( BufferString(sKey::Log(), sKey::Mode()), islogmode );
+    uiLogViewWinBase::fillPar( iop );
+}
+
+
+void uiLockedLogViewWin::usePar( const IOPar& iop )
+{
+    uiLogViewWinBase::usePar( iop );
+    bool islogmode = true;
+    iop.getYN( BufferString(sKey::Log(), sKey::Mode()), islogmode );
+
     DBKeySet wellids;
     BufferStringSet lognms, markernms;
+    MnemonicSelection mns;
     for ( int idx=0; idx<logviewtbl_->size(); idx++ )
     {
 	auto* logchart = logviewtbl_->getLogChart( idx );
 	wellids.append( logchart->wellIDs(), false );
 	for ( const auto* logcurve : logchart->logcurves() )
+	{
 	    lognms.addIfNew( logcurve->logName() );
+	    mns.addIfNew( Well::MGR().getMnemonicOfLog(logcurve->logName()) );
+	}
 	for ( const auto* marker : logchart->markers() )
 	    markernms.addIfNew( marker->markerName() );
     }
 
-    logfiltergrp_->setSelected( wellids, lognms, markernms );
+    logfiltergrp_->setLogMode( islogmode );
+    if ( islogmode )
+	logfiltergrp_->setSelected( wellids, lognms, markernms );
+    else
+	logfiltergrp_->setSelected( wellids, mns, markernms );
+
     dataChgCB( nullptr );
 }
 

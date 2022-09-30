@@ -49,6 +49,8 @@ public:
     void		setCurrentView(int);
     virtual void	loadFile(const char*);
     virtual void	saveFile(const char*);
+    virtual void	fillPar(IOPar&) const;
+    virtual void	usePar(const IOPar&);
     virtual void	loadWells(const BufferStringSet& wellids,
 				  const BufferStringSet& logids)	{}
     virtual void	setSelected(const DBKeySet&,
@@ -125,7 +127,8 @@ public:
 				    const MnemonicSelection& mns,
 				    const BufferStringSet& mrkrs,
 				    bool show=true) override;
-    void		loadFile(const char*) override;
+    void		fillPar(IOPar&) const override;
+    void		usePar(const IOPar&) override;
 
 protected:
     uiWellFilterGrp*	logfiltergrp_;
