@@ -63,9 +63,13 @@ uiMainWin* uiWellChartsDisplayServer::createMultiWellDisplay( uiParent* p,
 uiMainWin* uiWellChartsDisplayServer::createLogViewWin( uiParent* p,
 			const ObjectSet<Well::Data>& wd,
 			const BufferStringSet& lognms,
-			const BufferStringSet& markernms )
+			const BufferStringSet& markernms,
+		        const DBKeySet& sel_ids,
+			const BufferStringSet& sel_lognms,
+			const BufferStringSet& sel_markernms )
 {
     auto* dlg = new uiLockedLogViewWin( p, wd, lognms, markernms, true );
+    dlg->setSelected( sel_ids, sel_lognms, sel_markernms, false );
     dlg->setDeleteOnClose( true );
     dlg->setCurrentView( 0 );
     return dlg;
@@ -75,9 +79,13 @@ uiMainWin* uiWellChartsDisplayServer::createLogViewWin( uiParent* p,
 uiMainWin* uiWellChartsDisplayServer::createLogViewWin( uiParent* p,
 			const ObjectSet<Well::Data>& wd,
 			const MnemonicSelection& sel,
-			const BufferStringSet& markernms )
+			const BufferStringSet& markernms,
+		        const DBKeySet& sel_ids,
+			const MnemonicSelection& sel_mns,
+			const BufferStringSet& sel_markernms )
 {
     auto* dlg = new uiLockedLogViewWin( p, wd, sel, markernms, true );
+    dlg->setSelected( sel_ids, sel_mns, sel_markernms, false );
     dlg->setDeleteOnClose( true );
     dlg->setCurrentView( 0 );
     return dlg;
