@@ -15,11 +15,11 @@ ________________________________________________________________________
 mDefODPluginInfo(uiWellCharts)
 {
     mDefineStaticLocalObject( PluginInfo, retpi,(
-	"Charts for Well Data (GUI)",
-	"OpendTect",
+	"Charts - Well Data (GUI)",
+	"OpendTect Pro",
 	"dGB Earth Sciences",
 	"=od",
-	"" ))
+	"This plugin provides charts for well data, like log displays" ))
     return &retpi;
 }
 
