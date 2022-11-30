@@ -5,15 +5,16 @@
 #________________________________________________________________________
 #
 
-SET( OD_MODULE_DEPS uiBase )
-SET( OD_IS_PLUGIN yes )
-SET( OD_USEQT Charts )
+set( OD_MODULE_DEPS uiBase )
+set( CMAKE_FOLDER "OpendTect Pro" )
+set( OD_IS_PLUGIN yes )
+set( OD_USEQT Charts )
 set( QT_MOC_HEADERS
 	i_qchart.h
 	i_qchartaxes.h
 	i_qchartseries.h
 )
-SET( OD_MODULE_SOURCES
+set( OD_MODULE_SOURCES
 	uicallout.cc
 	uichartfillx.cc
 	uichartlabel.cc
@@ -25,5 +26,6 @@ SET( OD_MODULE_SOURCES
 	chartutils.cc
 )
 
-SET( OD_PLUGIN_ALO_EXEC ${OD_MAIN_EXEC} )
+set( OD_PLUGIN_ALO_EXEC ${OD_MAIN_EXEC} )
+
 OD_INIT_MODULE()
