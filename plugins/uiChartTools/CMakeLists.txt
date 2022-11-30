@@ -5,9 +5,10 @@
 #________________________________________________________________________
 #
 
-SET( OD_MODULE_DEPS uiWellCharts )
-SET( OD_IS_PLUGIN yes )
-SET( OD_MODULE_SOURCES
+set( OD_MODULE_DEPS uiWellCharts )
+set( CMAKE_FOLDER "OpendTect Pro" )
+set( OD_IS_PLUGIN yes )
+set( OD_MODULE_SOURCES
 	uicharttoolspi.cc
 	uichartsfunctiondisplay.cc
 	uichartsfunctiondisplayserver.cc
@@ -15,5 +16,6 @@ SET( OD_MODULE_SOURCES
 	uiwellchartsdisplayserver.cc
 )
 
-SET( OD_PLUGIN_ALO_EXEC ${OD_MAIN_EXEC} )
+set( OD_PLUGIN_ALO_EXEC ${OD_MAIN_EXEC} )
+
 OD_INIT_MODULE()
