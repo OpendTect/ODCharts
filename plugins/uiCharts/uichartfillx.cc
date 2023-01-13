@@ -142,7 +142,7 @@ OD::Color uiChartFillx::color() const
 
 void uiChartFillx::setGradientImg( uiVertGradientImg* vimg, bool update )
 {
-    deleteAndZeroPtr( odfillx_->gradientimg_ );
+    deleteAndNullPtr( odfillx_->gradientimg_ );
     odfillx_->gradientimg_ = vimg;
     if ( update )
 	updateCB( nullptr );

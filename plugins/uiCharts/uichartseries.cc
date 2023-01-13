@@ -91,8 +91,8 @@ uiXYChartSeries::uiXYChartSeries( QXYSeries* series )
 uiXYChartSeries::~uiXYChartSeries()
 {
     detachAllNotifiers();
-    deleteAndZeroPtr( callout_ );
-    deleteAndZeroPtr( msghandler_ );
+    deleteAndNullPtr( callout_ );
+    deleteAndNullPtr( msghandler_ );
 }
 
 

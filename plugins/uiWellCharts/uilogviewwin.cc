@@ -485,7 +485,7 @@ void uiLockedLogViewWin::closePropertiesDlg()
     if ( propdlg_ )
     {
 	propdlg_->close();
-	deleteAndZeroPtr( propdlg_ );
+	deleteAndNullPtr( propdlg_ );
     }
 }
 

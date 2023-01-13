@@ -387,7 +387,7 @@ uiChartsAxisHandler::uiChartsAxisHandler( uiChartView* cv, const Setup& su )
 
 uiChartsAxisHandler::~uiChartsAxisHandler()
 {
-    deleteAndZeroPtr( axis_ );
+    deleteAndNullPtr( axis_ );
 }
 
 
@@ -471,7 +471,7 @@ void uiChartsAxisHandler::makeAxis()
     if ( axis_ )
     {
 	chart->removeAxis( axis_ );
-	deleteAndZeroPtr( axis_ );
+	deleteAndNullPtr( axis_ );
     }
 
     if ( setup().islog_ )
