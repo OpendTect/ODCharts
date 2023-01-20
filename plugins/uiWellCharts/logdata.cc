@@ -67,7 +67,7 @@ bool LogData::initLog( const Well::Log& log )
 {
     logname_ = log.name();
     uomlbl_ = log.unitMeasLabel();
-    mnemlbl_ = log.mnemLabel();
+    mnemlbl_ = log.mnemonicLabel();
     dahrange_ = log.dahRange();
     zrange_ = dahToZ( dahrange_, ztype_ );
     valrange_ = log.valueRange();
