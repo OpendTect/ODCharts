@@ -60,10 +60,10 @@ LogCurve::~LogCurve()
     deepErase( tvd_ );
     deepErase( twt_ );
     deepErase( vals_ );
-    deleteAndZeroPtr( scatseries_ );
-    deleteAndZeroPtr( leftfill_ );
-    deleteAndZeroPtr( rightfill_ );
-    deleteAndZeroPtr( axis_ );
+    deleteAndNullPtr( scatseries_ );
+    deleteAndNullPtr( leftfill_ );
+    deleteAndNullPtr( rightfill_ );
+    deleteAndNullPtr( axis_ );
 }
 
 
@@ -228,10 +228,10 @@ void LogCurve::addLog( const Well::Log& log )
     scat_tvd_.setEmpty();
     scat_twt_.setEmpty();
     scat_vals_.setEmpty();
-    deleteAndZeroPtr( scatseries_ );
-    deleteAndZeroPtr( leftfill_ );
-    deleteAndZeroPtr( rightfill_ );
-    deleteAndZeroPtr( axis_ );
+    deleteAndNullPtr( scatseries_ );
+    deleteAndNullPtr( leftfill_ );
+    deleteAndNullPtr( rightfill_ );
+    deleteAndNullPtr( axis_ );
 
     auto* mds = new TypeSet<float>;
     auto* vals = new TypeSet<float>;
@@ -300,13 +300,13 @@ void LogCurve::removeFrom( uiLogChart& logchart )
     if ( scatseries_ )
 	logchart.removeSeries( scatseries_ );
 
-    deleteAndZeroPtr( leftfill_ );
-    deleteAndZeroPtr( rightfill_ );
+    deleteAndNullPtr( leftfill_ );
+    deleteAndNullPtr( rightfill_ );
     lefttolog_.setEmpty();
     righttolog_.setEmpty();
 
     logchart.removeAxis( axis_ );
-    deleteAndZeroPtr( axis_ );
+    deleteAndNullPtr( axis_ );
 }
 
 

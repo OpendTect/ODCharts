@@ -64,7 +64,7 @@ void LogGradient::updateImg( const StepInterval<float>& zrange )
 
     if ( height!=qimg_->height() )
     {
-	deleteAndZeroPtr( qimg_ );
+	deleteAndNullPtr( qimg_ );
 	qimg_ = new QImage( 1, height, QImage::Format_ARGB32_Premultiplied );
     }
 

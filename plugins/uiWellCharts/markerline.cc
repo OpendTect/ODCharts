@@ -39,8 +39,8 @@ MarkerLine::MarkerLine( const MultiID& wellid, const char* markernm )
 
 MarkerLine::~MarkerLine()
 {
-    deleteAndZeroPtr( series_ );
-    deleteAndZeroPtr( label_ );
+    deleteAndNullPtr( series_ );
+    deleteAndNullPtr( label_ );
 }
 
 
@@ -102,8 +102,8 @@ void MarkerLine::removeFrom( uiLogChart& logchart )
 	return;
 
     logchart.removeSeries( series_ );
-    deleteAndZeroPtr( series_ );
-    deleteAndZeroPtr( label_ );
+    deleteAndNullPtr( series_ );
+    deleteAndNullPtr( label_ );
 }
 
 
