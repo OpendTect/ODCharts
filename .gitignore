@@ -29,6 +29,7 @@ qtcsettings.cmake
 
 # Qt
 moc_*
+plugins/*/*_autogen
 
 # Others
 *.patch
