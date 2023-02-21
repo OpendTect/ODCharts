@@ -169,7 +169,7 @@ uiDisplayLogsGrp::uiDisplayLogsGrp( uiParent* p, const Interval<float>& range,
     fspec.setName("Left",0).setName("Right",1);
     rangefld_ = new uiGenInput( this, tr("Display range"), fspec );
     rangefld_->setValue( range );
-    mAttachCB(rangefld_->valuechanged, uiDisplayLogsGrp::changedCB);
+    mAttachCB(rangefld_->valueChanged, uiDisplayLogsGrp::changedCB);
 
     uiObject* attachobj = rangefld_->attachObj();
     for ( int idx=0; idx<lognms.size(); idx++ )

@@ -158,7 +158,7 @@ uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart* lc )
 
     update();
     mAttachCB( bgcolorfld_->colorChanged, uiLogChartGrp::bgColorChgCB );
-    mAttachCB( scalefld_->valuechanged, uiLogChartGrp::scaleChgCB );
+    mAttachCB( scalefld_->valueChanged, uiLogChartGrp::scaleChgCB );
     mAttachCB( majorzgridfld_->changed, uiLogChartGrp::zgridChgCB );
     mAttachCB( minorzgridfld_->changed, uiLogChartGrp::zgridChgCB );
     mAttachCB( majorloggridfld_->changed, uiLogChartGrp::lgridChgCB );
@@ -391,7 +391,7 @@ uiGridStyleGrp::uiGridStyleGrp( uiParent* p, const uiString& lbl,
 
     setHAlignObj( stepsfld_ );
 
-    mAttachCB( stepsfld_->valuechanged, uiGridStyleGrp::stepChgCB );
+    mAttachCB( stepsfld_->valueChanged, uiGridStyleGrp::stepChgCB );
     mAttachCB( stepsfld_->checked, uiGridStyleGrp::stepCheckedCB );
     mAttachCB( linestylefld_->changed, uiGridStyleGrp::lineStyleChgCB );
 }

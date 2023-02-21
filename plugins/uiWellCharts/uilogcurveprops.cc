@@ -61,17 +61,17 @@ uiLogFillProps::uiLogFillProps( uiParent* p, uiChartFillx::FillDir fdir,
 
     setHAlignObj( filltypefld_ );
 
-    mAttachCB( filltypefld_->valuechanged, uiLogFillProps::fillTypeChgCB );
-    mAttachCB( filllimitfld_->valuechanged, uiLogFillProps::fillLimitChgCB );
+    mAttachCB( filltypefld_->valueChanged, uiLogFillProps::fillTypeChgCB );
+    mAttachCB( filllimitfld_->valueChanged, uiLogFillProps::fillLimitChgCB );
     mAttachCB( fillcolorfld_->colorChanged, uiLogFillProps::fillColorChgCB );
-    mAttachCB( gradientlogfld_->valuechanged,
+    mAttachCB( gradientlogfld_->valueChanged,
 	       uiLogFillProps::fillGradientLogChgCB );
     mAttachCB( fillgradientfld_->scaleChanged,
 	       uiLogFillProps::fillGradientChgCB );
     mAttachCB( fillgradientfld_->seqChanged,
 	       uiLogFillProps::fillGradientChgCB );
-    mAttachCB( fillbasefld_->valuechanged, uiLogFillProps::fillBaseChgCB );
-    mAttachCB( fillseriesfld_->valuechanged, uiLogFillProps::fillSeriesChgCB );
+    mAttachCB( fillbasefld_->valueChanged, uiLogFillProps::fillBaseChgCB );
+    mAttachCB( fillseriesfld_->valueChanged, uiLogFillProps::fillSeriesChgCB );
 
     fillTypeChgCB( nullptr );
     fillLimitChgCB( nullptr );
@@ -303,7 +303,7 @@ uiLogCurveProps::uiLogCurveProps( uiParent* p, uiLogChart* lc)
     rightfillfld_ = new uiLogFillProps( this, uiChartFillx::Right, lc );
     rightfillfld_->attach( alignedBelow, leftfillfld_ );
 
-    mAttachCB( rangefld_->valuechanged, uiLogCurveProps::rangeChgCB );
+    mAttachCB( rangefld_->valueChanged, uiLogCurveProps::rangeChgCB );
     mAttachCB( linestylefld_->changed, uiLogCurveProps::lineStyleChgCB );
 }
 
