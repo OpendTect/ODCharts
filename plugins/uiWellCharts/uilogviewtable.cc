@@ -15,9 +15,7 @@ ________________________________________________________________________
 #include "uilogchart.h"
 #include "uilogview.h"
 #include "uilogviewtoolgrp.h"
-#include "uimain.h"
 #include "uimsg.h"
-#include "uipixmap.h"
 #include "uitable.h"
 #include "wellman.h"
 
@@ -95,8 +93,13 @@ void uiLogViewTable::setEmpty()
     primarychart_ = nullptr;
     primaryzrange_.setUdf();
     selected_ = -1;
-    for ( int idx=size()-1; idx>=0; idx-- )
-	logviews_->removeColumn( idx );
+    for ( int col=size()-1; col>=0; col-- )
+    {
+	for ( int row=0; row<logviews_->nrRows(); row++ )
+	    logviews_->clearCellObject( RowCol(row,col) );
+
+	logviews_->removeColumn( col );
+    }
 }
 
 
@@ -576,7 +579,7 @@ void uiLogViewTable::addViewer( int col )
     chart->setMargins( 0, 0, 0, 0 );
     vwr->setStretch( 2, 2 );
     logviews_->setCellObject( addcell, vwr );
-    logviews_->setColumnLabel( addcell.second, uiString::empty() );
+    logviews_->setColumnLabel( addcell.col(), uiString::empty() );
     if ( showtools_ )
 	addTools( col );
 
