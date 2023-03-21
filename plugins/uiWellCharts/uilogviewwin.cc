@@ -24,14 +24,8 @@ ________________________________________________________________________
 #include "uilogviewtable.h"
 #include "uimain.h"
 #include "uimsg.h"
-#include "uiscrollarea.h"
 #include "uiseparator.h"
-#include "uispinbox.h"
-#include "uisplitter.h"
-#include "uitable.h"
-#include "uitabstack.h"
 #include "uitoolbar.h"
-#include "uitoolbutton.h"
 #include "uiwellfiltergrp.h"
 #include "uizrangeselect.h"
 
@@ -345,7 +339,8 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
 {
     createToolBar();
-    uiGroup* filtergrp = new uiGroup( this );
+    auto* filtergrp = new uiGroup( this );
+    filtergrp->setBorder( 10, 2, 10, 2 );
     uiObject* lastobj = initCommonUI( filtergrp );
 
     logfiltergrp_ = new uiWellFilterGrp( filtergrp, wds, lognms, markernms,
@@ -373,7 +368,8 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 			mCB(this,uiLockedLogViewWin,zoomResetCB),sMnuID++)
 {
     createToolBar();
-    uiGroup* filtergrp = new uiGroup( this );
+    auto* filtergrp = new uiGroup( this );
+    filtergrp->setBorder( 10, 2, 10, 2 );
     uiObject* lastobj = initCommonUI( filtergrp );
 
     logfiltergrp_ = new uiWellFilterGrp( filtergrp, wds, mns, markernms,
