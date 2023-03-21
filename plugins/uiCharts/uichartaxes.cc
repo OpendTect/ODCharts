@@ -196,8 +196,8 @@ void uiChartAxis::setReverse( bool yn )
 
 Interval<float> uiChartAxis::range() const
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
-    auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
+    auto* qlogvalueaxis = qobject_cast<QLogValueAxis*>(qabstractaxis_);
     float fmin, fmax;
     if ( qvalueaxis )
     {
@@ -227,8 +227,8 @@ bool uiChartAxis::reversed() const
 
 void uiChartAxis::setMinorTickCount( int count )
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
-    auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
+    auto* qlogvalueaxis = qobject_cast<QLogValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
 	qvalueaxis->setMinorTickCount( count );
 
@@ -239,8 +239,8 @@ void uiChartAxis::setMinorTickCount( int count )
 
 int uiChartAxis::getMinorTickCount() const
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
-    auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
+    auto* qlogvalueaxis = qobject_cast<QLogValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
 	return qvalueaxis->minorTickCount();
     if ( qlogvalueaxis )
@@ -252,7 +252,7 @@ int uiChartAxis::getMinorTickCount() const
 
 void uiChartAxis::setTickCount( int count )
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
     {
 	qvalueaxis->setTickCount( count );
@@ -263,8 +263,8 @@ void uiChartAxis::setTickCount( int count )
 
 int uiChartAxis::getTickCount() const
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
-    auto* qlogvalueaxis = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
+    auto* qlogvalueaxis = qobject_cast<QLogValueAxis*>(qabstractaxis_);
     if ( qvalueaxis && qvalueaxis->tickType()==QValueAxis::TicksFixed )
 	return qvalueaxis->tickCount();
     if ( qlogvalueaxis )
@@ -276,7 +276,7 @@ int uiChartAxis::getTickCount() const
 
 void uiChartAxis::setDynamicTicks( float step, float anchor )
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
     {
 	qvalueaxis->setTickAnchor( anchor );
@@ -288,7 +288,7 @@ void uiChartAxis::setDynamicTicks( float step, float anchor )
 
 float uiChartAxis::getTickAnchor() const
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
 	return qvalueaxis->tickAnchor();
 
@@ -298,7 +298,7 @@ float uiChartAxis::getTickAnchor() const
 
 float uiChartAxis::getTickInterval() const
 {
-    auto* qvalueaxis = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
     if ( qvalueaxis )
 	return qvalueaxis->tickInterval();
 
@@ -323,7 +323,7 @@ uiValueAxis::uiValueAxis()
     : uiChartAxis(new QValueAxis)
     , axislimits_(Interval<float>::udf())
 {
-    qvalueaxis_ = dynamic_cast<QValueAxis*>(qabstractaxis_);
+    qvalueaxis_ = qobject_cast<QValueAxis*>(qabstractaxis_);
     msghandler_ = new i_valueAxisMsgHandler( this, qvalueaxis_ );
 }
 
@@ -418,7 +418,7 @@ void uiValueAxis::applyNiceNumbers()
 uiLogValueAxis::uiLogValueAxis()
     : uiChartAxis(new QLogValueAxis)
 {
-    qlogvalueaxis_ = dynamic_cast<QLogValueAxis*>(qabstractaxis_);
+    qlogvalueaxis_ = qobject_cast<QLogValueAxis*>(qabstractaxis_);
 }
 
 

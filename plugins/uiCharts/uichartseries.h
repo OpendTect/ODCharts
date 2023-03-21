@@ -12,8 +12,7 @@ ________________________________________________________________________
 
 #include "bufstring.h"
 #include "callback.h"
-#include "chartutils.h"
-#include "color.h"
+#include "draw.h"
 #include "enums.h"
 #include "geometry.h"
 #include "uistring.h"

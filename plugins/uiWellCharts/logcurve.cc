@@ -8,7 +8,6 @@ ________________________________________________________________________
 -*/
 
 #include "logcurve.h"
-#include "chartutils.h"
 
 #include "loggradient.h"
 #include "uichartfillx.h"
@@ -17,7 +16,6 @@ ________________________________________________________________________
 #include "wellchartcommon.h"
 
 #include "draw.h"
-#include "math2.h"
 #include "mnemonics.h"
 #include "multiid.h"
 #include "ranges.h"
@@ -25,7 +23,6 @@ ________________________________________________________________________
 #include "welld2tmodel.h"
 #include "welldata.h"
 #include "welllog.h"
-#include "wellman.h"
 #include "welltrack.h"
 
 using namespace uiWellCharts;

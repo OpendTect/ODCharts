@@ -15,7 +15,6 @@ ________________________________________________________________________
 #include "ioobj.h"
 #include "welldata.h"
 #include "wellman.h"
-#include "uimsg.h"
 
 
 uiLogViewerTree::uiLogViewerTree( uiParent* p )

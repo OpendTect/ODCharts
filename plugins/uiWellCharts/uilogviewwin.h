@@ -9,7 +9,7 @@ ________________________________________________________________________
 -*/
 
 #include "uiwellchartsmod.h"
-#include "uidialog.h"
+#include "uimainwin.h"
 #include "wellextractdata.h"
 
 #include "menuhandler.h"

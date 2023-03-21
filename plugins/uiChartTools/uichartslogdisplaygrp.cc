@@ -18,11 +18,10 @@ ________________________________________________________________________
 #include "uisellinest.h"
 #include "uitabstack.h"
 #include "uitoolbutton.h"
-#include "uiwelllogtools.h"
 
-#include "welldata.h"
 #include "welllog.h"
 #include "welllogset.h"
+#include "wellselection.h"
 
 
 uiChartsLogDisplayGrp::uiChartsLogDisplayGrp( uiParent* p )
@@ -169,7 +168,7 @@ uiDisplayLogsGrp::uiDisplayLogsGrp( uiParent* p, const Interval<float>& range,
     fspec.setName("Left",0).setName("Right",1);
     rangefld_ = new uiGenInput( this, tr("Display range"), fspec );
     rangefld_->setValue( range );
-    mAttachCB(rangefld_->valuechanged, uiDisplayLogsGrp::changedCB);
+    mAttachCB(rangefld_->valueChanged, uiDisplayLogsGrp::changedCB);
 
     uiObject* attachobj = rangefld_->attachObj();
     for ( int idx=0; idx<lognms.size(); idx++ )

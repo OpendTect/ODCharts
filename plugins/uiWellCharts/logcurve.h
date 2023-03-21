@@ -12,7 +12,6 @@ ________________________________________________________________________
 #include "logdata.h"
 
 #include "uichartseries.h"
-#include "color.h"
 #include "draw.h"
 
 namespace Well { class Log; }
