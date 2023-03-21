@@ -40,7 +40,7 @@ uiMainWin* uiWellChartsDisplayServer::createMultiWellDisplay( uiParent* p,
     if ( wells.isEmpty() )
 	return nullptr;
 
-    auto* logwin = new uiLogViewWin( p, wells.size() );
+    auto* logwin = new uiLogViewWin( p, 0 );
     logwin->setDeleteOnClose( true );
     BufferStringSet all_lognms;
     ManagedObjectSet<TypeSet<int>>logids;
