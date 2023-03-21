@@ -12,7 +12,6 @@ ________________________________________________________________________
 #include "uichart.h"
 #include "wellchartcommon.h"
 
-#include "enums.h"
 
 class uiChartAxis;
 class uiValueAxis;

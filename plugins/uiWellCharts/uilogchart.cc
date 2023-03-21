@@ -13,7 +13,6 @@ ________________________________________________________________________
 #include "uichartseries.h"
 #include "uistring.h"
 
-#include "chartutils.h"
 #include "draw.h"
 #include "logcurve.h"
 #include "markerline.h"

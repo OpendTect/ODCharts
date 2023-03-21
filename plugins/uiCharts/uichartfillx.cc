@@ -259,8 +259,8 @@ Interval<float> ODChartFillx::getAxisRange( Qt::Orientations qor, bool qlines )
     ObjectSet<QLineSeries>& series = qlines ? qlines_ : qbaselines_;
     auto axes = qchart_->axes( qor, series.first() );
     QAbstractAxis* axis = qAsConst( axes )[0];
-    auto* qvaxis = dynamic_cast<QValueAxis*>( axis );
-    auto* qlvaxis = dynamic_cast<QLogValueAxis*>( axis );
+    auto* qvaxis = qobject_cast<QValueAxis*>( axis );
+    auto* qlvaxis = qobject_cast<QLogValueAxis*>( axis );
     if ( qvaxis )
 	qvaxis->isReverse() ? res.set( qvaxis->max(), qvaxis->min() )
 			    : res.set( qvaxis->min(), qvaxis->max() );

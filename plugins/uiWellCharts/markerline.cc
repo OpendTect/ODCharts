@@ -14,9 +14,7 @@ ________________________________________________________________________
 #include "uilogchart.h"
 
 #include "draw.h"
-#include "mnemonics.h"
 #include "multiid.h"
-#include "unitofmeasure.h"
 #include "wellbase.h"
 #include "welldata.h"
 #include "wellman.h"

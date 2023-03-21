@@ -49,6 +49,7 @@ uiLogFillProps::uiLogFillProps( uiParent* p, uiChartFillx::FillDir fdir,
     fillgradientfld_->attach( rightOf, gradientlogfld_ );
     fillgradientfld_->enableManage( false );
     fillgradientfld_->enableClippingDlg( false );
+    fillgradientfld_->setHSzPol( uiObject::Small );
 
     filllimitfld_ = new uiGenInput( this, lbl2, StringListInpSpec(fldef) );
     filllimitfld_->attach( alignedBelow, filltypefld_ );

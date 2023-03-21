@@ -12,11 +12,8 @@ ________________________________________________________________________
 
 #include "uicallout.h"
 #include "uichartaxes.h"
-#include "uimain.h"
-#include "uimainwin.h"
 
 #include "chartutils.h"
-#include "thread.h"
 
 #include <QAreaSeries>
 #include <QLineSeries>
@@ -84,7 +81,7 @@ uiXYChartSeries::uiXYChartSeries( QXYSeries* series )
     , hoverOff(this)
     , callouttxt_("X: %1\nY:%2")
 {
-    qxyseries_ = dynamic_cast<QXYSeries*>(qabstractseries_);
+    qxyseries_ = qobject_cast<QXYSeries*>(qabstractseries_);
 }
 
 
@@ -274,7 +271,7 @@ void uiXYChartSeries::hideCallout( CallBacker* )
 uiLineSeries::uiLineSeries()
     : uiXYChartSeries(new QLineSeries)
 {
-    qlineseries_ = dynamic_cast<QLineSeries*>(qxyseries_);
+    qlineseries_ = qobject_cast<QLineSeries*>(qxyseries_);
 }
 
 
@@ -349,7 +346,7 @@ QLineSeries* uiLineSeries::getQLineSeries()
 uiScatterSeries::uiScatterSeries()
     : uiXYChartSeries(new QScatterSeries)
 {
-    qscatterseries_ = dynamic_cast<QScatterSeries*>(qxyseries_);
+    qscatterseries_ = qobject_cast<QScatterSeries*>(qxyseries_);
 }
 
 
@@ -429,7 +426,7 @@ uiAreaSeries::uiAreaSeries( uiLineSeries* upper, uiLineSeries* lower )
     , upperseries_(upper)
     , lowerseries_(lower)
 {
-    qareaseries_ = dynamic_cast<QAreaSeries*>(qabstractseries_);
+    qareaseries_ = qobject_cast<QAreaSeries*>(qabstractseries_);
 }
 
 

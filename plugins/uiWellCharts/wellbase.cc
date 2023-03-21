@@ -10,13 +10,12 @@ ________________________________________________________________________
 #include "logdata.h"
 
 #include "ioobj.h"
-#include "mnemonics.h"
 #include "multiid.h"
 #include "ranges.h"
+#include "unitofmeasure.h"
 #include "wellbase.h"
 #include "welld2tmodel.h"
 #include "welldata.h"
-#include "welllog.h"
 #include "wellman.h"
 #include "welltrack.h"
 

@@ -19,7 +19,6 @@ ________________________________________________________________________
 #include "uilogchart.h"
 #include "uilogcurveprops.h"
 #include "uimain.h"
-#include "uimsg.h"
 #include "uisellinest.h"
 #include "uitabstack.h"
 #include "wellchartcommon.h"
@@ -137,24 +136,25 @@ uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart* lc )
     bgcolorfld_ = new uiColorInput( this,
 				    uiColorInput::Setup(lc->backgroundColor())
 				   .lbltxt(tr("Background Color")) );
+    bgcolorfld_->setStretch( 0, 0 );
 
     scalefld_ = new uiGenInput( this, tr("Scale Type"),
 				StringListInpSpec(uiWellCharts::ScaleDef()) );
     scalefld_->attach( rightOf, bgcolorfld_ );
 
     majorzgridfld_ = new uiGridStyleGrp( this, tr("Major Z Grid Step"), false );
-    majorzgridfld_->attach( alignedBelow, bgcolorfld_ );
+    majorzgridfld_->attach( ensureBelow, bgcolorfld_ );
 
     minorzgridfld_ = new uiGridStyleGrp( this, tr("Minor Z Grid Count"), true );
-    minorzgridfld_->attach( rightAlignedBelow, majorzgridfld_ );
+    minorzgridfld_->attach( alignedBelow, majorzgridfld_ );
 
     majorloggridfld_ =
 		new uiGridStyleGrp( this, tr("Major Log Grid Count"), true );
-    majorloggridfld_->attach( rightAlignedBelow, minorzgridfld_ );
+    majorloggridfld_->attach( alignedBelow, minorzgridfld_ );
 
     minorloggridfld_ =
 		new uiGridStyleGrp( this, tr("Minor Log Grid Count"), true );
-    minorloggridfld_->attach( rightAlignedBelow, majorloggridfld_ );
+    minorloggridfld_->attach( alignedBelow, majorloggridfld_ );
 
     update();
     mAttachCB( bgcolorfld_->colorChanged, uiLogChartGrp::bgColorChgCB );
@@ -256,6 +256,7 @@ uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart* lc )
     , logchart_(lc)
 {
     logselfld_ = new uiListBox( this, "Logs", OD::ChooseOnlyOne );
+    logselfld_->setHSzPol( uiObject::Wide );
     logselfld_->setAllowNoneChosen( false );
     logselfld_->attach( leftBorder, 5 );
 
@@ -312,11 +313,12 @@ uiMarkersGrp::uiMarkersGrp( uiParent* p, uiLogChart* lc )
     , logchart_(lc)
 {
     markerselfld_ = new uiListBox( this, "Markers", OD::ChooseOnlyOne );
+    markerselfld_->setHSzPol( uiObject::Wide );
     markerselfld_->setAllowNoneChosen( false );
     markerselfld_->attach( leftBorder, 5 );
 
     markerlinefld_ = new uiSelLineStyle( this, OD::LineStyle() );
-    markerlinefld_->attach( rightOf, markerselfld_, 5 );
+    markerlinefld_->attach( rightOf, markerselfld_ );
     update();
     mAttachCB( markerselfld_->selectionChanged, uiMarkersGrp::markerselCB );
     mAttachCB( markerlinefld_->changed, uiMarkersGrp::lineStyleChgCB );
@@ -339,8 +341,8 @@ void uiMarkersGrp::setLogChart( uiLogChart* logchart )
 void uiMarkersGrp::update()
 {
     markerselfld_->setEmpty();
-    auto wellnames = logchart_->wellNames();
-    auto markers = logchart_->markers();
+    BufferStringSet wellnames = logchart_->wellNames();
+    const ObjectSet<MarkerLine>& markers = logchart_->markers();
     for ( auto* marker : markers )
     {
 	BufferString str( marker->markerName() );
@@ -389,7 +391,7 @@ uiGridStyleGrp::uiGridStyleGrp( uiParent* p, const uiString& lbl,
     linestylefld_ = new uiSelLineStyle( this, OD::LineStyle() );
     linestylefld_->attach( rightOf, stepsfld_ );
 
-    setHAlignObj( stepsfld_ );
+    setHAlignObj( linestylefld_ );
 
     mAttachCB( stepsfld_->valueChanged, uiGridStyleGrp::stepChgCB );
     mAttachCB( stepsfld_->checked, uiGridStyleGrp::stepCheckedCB );

@@ -18,11 +18,10 @@ ________________________________________________________________________
 #include "uisellinest.h"
 #include "uitabstack.h"
 #include "uitoolbutton.h"
-#include "uiwelllogtools.h"
 
-#include "welldata.h"
 #include "welllog.h"
 #include "welllogset.h"
+#include "wellselection.h"
 
 
 uiChartsLogDisplayGrp::uiChartsLogDisplayGrp( uiParent* p )
