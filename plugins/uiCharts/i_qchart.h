@@ -9,7 +9,6 @@ ________________________________________________________________________
 -*/
 
 #include "uichart.h"
-#include "geometry.h"
 
 #include <QChart>
 
@@ -17,18 +16,21 @@ using namespace QtCharts;
 
 class i_chartMsgHandler : public  QObject
 {
-    Q_OBJECT
-
-    friend class uiChart;
+Q_OBJECT
+friend class uiChart;
 
 protected:
-    i_chartMsgHandler( uiChart* chart, QChart* qchart )
-	: chart_(chart)
-	, qchart_(qchart)
-    {
-	connect( qchart_, SIGNAL(plotAreaChanged(const QRectF&)),
-		 this, SLOT(plotAreaChanged(const QRectF&)) );
-    }
+i_chartMsgHandler( uiChart* chart, QChart* qchart )
+    : chart_(chart)
+    , qchart_(qchart)
+{
+    connect( qchart_, &QChart::plotAreaChanged,
+	     this, &i_chartMsgHandler::plotAreaChanged );
+}
+
+
+~i_chartMsgHandler()
+{}
 
 private:
     uiChart*		chart_;
