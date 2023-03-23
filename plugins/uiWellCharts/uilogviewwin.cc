@@ -47,11 +47,9 @@ static int sMnuID = 0;
 static const int sWinHeight = 500;
 static const int sWinWidth = 500;
 
-
-uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools,
-				    bool showfilter )
+uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
     : uiMainWin(p,toUiString("OpendTect - Log Viewer"))
-    , showFilter(this)
+    , showfilter_(false)
     , newitem_(uiStrings::sNew(),"new","",
 				mCB(this,uiLogViewWinBase,newCB),sMnuID++)
     , openitem_(uiStrings::sOpen(),"open","",
@@ -60,7 +58,6 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools,
 				mCB(this,uiLogViewWinBase,saveCB),sMnuID++)
     , saveasitem_(uiStrings::sSaveAs(),"saveas","",
 				mCB(this,uiLogViewWinBase,saveasCB),sMnuID++)
-    , showfilter_(showfilter)
 {
     mainObject()->setMinimumHeight( sWinHeight );
     mainObject()->setMinimumWidth( sWinWidth );
@@ -69,6 +66,15 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools,
     logviewtbl_ = new uiLogViewTable( this, nrcol, showtools );
 
     mAttachCB( postFinalize(), uiLogViewWinBase::uiInitCB );
+}
+
+
+uiLogViewWinBase::uiLogViewWinBase( uiParent* p, const CallBack& filtercb,
+				    int nrcol, bool showtools )
+    : uiLogViewWinBase(p, nrcol, showtools)
+{
+    filtercb_ = filtercb;
+    showfilter_ = true;
 }
 
 
@@ -129,7 +135,8 @@ void uiLogViewWinBase::uiInitCB( CallBacker* )
 
 void uiLogViewWinBase::filterCB( CallBacker* )
 {
-    showFilter.trigger();
+    if ( showfilter_ )
+	filtercb_.doCall( this );
 }
 
 
@@ -331,8 +338,8 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 					const ObjectSet<Well::Data>& wds,
 					const BufferStringSet& lognms,
 					const BufferStringSet& markernms,
-					bool showfilter )
-    : uiLogViewWinBase(p,0,false,showfilter)
+					const CallBack& filtercb )
+    : uiLogViewWinBase(p,filtercb, 0, false)
     , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
     , unzoombuttonitem_(tr("View All Z"),"view_all","",
@@ -360,8 +367,8 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 					const ObjectSet<Well::Data>& wds,
 					const MnemonicSelection& mns,
 					const BufferStringSet& markernms,
-					bool showfilter )
-    : uiLogViewWinBase(p,0,false,showfilter)
+					const CallBack& filtercb )
+    : uiLogViewWinBase(p, filtercb, 0, false)
     , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
     , unzoombuttonitem_(tr("View All Z"),"view_all","",
@@ -455,7 +462,6 @@ void uiLockedLogViewWin::usePar( const IOPar& iop )
     else
 	logfiltergrp_->setSelected( wellids, mns, markernms );
 
-    dataChgCB( nullptr );
 }
 
 
@@ -637,7 +643,7 @@ void uiLockedLogViewWin::showSettingsCB( CallBacker* )
     }
     if ( !propdlg_ )
     {
-	propdlg_ = new uiLogViewPropDlg( parent(), logchart, true );
+	propdlg_ = new uiLogViewPropDlg( this, logchart, true );
 	mAttachCB(propdlg_->applyPushed, uiLockedLogViewWin::applySettingsCB);
 	mAttachCB(logviewtbl_->chartSelectionChg,
 		  uiLockedLogViewWin::chartChgCB);

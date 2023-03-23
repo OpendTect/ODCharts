@@ -276,6 +276,7 @@ uiLogsGrp::~uiLogsGrp()
 void uiLogsGrp::setLogChart( uiLogChart* logchart )
 {
     logchart_ = logchart;
+    logpropfld_->setLogChart( logchart );
     update();
 }
 

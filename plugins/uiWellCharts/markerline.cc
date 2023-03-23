@@ -121,7 +121,8 @@ void MarkerLine::setZType( uiWellCharts::ZType ztype, bool force )
 void MarkerLine::setLineStyle(const OD::LineStyle& ls, bool usetransp)
 {
     linestyle_ = ls;
-    series_->setLineStyle( linestyle_, usetransp );
+    if ( series_ )
+	series_->setLineStyle( linestyle_, usetransp );
 }
 
 
@@ -172,5 +173,7 @@ void MarkerLine::usePar( const IOPar& par, bool styleonly )
 
     BufferString lsstr;
     par.get( sKey::LineStyle(), lsstr );
-    linestyle_.fromString( lsstr );
+    OD::LineStyle ls;
+    ls.fromString( lsstr );
+    setLineStyle( ls );
 }

@@ -616,7 +616,10 @@ void uiLogViewTable::clearSelection()
 
 void uiLogViewTable::selectView( int col )
 {
-    clearSelection();
+    {
+	NotifyStopper ns( chartSelectionChg );
+	clearSelection();
+    }
     uiLogView* logview = getLogView( col );
     if ( !logview )
 	return;

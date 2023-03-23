@@ -36,7 +36,7 @@ public:
     void		addTo(uiLogChart&,const OD::LineStyle&,float min,
 			      float max,bool reverse,bool show_wellnm=true,
 			      bool show_uom=true);
-    void		addCurveFillTo(uiLogChart&);
+    void		addCurveFillTo(uiLogChart&, bool update=false);
     void		removeFrom(uiLogChart&);
 
     void		setLineStyle(const OD::LineStyle&,bool usetransp=false);
