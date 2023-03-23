@@ -158,7 +158,7 @@ uiVertGradientImg* uiChartFillx::gradientImg() const
 void uiChartFillx::setBaseLine( float base, bool update )
 {
     odfillx_->baseline_ = base;
-    if ( !mIsUdf(base) )
+//    if ( !mIsUdf(base) )
 	odfillx_->qbaselines_.setEmpty();
 
     if ( update )

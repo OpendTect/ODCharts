@@ -29,7 +29,6 @@ public:
 
     void		setLogFill(int);
     void		setLogChart(uiLogChart*);
-    void		update();
 
 protected:
     uiLogChart*			logchart_ = nullptr;

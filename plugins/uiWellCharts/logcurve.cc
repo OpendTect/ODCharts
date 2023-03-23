@@ -196,20 +196,20 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
 }
 
 
-void LogCurve::addCurveFillTo( uiLogChart& logchart )
+void LogCurve::addCurveFillTo( uiLogChart& logchart, bool update )
 {
     if ( !lefttolog_.isEmpty() )
     {
 	LogCurve* lc = logchart.getLogCurve( wellID(), lefttolog_ );
 	if ( lc )
-	    leftfill_->setBaseLine( lc->getSeries(), false );
+	    leftfill_->setBaseLine( lc->getSeries(), update );
     }
 
     if ( !righttolog_.isEmpty() )
     {
 	LogCurve* lc = logchart.getLogCurve( wellID(), righttolog_ );
 	if ( lc )
-	    rightfill_->setBaseLine( lc->getSeries(), false );
+	    rightfill_->setBaseLine( lc->getSeries(), update );
     }
 }
 
@@ -506,6 +506,11 @@ void LogCurve::setFillPar( const char* fillstr, bool left )
 	rightfill_ = new uiChartFillx();
 
     uiChartFillx* fill = left ? leftfill_ : rightfill_;
+    if ( left )
+	lefttolog_.setEmpty();
+    else
+	righttolog_.setEmpty();
+
     fill->setBaseLine( mUdf(float), false );
 
     FileMultiString fms( fillstr );

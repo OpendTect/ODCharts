@@ -89,14 +89,8 @@ void uiLogFillProps::setLogChart( uiLogChart* logchart )
 {
     if ( logchart==logchart_ )
 	return;
-    update();
-}
 
-
-void uiLogFillProps::update()
-{
-    fillTypeChgCB( nullptr );
-    fillLimitChgCB( nullptr );
+    logchart_ = logchart;
 }
 
 
@@ -319,6 +313,8 @@ void uiLogCurveProps::setLogChart( uiLogChart* logchart )
 {
     if ( logchart==logchart_ )
 	return;
+
+    logchart_ = logchart;
     update();
 }
 

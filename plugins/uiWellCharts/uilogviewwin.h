@@ -66,12 +66,11 @@ public:
     static const char*	extStr()	{ return "lvpar"; }
     static const char*	filtStr()	{ return "*.lvpar"; }
 
-    Notifier<uiLogViewWinBase>	showFilter;
-
 protected:
 			uiLogViewWinBase(uiParent*,int nrcol=0,
-					 bool showtools=true,
-					 bool showFilter=false);
+					 bool showtools=true);
+			uiLogViewWinBase(uiParent*,const CallBack&filtercb,
+					 int nrcol=0, bool showtools=true);
 
     uiToolBar*		tb_ = nullptr;
     uiLogViewTable*	logviewtbl_;
@@ -85,6 +84,7 @@ protected:
     MenuItem		saveitem_;
     MenuItem		saveasitem_;
     bool		showfilter_;
+    CallBack		filtercb_;
 
     bool		checkSave();
     void		createToolBar();
@@ -111,12 +111,12 @@ public:
 					   const ObjectSet<Well::Data>&,
 					   const BufferStringSet& lognms,
 					   const BufferStringSet& markernms,
-					   bool showfilter=false);
+					   const CallBack& filtercb);
 			uiLockedLogViewWin(uiParent*,
 					   const ObjectSet<Well::Data>&,
 					   const MnemonicSelection& mns,
 					   const BufferStringSet& markernms,
-					   bool showfilter=false);
+					   const CallBack& filtercb);
 			~uiLockedLogViewWin();
 
     void		setSelected(const DBKeySet&,

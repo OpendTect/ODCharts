@@ -19,7 +19,6 @@ uiLogView::uiLogView( uiParent* p, const char* nm )
     : uiChartView(p,nm)
 {
     setZoomStyle( VerticalZoom );
-    mAttachCB(doubleClick, uiLogView::showSettingsCB);
 }
 
 

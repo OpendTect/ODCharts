@@ -599,6 +599,7 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 	PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
 	if ( styleonly )
 	    logcurve->usePar( *tmp, true );
+
 	uiChartAxis* laxis = logcurve->getAxis();
 	laxis->setTickCount( lfms_major.getIValue(0) );
 	laxis->setGridStyle( ls_major );
@@ -610,7 +611,7 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 //    logChange.trigger();
 
     for ( auto* logcurve : logcurves_ )
-	logcurve->addCurveFillTo( *this );
+	logcurve->addCurveFillTo( *this, true );
 
     int nmrkrs;
     iop.get( sKey::NrValues(), nmrkrs );
@@ -641,5 +642,4 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 	}
     }
 //    markerChange.trigger();
-
 }
