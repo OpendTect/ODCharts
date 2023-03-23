@@ -34,8 +34,8 @@ public:
 					const DBKeySet& sel_ids,
 					const BufferStringSet& sel_lognms,
 					const BufferStringSet& sel_markernms,
-				        const CallBack& filtercb)
-					override;
+				        const CallBack& filtercb);
+//					override;
     uiMainWin*		createLogViewWinCB(uiParent*,
 					const ObjectSet<Well::Data>&,
 					const MnemonicSelection&,
@@ -43,8 +43,8 @@ public:
 					const DBKeySet& sel_ids,
 					const MnemonicSelection& sel_mns,
 					const BufferStringSet& sel_markernms,
-				        const CallBack& filtercb)
-					override;
+				        const CallBack& filtercb);
+//					override;
 
     uiLogDisplayGrp*	createLogDisplayGrp(uiParent*) override;
 };
