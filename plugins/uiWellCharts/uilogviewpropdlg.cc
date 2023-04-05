@@ -26,7 +26,8 @@ ________________________________________________________________________
 
 // uiLogViewPropDlg
 uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart* logchart,
-				    bool withapply )
+				    bool withapply, bool edmarkers,
+				    bool commonrange )
     : uiDialog(p,Setup(tr("Display Properties Editor"),mNoDlgTitle,
 		       mTODOHelpKey).applybutton(withapply))
     , logchart_(logchart)
@@ -37,13 +38,15 @@ uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart* logchart,
     setShrinkAllowed( true );
 
     tabs_ = new uiTabStack( this, "Properties" );
+    logsgrp_ = new uiLogsGrp( tabs_->tabGroup(), logchart_, commonrange );
     chartgrp_ = new uiLogChartGrp( tabs_->tabGroup(), logchart_ );
-    logsgrp_ = new uiLogsGrp( tabs_->tabGroup(), logchart_ );
-    markersgrp_ = new uiMarkersGrp( tabs_->tabGroup(), logchart_ );
+    if ( edmarkers )
+	markersgrp_ = new uiMarkersGrp( tabs_->tabGroup(), logchart_ );
 
-    tabs_->addTab( chartgrp_, tr("Chart properties") );
     tabs_->addTab( logsgrp_,  uiStrings::sLog(2) );
-    tabs_->addTab( markersgrp_, uiStrings::sMarker(2) );
+    tabs_->addTab( chartgrp_, tr("Chart properties") );
+    if ( edmarkers )
+	tabs_->addTab( markersgrp_, uiStrings::sMarker(2) );
 
     mAttachCB(logchart_->logChange, uiLogViewPropDlg::updateLogsCB);
     mAttachCB(logchart_->markerChange, uiLogViewPropDlg::updateMarkersCB);
@@ -69,7 +72,8 @@ void uiLogViewPropDlg::setLogChart( uiLogChart* logchart )
     logchart_ = logchart;
     chartgrp_->setLogChart( logchart );
     logsgrp_->setLogChart( logchart );
-    markersgrp_->setLogChart( logchart );
+    if ( markersgrp_ )
+	markersgrp_->setLogChart( logchart );
     settingsbackup_.setEmpty();
     logchart->fillPar( settingsbackup_ );
 }
@@ -98,7 +102,8 @@ void uiLogViewPropDlg::updateLogsCB( CallBacker* )
 
 void uiLogViewPropDlg::updateMarkersCB( CallBacker* )
 {
-    markersgrp_->update();
+    if ( markersgrp_ )
+	markersgrp_->update();
 }
 
 
@@ -110,7 +115,8 @@ void uiLogViewPropDlg::restoreCB( CallBacker* )
     logchart_->usePar( settingsbackup_, true );
     chartgrp_->update();
     logsgrp_->update();
-    markersgrp_->update();
+    if ( markersgrp_ )
+	markersgrp_->update();
 }
 
 
@@ -251,19 +257,20 @@ void uiLogChartGrp::scaleChgCB( CallBacker* )
 
 
 // uiLogsGrp
-uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart* lc )
+uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart* lc, bool commonrange )
     : uiGroup(p,"Logs")
     , logchart_(lc)
 {
     logselfld_ = new uiListBox( this, "Logs", OD::ChooseOnlyOne );
-    logselfld_->setHSzPol( uiObject::Wide );
     logselfld_->setAllowNoneChosen( false );
     logselfld_->attach( leftBorder, 5 );
 
     logpropfld_ = new uiLogCurveProps( this, lc );
-    logpropfld_->attach( rightOf, logselfld_, 5 );
+    logpropfld_->attach( rightTo, logselfld_, 5 );
     update();
     mAttachCB( logselfld_->selectionChanged, uiLogsGrp::logselCB );
+    if ( commonrange )
+	mAttachCB( logpropfld_->rangechanged, uiLogsGrp::updateRangesCB );
 }
 
 
@@ -305,6 +312,16 @@ void uiLogsGrp::logselCB( CallBacker* )
     ObjectSet<LogCurve>& logcurves = logchart_->logcurves();
     if ( logcurves.validIdx(selidx) )
 	logpropfld_->setLogCurve( selidx );
+}
+
+
+void uiLogsGrp::updateRangesCB( CallBacker* cb )
+{
+    NotifyStopper ns( logpropfld_->rangechanged );
+    mCBCapsuleUnpack(const Interval<float>&,rg,cb);
+    for ( auto* logcurve:logchart_->logcurves() )
+	logcurve->setDisplayRange( rg );
+
 }
 
 

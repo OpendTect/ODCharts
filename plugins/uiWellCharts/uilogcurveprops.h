@@ -66,6 +66,9 @@ public:
     void		setLogCurve(int);
     void		setLogChart(uiLogChart*);
     void		update();
+
+    CNotifier<uiLogCurveProps,const Interval<float>&>	rangechanged;
+
 protected:
     uiLogChart*		logchart_ = nullptr;
     LogCurve*		logcurve_ = nullptr;

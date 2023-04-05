@@ -17,7 +17,7 @@ ________________________________________________________________________
 class uiGenInput;
 class uiLogChart;
 class uiLogChartGrp;
-class uiLogDisplayPropDlg;
+class uiLogViewPropDlg;
 class uiLogView;
 class uiSelLineStyle;
 class uiTabStack;
@@ -35,68 +35,22 @@ public:
     void		addLogSelection(const ObjectSet<Well::SubSelData>&)
 								override;
     void		update() override;
+    void		setDisplayProps(const Well::DisplayProperties::Log&,
+					bool forname=true) override;
 
 protected:
 
     void			changeWellButPush(CallBacker*);
     void			showSettingsCB(CallBacker*);
-    void			settingsChgCB(CallBacker*);
 
     int				wellidx_		= 0;
     ObjectSet<Well::SubSelData>	logdatas_;
+    StringPairSet		specstyles_;
+    OD::LineStyle		normstyle_;
     Interval<float>		disprange_		=Interval<float>::udf();
-    TypeSet<OD::LineStyle>	ls_;
 
     uiLogView*			logdisp_		= nullptr;
-    uiLogDisplayPropDlg*	propdlg_		= nullptr;
+    uiLogViewPropDlg*		propdlg_		= nullptr;
     uiToolButton*		nextlog_		= nullptr;
     uiToolButton*		prevlog_		= nullptr;
-};
-
-
-mExpClass(uiChartTools) uiDisplayLogsGrp : public uiGroup
-{
-mODTextTranslationClass(uiDisplayLogsGrp)
-public:
-			uiDisplayLogsGrp(uiParent*,const Interval<float>&,
-					const BufferStringSet&,
-					const TypeSet<OD::LineStyle>&);
-			~uiDisplayLogsGrp();
-
-    OD::LineStyle	getLineStyle(const char*) const;
-    Interval<float>	getRange() const;
-
-    Notifier<uiDisplayLogsGrp>	changed;
-
-protected:
-    uiGenInput*			rangefld_;
-    BufferStringSet		lognms_;
-    ObjectSet<uiSelLineStyle>	linestyles_;
-
-    void			changedCB(CallBacker*);
-};
-
-
-mExpClass(uiChartTools) uiLogDisplayPropDlg : public uiDialog
-{
-mODTextTranslationClass(uiLogDisplayPropDlg)
-public:
-			uiLogDisplayPropDlg(uiParent*,uiLogChart*,
-					   const Interval<float>&,
-					   const BufferStringSet&,
-					   const TypeSet<OD::LineStyle>&);
-			~uiLogDisplayPropDlg();
-
-    OD::LineStyle	getLineStyle(const char*) const;
-    Interval<float>	getRange() const;
-
-    Notifier<uiLogDisplayPropDlg>	changed;
-
-protected:
-    uiLogChart*		logchart_;
-    uiTabStack*		tabs_;
-    uiDisplayLogsGrp*	logsgrp_;
-    uiLogChartGrp*	chartgrp_;
-
-    void		changedCB(CallBacker*);
 };
