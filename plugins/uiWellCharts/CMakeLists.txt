@@ -5,7 +5,7 @@
 #________________________________________________________________________
 #
 
-set( OD_MODULE_DEPS uiCharts uiTools uiWell )
+set( OD_MODULE_DEPS uiCharts uiWell )
 set( CMAKE_FOLDER "OpendTect Pro" )
 set( OD_IS_PLUGIN yes )
 set( OD_MODULE_SOURCES
@@ -27,7 +27,5 @@ set( OD_MODULE_SOURCES
 )
 
 set( OD_MODULE_PROGS od_LogViewer.cc )
-
-set( OD_PLUGIN_ALO_EXEC ${OD_MAIN_EXEC} )
 
 OD_INIT_MODULE()
