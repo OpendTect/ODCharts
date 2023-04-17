@@ -7,16 +7,17 @@ ________________________________________________________________________
 
 -*/
 
-#include "uimain.h"
 #include "uilogviewwin.h"
+
+#include "uimain.h"
+#include "uimsg.h"
+#include "uisurvey.h"
 
 #include "applicationdata.h"
 #include "commandlineparser.h"
 #include "ioman.h"
 #include "moddepmgr.h"
 #include "prog.h"
-#include "uimsg.h"
-
 
 
 int mProgMainFnName( int argc, char** argv )
@@ -24,26 +25,21 @@ int mProgMainFnName( int argc, char** argv )
     mInitProg( OD::UiProgCtxt )
     SetProgramArgs( argc, argv );
     uiMain app( argc, argv );
-    ApplicationData::setApplicationName( "OpendTect - Log Viewer" );
     app.setIcon( "welllogbased" );
+    ApplicationData::setApplicationName( "OpendTect - Log Viewer" );
 
-    OD::ModDeps().ensureLoaded( "uiBase" );
-    OD::ModDeps().ensureLoaded( "Well" );
+    OD::ModDeps().ensureLoaded( "uiTools" );
 
-    CommandLineParser clp( argc, argv );
-    const uiRetVal res = IOM().setDataSource( clp );
-    if ( !res.isOK() )
-    {
-	uiMSG().error( res );
-	return 1;
-    }
-
-    PtrMan<uiMainWin> dlg = new uiLogViewWin( nullptr );
+    const CommandLineParser clp( argc, argv );
+    uiRetVal uirv = IOMan::setDataSource( clp );
+    mIfIOMNotOK( return 1 )
 
     PIM().loadAuto( false );
+    OD::ModDeps().ensureLoaded( "uiWell" );
+    PtrMan<uiMainWin> topmw = new uiLogViewWin( nullptr );
+    app.setTopLevel( topmw );
     PIM().loadAuto( true );
+    topmw->show();
 
-    app.setTopLevel( dlg );
-    dlg->show();
     return app.exec();
 }

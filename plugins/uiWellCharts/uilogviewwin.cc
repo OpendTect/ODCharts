@@ -61,7 +61,7 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
 {
     mainObject()->setMinimumHeight( sWinHeight );
     mainObject()->setMinimumWidth( sWinWidth );
-    setDeleteOnClose( true );
+    setDeleteOnClose( p );
 
     logviewtbl_ = new uiLogViewTable( this, nrcol, showtools );
 
@@ -71,7 +71,7 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
 
 uiLogViewWinBase::uiLogViewWinBase( uiParent* p, const CallBack& filtercb,
 				    int nrcol, bool showtools )
-    : uiLogViewWinBase(p, nrcol, showtools)
+    : uiLogViewWinBase(p,nrcol,showtools)
 {
     filtercb_ = filtercb;
     showfilter_ = true;
