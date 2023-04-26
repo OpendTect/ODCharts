@@ -283,6 +283,7 @@ void uiLogFillProps::fillSeriesChgCB( CallBacker* )
 uiLogCurveProps::uiLogCurveProps( uiParent* p, uiLogChart* lc)
     : uiGroup(p)
     , logchart_(lc)
+    , rangeChanged(this)
 {
     FloatInpIntervalSpec fspec;
     fspec.setName("Left",0).setName("Right",1);
@@ -353,5 +354,8 @@ void uiLogCurveProps::lineStyleChgCB( CallBacker* )
 void uiLogCurveProps::rangeChgCB( CallBacker* )
 {
     if ( logcurve_ )
+    {
 	logcurve_->setDisplayRange( rangefld_->getFInterval() );
+	rangeChanged.trigger( rangefld_->getFInterval() );
+    }
 }

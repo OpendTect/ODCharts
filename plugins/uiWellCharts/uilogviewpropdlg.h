@@ -80,7 +80,8 @@ protected:
 mExpClass(uiWellCharts) uiLogsGrp : public uiGroup
 { mODTextTranslationClass(uiLogsGrp)
 public:
-			uiLogsGrp(uiParent*, uiLogChart*);
+			uiLogsGrp(uiParent*, uiLogChart*,
+				  bool commonrange=false);
 			~uiLogsGrp();
 
     void		update();
@@ -92,6 +93,7 @@ protected:
     uiLogCurveProps*	logpropfld_;
 
     void		logselCB(CallBacker*);
+    void		updateRangesCB(CallBacker*);
 };
 
 
@@ -118,7 +120,9 @@ mExpClass(uiWellCharts) uiLogViewPropDlg : public uiDialog
 { mODTextTranslationClass(uiLogViewPropDlg)
 public:
 			uiLogViewPropDlg(uiParent*, uiLogChart*,
-					 bool withapply=false);
+					 bool withapply=false,
+					 bool edmarkers=true,
+					 bool commonrange=false);
 			~uiLogViewPropDlg();
 
     void		setLogChart(uiLogChart*);
@@ -129,7 +133,7 @@ protected:
     uiTabStack*		tabs_;
     uiLogChartGrp*	chartgrp_;
     uiLogsGrp*		logsgrp_;
-    uiMarkersGrp*	markersgrp_;
+    uiMarkersGrp*	markersgrp_	=	nullptr;
     IOPar		settingsbackup_;
     bool		withapply_ = false;
 
