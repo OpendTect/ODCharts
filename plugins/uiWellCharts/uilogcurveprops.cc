@@ -280,7 +280,7 @@ void uiLogFillProps::fillSeriesChgCB( CallBacker* )
 
 
 // uiLogCurveProps
-uiLogCurveProps::uiLogCurveProps( uiParent* p, uiLogChart* lc)
+uiLogCurveProps::uiLogCurveProps( uiParent* p, uiLogChart* lc )
     : uiGroup(p)
     , logchart_(lc)
     , rangeChanged(this)

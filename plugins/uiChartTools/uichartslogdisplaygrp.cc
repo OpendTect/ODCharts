@@ -126,7 +126,7 @@ void uiChartsLogDisplayGrp::showSettingsCB( CallBacker* )
 {
     if ( !propdlg_ )
 	propdlg_ = new uiLogViewPropDlg( this, logdisp_->logChart(), true,
-					    false, true );
+					 false, true );
 
     propdlg_->show();
 }

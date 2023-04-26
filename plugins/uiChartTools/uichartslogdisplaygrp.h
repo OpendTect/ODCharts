@@ -52,5 +52,3 @@ protected:
     uiToolButton*		nextlog_		= nullptr;
     uiToolButton*		prevlog_		= nullptr;
 };
-
-
