@@ -819,6 +819,17 @@ void uiLogViewWin::addApplicationToolBar()
 }
 
 
+void uiLogViewWin::addWellData( const DBKeySet& wellids,
+				const ManagedObjectSet<TypeSet<int>>& logidxs )
+{
+    uiLogViewWinBase::addWellData( wellids, logidxs );
+    for ( int idx=0; idx<logviewtbl_->size(); idx++ )
+	logviewtbl_->setViewLocked( idx );
+
+    selTrackChgCB( nullptr );
+}
+
+
 void uiLogViewWin::add( int idx, const MultiID& wellkey,
 			const BufferStringSet& lognms )
 {
@@ -1015,6 +1026,7 @@ void uiLogViewWin::loadWells( const BufferStringSet& wellids,
 void uiLogViewWin::addTrackCB( CallBacker* )
 {
     logviewtbl_->addTrackCB( nullptr );
+    logviewtbl_->setViewLocked( logviewtbl_->currentView() );
     needsave_ = true;
 }
 
