@@ -15,22 +15,14 @@ ________________________________________________________________________
 
 void toQColor( QColor& qcol, const OD::Color& col, bool usetransp )
 {
-    if ( col==OD::Color::NoColor() )
-	qcol = QColor();
-    else
-    {
-	qcol = QColor( QRgb(col.rgb()) );
-	if ( usetransp )
-	    qcol.setAlpha( 255-col.t() );
-    }
+    qcol = QColor( QRgb(col.rgb()) );
+    if ( usetransp )
+	qcol.setAlpha( 255-col.t() );
 }
 
 
 OD::Color fromQColor( const QColor& qcol )
 {
-    if ( !qcol.isValid() )
-	return OD::Color::NoColor();
-
     return OD::Color( qcol.red(), qcol.green(), qcol.blue(), 255-qcol.alpha() );
 }
 

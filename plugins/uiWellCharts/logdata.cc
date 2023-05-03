@@ -37,8 +37,8 @@ LogData::~LogData()
 
 ConstRefMan<Well::Data> LogData::getWD() const
 {
-    Well::LoadReqs lreqs( Well::LogInfos );
-    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_, lreqs );
+    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_,
+						  Well::LoadReqs::AllNoLogs() );
     return wd;
 }
 

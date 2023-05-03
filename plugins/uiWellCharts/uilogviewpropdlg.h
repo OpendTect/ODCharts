@@ -133,7 +133,7 @@ protected:
     uiTabStack*		tabs_;
     uiLogChartGrp*	chartgrp_;
     uiLogsGrp*		logsgrp_;
-    uiMarkersGrp*	markersgrp_ = nullptr;
+    uiMarkersGrp*	markersgrp_	=	nullptr;
     IOPar		settingsbackup_;
     bool		withapply_ = false;
 

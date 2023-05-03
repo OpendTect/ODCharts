@@ -27,7 +27,7 @@ mDefineEnumUtils( uiChartFillx, FillDir, "Fill direction" )
     { "Left", "Right", nullptr };
 
 mDefineEnumUtils( uiChartFillx, FillType, "Fill type" )
-    { "None", "Color", "Gradient", "Pattern", nullptr };
+    { "None", "Color", "Gradient", nullptr };
 
 
 class ODChartFillx : public QGraphicsItem

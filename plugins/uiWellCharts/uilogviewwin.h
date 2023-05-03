@@ -173,6 +173,9 @@ public:
     void		loadWells(const BufferStringSet& wellids,
 				  const BufferStringSet& logids) override;
 
+    void		addWellData( const DBKeySet& wellids,
+				     const ManagedObjectSet<TypeSet<int>>&);
+
 protected:
     uiLogViewerTree*	logviewtree_;
 

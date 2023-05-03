@@ -72,8 +72,8 @@ void WellData::copyFrom( const WellData& oth )
 
 ConstRefMan<Well::Data> WellData::getWD() const
 {
-    Well::LoadReqs lreqs( Well::D2T, Well::Trck );
-    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_, lreqs );
+    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_,
+						 Well::LoadReqs::AllNoLogs() );
     return wd;
 }
 

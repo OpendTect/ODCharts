@@ -270,7 +270,7 @@ uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart* lc, bool commonrange )
     update();
     mAttachCB( logselfld_->selectionChanged, uiLogsGrp::logselCB );
     if ( commonrange )
-	mAttachCB( logpropfld_->rangechanged, uiLogsGrp::updateRangesCB );
+	mAttachCB( logpropfld_->rangeChanged, uiLogsGrp::updateRangesCB );
 }
 
 
@@ -317,11 +317,10 @@ void uiLogsGrp::logselCB( CallBacker* )
 
 void uiLogsGrp::updateRangesCB( CallBacker* cb )
 {
-    NotifyStopper ns( logpropfld_->rangechanged );
+    NotifyStopper ns( logpropfld_->rangeChanged );
     mCBCapsuleUnpack(const Interval<float>&,rg,cb);
-    for ( auto* logcurve:logchart_->logcurves() )
+    for ( auto* logcurve : logchart_->logcurves() )
 	logcurve->setDisplayRange( rg );
-
 }
 
 
