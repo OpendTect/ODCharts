@@ -73,7 +73,7 @@ void WellData::copyFrom( const WellData& oth )
 ConstRefMan<Well::Data> WellData::getWD() const
 {
     ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_,
-						  Well::LoadReqs::AllNoLogs );
+						 Well::LoadReqs::AllNoLogs() );
     return wd;
 }
 
