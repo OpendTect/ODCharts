@@ -853,6 +853,10 @@ void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
 	return;
 
     chart->addLogCurve( wellkey, lognm );
+    LogCurve* log = chart->getLogCurve( wellkey, lognm );
+    PtrMan<IOPar> logpar = logstyles_.subselect( lognm );
+    if ( logpar )
+	log->usePar( *logpar, true );
 
     Well::LoadReqs lreq( Well::Trck );
     RefMan<Well::Data> wd = Well::MGR().get( wellkey, lreq );
@@ -876,6 +880,10 @@ void uiLogViewWin::rmvLog( int idx, const MultiID& wellkey,
     if ( !chart->hasLogCurve(wellkey,lognm) )
 	return;
 
+    LogCurve* log = chart->getLogCurve( wellkey, lognm );
+    IOPar logpar;
+    log->fillPar( logpar );
+    logstyles_.mergeComp( logpar, lognm );
     chart->removeLogCurve( wellkey, lognm );
     logviewtbl_->updateViewLabel( idx );
     logviewtbl_->updatePrimaryZrangeCB( nullptr );

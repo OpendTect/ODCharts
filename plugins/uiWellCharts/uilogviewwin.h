@@ -178,6 +178,7 @@ public:
 
 protected:
     uiLogViewerTree*	logviewtree_;
+    IOPar		logstyles_;
 
     MenuItem		addbuttonitem_;
     MenuItem		rmvbuttonitem_;
