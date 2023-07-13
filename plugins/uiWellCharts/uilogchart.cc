@@ -544,11 +544,13 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
     OD::Color col;
     col.use( colstr );
     setBackgroundColor( col );
-    int ztype, scale;
-    iop.get( sKey::Type(), ztype );
-    ztype_ = uiWellCharts::ZTypeDef().getEnumForIndex( ztype );
-    iop.get( sKey::Scale(), scale );
-    scale_ = uiWellCharts::ScaleDef().getEnumForIndex( scale );
+    int parval;
+    iop.get( sKey::Type(), parval );
+    uiWellCharts::ZType ztype =
+			    uiWellCharts::ZTypeDef().getEnumForIndex( parval );
+    iop.get( sKey::Scale(), parval );
+    uiWellCharts::Scale scale =
+			    uiWellCharts::ScaleDef().getEnumForIndex( parval );
 
     FileMultiString zfms_major( iop.find(sKey::ZMajorGrid()) );
     FileMultiString zfms_minor( iop.find(sKey::ZMinorGrid()) );
@@ -584,6 +586,8 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
     {
 	removeAllMarkers();
 	removeAllCurves();
+	setScale( scale );
+	setZType( ztype );
 	for ( int idx=0; idx<nlog; idx++ )
 	{
 	    PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
@@ -628,7 +632,6 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 	    marker->addTo( *this, *tmp );
 	    markers_ += marker;
 	}
-	setZType( ztype_, true );
     }
     else
     {
