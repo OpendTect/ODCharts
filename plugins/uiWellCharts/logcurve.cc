@@ -8,18 +8,19 @@ ________________________________________________________________________
 -*/
 
 #include "logcurve.h"
-
 #include "loggradient.h"
-#include "uichartfillx.h"
+
 #include "uichartaxes.h"
+#include "uichartfillx.h"
 #include "uilogchart.h"
-#include "wellchartcommon.h"
 
 #include "draw.h"
+#include "keystrs.h"
 #include "mnemonics.h"
 #include "multiid.h"
 #include "ranges.h"
 #include "separstr.h"
+#include "wellchartcommon.h"
 #include "welld2tmodel.h"
 #include "welldata.h"
 #include "welllog.h"
