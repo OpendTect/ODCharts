@@ -475,6 +475,9 @@ void uiLogViewTable::updatePrimaryChartCB( CallBacker* cb )
     if ( !logchart || !primarychart_ )
     {
 	primarychart_ = getLogChart( 0 );
+	if ( !primarychart_ )
+	    return;
+
 	for ( int idx=0; idx<size(); idx++ )
 	{
 	    logchart = getLogChart( idx );
