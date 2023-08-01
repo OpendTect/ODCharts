@@ -853,6 +853,8 @@ void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
     if ( chart->hasLogCurve(wellkey,lognm) )
 	return;
 
+    Interval<float> rg = chart->getZAxis()->range();
+    rg.sort();
     chart->addLogCurve( wellkey, lognm );
     LogCurve* log = chart->getLogCurve( wellkey, lognm );
     PtrMan<IOPar> logpar = logstyles_.subselect( lognm );
@@ -867,6 +869,7 @@ void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
     else
 	logviewtbl_->updatePrimaryZrangeCB( nullptr );
 
+    chart->setZRange( rg );
     needsave_ = true;
 }
 
@@ -885,9 +888,12 @@ void uiLogViewWin::rmvLog( int idx, const MultiID& wellkey,
     IOPar logpar;
     log->fillPar( logpar );
     logstyles_.mergeComp( logpar, lognm );
+    Interval<float> rg = chart->getZAxis()->range();
+    rg.sort();
     chart->removeLogCurve( wellkey, lognm );
     logviewtbl_->updateViewLabel( idx );
     logviewtbl_->updatePrimaryZrangeCB( nullptr );
+    chart->setZRange( rg );
 
     needsave_ = true;
 }
