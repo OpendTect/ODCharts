@@ -551,7 +551,8 @@ void uiLockedLogViewWin::dataChgCB( CallBacker* )
 	mns.getNames( lognms );
     }
 
-    if ( selwells_!=wellids || sellogs_!=lognms || selmrkrs_!=mrknms )
+    if ( wellids.size()!=logviewtbl_->size() || selwells_!=wellids ||
+	 sellogs_!=lognms || selmrkrs_!=mrknms )
     {
 	closePropertiesDlg();
 	if ( !checkSave() )
