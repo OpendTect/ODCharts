@@ -45,12 +45,11 @@ MarkerLine::~MarkerLine()
 
 bool MarkerLine::initMarker()
 {
-    Well::LoadReqs lreq( Well::Mrkrs );
-    RefMan<Well::Data> wd = Well::MGR().get( wellid_, lreq );
-    if ( !wd || !wd->markers().isPresent(markername_) )
+    wd_ = Well::MGR().get( wellID(), Well::LoadReqs(Well::Mrkrs) );
+    if ( !wd_ || !wd_->markers().isPresent(markername_) )
 	return false;
 
-    const Well::Marker* marker = wd->markers().getByName( markername_ );
+    const Well::Marker* marker = wd_->markers().getByName( markername_ );
     dah_ = marker->dah();
     zpos_ = dahToZ( dah_, ztype_ );
     linestyle_.color_ = marker->color();
@@ -75,7 +74,7 @@ void MarkerLine::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
 
     BufferString callouttxt( markername_ );
     if ( show_wellnm )
-	callouttxt.add("(").add(wellname_).add(")");
+	callouttxt.add("(").add(wellName()).add(")");
 
     callouttxt.add(" Depth: %2" );
 
@@ -141,7 +140,7 @@ void MarkerLine::addMarker( uiLogChart& logchart, bool show_wellnm )
     series_ = new uiLineSeries();
     uiString lblstr;
     if ( show_wellnm )
-	lblstr = tr("%1 (%2)").arg(markername_).arg(wellname_);
+	lblstr = tr("%1 (%2)").arg(markername_).arg(wellName());
     else
 	lblstr = tr("%1").arg(markername_);
 

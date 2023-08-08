@@ -36,8 +36,7 @@ LogCurve::LogCurve()
 LogCurve::LogCurve( const MultiID& wellid, const char* lognm )
     : LogData(wellid,lognm)
 {
-    ConstRefMan<Well::Data> wd = getWD();
-    const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
+    const Well::Log* log = wd_ ? wd_->getLog( logname_ ) : nullptr;
     if ( log )
 	addLog( *log );
 }
@@ -112,8 +111,7 @@ LogCurve* LogCurve::clone() const
 
 void LogCurve::addTo( uiLogChart& logchart, bool show_wellnm, bool show_uom )
 {
-    ConstRefMan<Well::Data> wd = getWD();
-    const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
+    const Well::Log* log = wd_ ? wd_->getLog( logname_ ) : nullptr;
     if ( !log )
 	return;
 
@@ -154,7 +152,7 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
     initCallBacks();
     BufferString logtitle( logname_ );
     if ( show_wellnm )
-	logtitle.add(" - ").add( wellname_ );
+	logtitle.add(" - ").add( wellName() );
     if ( show_uom )
 	logtitle.add(" (").add( uomlbl_ ).add(")");
 
@@ -164,7 +162,7 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
     disprange_ = axis_->range();
     logchart.addAxis( axis_, OD::Top );
     logchart.getZAxis()->setAxisLimits( zrange_ );
-    BufferString callouttxt( wellname_, "\nDepth: %2\n", logname_ );
+    BufferString callouttxt( wellName(), "\nDepth: %2\n", logname_ );
     callouttxt.add( ": %1" );
     linestyle_ = lstyle;
     for ( auto* series : series_ )
@@ -351,12 +349,11 @@ void LogCurve::setZType( ZType ztype, bool force )
 	return;
 
     LogData::setZType( ztype, force );
-    ConstRefMan<Well::Data> wd = WellData::getWD();
-    if ( !wd )
+    if ( !wd_ )
 	return;
 
-    const Well::Track& track = wd->track();
-    const Well::D2TModel* d2t = wd->d2TModel();
+    const Well::Track& track = wd_->track();
+    const Well::D2TModel* d2t = wd_->d2TModel();
 
     const bool istvd = ztype==TVD || ztype==TVDSS || ztype==TVDSD;
     const UnitOfMeasure* zduom = UnitOfMeasure::surveyDefDepthUnit();
@@ -544,7 +541,7 @@ void LogCurve::setFillPar( const char* fillstr, bool left )
     else if ( ftype==uiChartFillx::GradientFill )
     {
 	FileMultiString gradfms( fms.from(next) );
-	LogGradient* lg = new LogGradient( wellid_ );
+	LogGradient* lg = new LogGradient( wellID() );
 	lg->fromString( gradfms );
 	fill->setGradientImg( lg, false );
     }
@@ -556,8 +553,7 @@ void LogCurve::usePar( const IOPar& par, bool styleonly )
     LogData::usePar( par, styleonly );
     if ( !styleonly )
     {
-	ConstRefMan<Well::Data> wd = getWD();
-	const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
+	const Well::Log* log = wd_ ? wd_->getLog( logname_ ) : nullptr;
 	if ( log )
 	    addLog( *log );
     }
