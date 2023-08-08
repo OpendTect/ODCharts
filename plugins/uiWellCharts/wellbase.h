@@ -28,9 +28,9 @@ public:
 
     void			operator=(const WellData&) = delete;
 
-    MultiID			wellID() const		{ return wellid_; }
-    BufferString		wellName() const	{ return wellname_; }
-    uiWellCharts::ZType		zType() const		{ return ztype_; }
+    MultiID			wellID() const	 { return wd_->multiID(); }
+    BufferString		wellName() const { return wd_->name(); }
+    uiWellCharts::ZType		zType() const	 { return ztype_; }
 
     virtual void		setZType(uiWellCharts::ZType,bool);
     float			zToDah(float,uiWellCharts::ZType) const;
@@ -40,15 +40,13 @@ public:
 
     void			fillPar(IOPar&) const;
     void			usePar(const IOPar&);
-
-protected:
-    bool			initWell();
-    bool			initWell(const char*);
-    void			copyFrom(const WellData&);
     virtual ConstRefMan<Well::Data>	getWD() const;
 
+protected:
+    bool			initWell(const MultiID&);
+    bool			initWell(const char*);
+    void			copyFrom(const WellData&);
 
     uiWellCharts::ZType		ztype_;
-    MultiID			wellid_;
-    BufferString 		wellname_;
+    mutable ConstRefMan<Well::Data>	wd_;
 };

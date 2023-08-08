@@ -44,7 +44,6 @@ protected:
     bool		initLog(const Well::Log&);
     bool		initLog(const char*,const Well::Log&);
     void		copyFrom(const LogData&);
-    ConstRefMan<Well::Data>	getWD() const override;
 
     BufferString	logname_;
     BufferString	uomlbl_;

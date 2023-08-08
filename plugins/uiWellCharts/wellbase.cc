@@ -23,14 +23,12 @@ ________________________________________________________________________
 using namespace uiWellCharts;
 
 WellData::WellData()
-    : wellid_(MultiID::udf())
 {}
 
 
 WellData::WellData( const MultiID& wellid )
-    : wellid_(wellid)
 {
-    initWell();
+    initWell( wellid );
 }
 
 
@@ -39,13 +37,15 @@ WellData::~WellData()
 }
 
 
-bool WellData::initWell()
+bool WellData::initWell( const MultiID& wellid )
 {
-    ConstRefMan<Well::Data> wd = getWD();
-    if ( !wd )
+    if ( wellid.isUdf() )
 	return false;
 
-    wellname_ = wd->name();
+    wd_ = Well::MGR().get( wellid, Well::LoadReqs(Well::Inf) );
+    if ( !wd_ )
+	return false;
+
     ztype_ = uiWellCharts::MD;
     return true;
 }
@@ -57,24 +57,20 @@ bool WellData::initWell( const char* wellnm )
     if ( !ioobj )
 	return false;
 
-    wellid_ = ioobj->key();
-    return initWell();
+    return initWell( ioobj->key() );
 }
 
 
 void WellData::copyFrom( const WellData& oth )
 {
     ztype_ = oth.ztype_;
-    wellid_ = oth.wellid_;
-    wellname_ = oth.wellname_;
+    wd_ = oth.wd_;
 }
 
 
 ConstRefMan<Well::Data> WellData::getWD() const
 {
-    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_,
-						 Well::LoadReqs::AllNoLogs() );
-    return wd;
+    return wd_;
 }
 
 
@@ -91,12 +87,16 @@ float WellData::zToDah( float inz, ZType zt ) const
     if ( zt==MD )
 	return getConvertedValue( inz, zduom, zsuom );
 
-    ConstRefMan<Well::Data> wd = getWD();
-    if ( !wd )
+    Well::LoadReqs lreqs( Well::Trck );
+    if ( zt==TWT )
+	lreqs.add( Well::D2T );
+
+    wd_ = Well::MGR().get( wellID(), lreqs );
+    if ( !wd_ )
 	return mUdf(float);
 
-    const Well::Track& track = wd->track();
-    const Well::D2TModel* d2t = wd->d2TModel();
+    const Well::Track& track = wd_->track();
+    const Well::D2TModel* d2t = wd_->d2TModel();
     const bool istvd = zt==TVD || zt==TVDSS || zt==TVDSD;
     if ( istvd && track.isEmpty() )
 	return mUdf(float);
@@ -133,12 +133,16 @@ float WellData::dahToZ( float dah, ZType zt  ) const
     if ( zt==MD )
 	return getConvertedValue( dah, zsuom, zduom );
 
-    ConstRefMan<Well::Data> wd = getWD();
-    if ( !wd )
+    Well::LoadReqs lreqs( Well::Trck );
+    if ( zt==TWT )
+	lreqs.add( Well::D2T );
+
+    wd_ = Well::MGR().get( wellID(), lreqs );
+    if ( !wd_ )
 	return mUdf(float);
 
-    const Well::Track& track = wd->track();
-    const Well::D2TModel* d2t = wd->d2TModel();
+    const Well::Track& track = wd_->track();
+    const Well::D2TModel* d2t = wd_->d2TModel();
     const bool istvd = zt==TVD || zt==TVDSS || zt==TVDSD;
     if ( istvd && track.isEmpty() )
 	return mUdf(float);
@@ -172,12 +176,16 @@ Interval<float> WellData::dahToZ( const Interval<float>& dahrg, ZType zt ) const
 
 void WellData::fillPar( IOPar& par ) const
 {
-    par.set( sKey::ID(), wellid_ );
+    if ( !wd_ )
+	return;
+
+    par.set( sKey::ID(), wellID() );
 }
 
 
 void WellData::usePar( const IOPar& par )
 {
-    par.get( sKey::ID(), wellid_ );
-    initWell();
+    MultiID wellid;
+    par.get( sKey::ID(), wellid );
+    initWell( wellid );
 }

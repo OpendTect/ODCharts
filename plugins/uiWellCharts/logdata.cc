@@ -35,18 +35,12 @@ LogData::~LogData()
 }
 
 
-ConstRefMan<Well::Data> LogData::getWD() const
-{
-    ConstRefMan<Well::Data> wd = Well::MGR().get( wellid_,
-						  Well::LoadReqs::AllNoLogs() );
-    return wd;
-}
-
-
 bool LogData::initLog()
 {
-    ConstRefMan<Well::Data> wd = getWD();
-    const Well::Log* log = wd ? wd->getLog( logname_ ) : nullptr;
+    if ( !wd_ )
+	return false;
+
+    const Well::Log* log = wd_->getLog( logname_ );
     if ( !log )
 	return false;
 
