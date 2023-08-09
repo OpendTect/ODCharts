@@ -89,6 +89,16 @@ void uiLogViewToolGrp::setLocked( bool yn )
 }
 
 
+void uiLogViewToolGrp::hideLock( bool yn )
+{
+    mDynamicCastGet(uiToolButton*,tb,addedobjects_.first())
+    if ( !tb )
+	return;
+
+    tb->display( !yn );
+}
+
+
 void uiLogViewToolGrp::lockCB( CallBacker* )
 {
     mDynamicCastGet(uiToolButton*,tb,addedobjects_.first());

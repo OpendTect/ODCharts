@@ -687,7 +687,10 @@ void uiLogViewTable::setAllLocked( bool yn )
 	    mDynamicCastGet(uiLogViewToolGrp*,grp,
 			    logviews_->getCellGroup(curcell))
 	    if ( grp )
+	    {
 		grp->setLocked( yn );
+		grp->hideLock( yn );
+	    }
 	}
     }
 }
