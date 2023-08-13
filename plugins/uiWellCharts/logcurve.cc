@@ -467,10 +467,11 @@ BufferString LogCurve::getFillPar( bool left ) const
     BufferString res;
     const BufferString tolognm = left ? lefttolog_ : righttolog_;
     uiChartFillx* fill = left ? leftfill_ : rightfill_;
-
-    FileMultiString fms = uiChartFillx::toString( fill->fillType() );
-    const float baseval = fill->baseLineValue();
-    const bool hascurve = fill->hasBaseLineSeries();
+    const uiChartFillx::FillType filltyp =
+		fill ? fill->fillType() : uiChartFillx::NoFill;
+    FileMultiString fms = uiChartFillx::toString( filltyp );
+    const float baseval = fill ? fill->baseLineValue() : mUdf(float);
+    const bool hascurve = fill ? fill->hasBaseLineSeries() : false;
     const uiWellCharts::FillLimit flim =
 		hascurve ? uiWellCharts::Curve
 			 : (mIsUdf(baseval) ? uiWellCharts::Track
@@ -482,14 +483,17 @@ BufferString LogCurve::getFillPar( bool left ) const
     else if ( flim==uiWellCharts::Curve )
 	fms += tolognm;
 
-    if ( fill->fillType()==uiChartFillx::ColorFill )
+    if ( fill )
     {
-	BufferString col;
-	fill->color().fill( col );
-	fms += FileMultiString( col );
+	if ( fill->fillType()==uiChartFillx::ColorFill )
+	{
+	    BufferString col;
+	    fill->color().fill( col );
+	    fms += FileMultiString( col );
+	}
+	else if ( fill->fillType()==uiChartFillx::GradientFill )
+	    fms += fill->gradientImg()->toString();
     }
-    else if ( fill->fillType()==uiChartFillx::GradientFill )
-	fms += fill->gradientImg()->toString();
 
     res = fms;
     return res;
