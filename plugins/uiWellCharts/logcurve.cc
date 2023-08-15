@@ -78,7 +78,6 @@ LogCurve* LogCurve::clone() const
 {
     auto* lc = new LogCurve;
     lc->copyFrom( *this );
-    lc->linestyle_ = linestyle_;
     lc->pointsize_ = pointsize_;
     lc->axis_ = axis_;
     lc->leftfill_ = leftfill_;
@@ -115,15 +114,7 @@ void LogCurve::addTo( uiLogChart& logchart, bool show_wellnm, bool show_uom )
     if ( !log )
 	return;
 
-    const Mnemonic* mnem = MNC().getByName( mnemlbl_ );
-    OD::LineStyle lstyle;
-    if ( mnem )
-    {
-	const Mnemonic::DispDefs& disp = mnem->disp_;
-	lstyle.color_ = disp.color_;
-    }
-
-    addTo( logchart, lstyle, show_wellnm, show_uom );
+    addTo( logchart, linestyle_, show_wellnm, show_uom );
 }
 
 
@@ -154,7 +145,12 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
     if ( show_wellnm )
 	logtitle.add(" - ").add( wellName() );
     if ( show_uom )
-	logtitle.add(" (").add( uomlbl_ ).add(")");
+    {
+	if ( displbl_.isEmpty() || !dispuom_ )
+	    logtitle.add(" (").add( uomlbl_ ).add(")");
+	else
+	    logtitle.add(" (").add( displbl_ ).add(")");
+    }
 
     setZType( logchart.zType(), false );
     axis_ = logchart.makeLogAxis( logtitle, min, max, reverse );
@@ -239,7 +235,8 @@ void LogCurve::addLog( const Well::Log& log )
 	if ( !mIsUdf(logval) )
 	{
 	    mds->add( dah );
-	    vals->add( logval );
+	    vals->add( dispuom_ ? getConvertedValue(logval, loguom_, dispuom_)
+				: logval );
 	}
 	else
 	{

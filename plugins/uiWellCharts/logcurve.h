@@ -12,7 +12,6 @@ ________________________________________________________________________
 #include "logdata.h"
 
 #include "uichartseries.h"
-#include "draw.h"
 
 namespace Well { class Log; }
 
@@ -64,7 +63,6 @@ protected:
     BufferString		getFillPar(bool left) const;
     void			setFillPar(const char* fillstr,bool left=true);
 
-    OD::LineStyle		linestyle_;
     float			pointsize_	= 2.f;
     ObjectSet<uiLineSeries>	series_;
     ObjectSet<TypeSet<float>>	md_;
