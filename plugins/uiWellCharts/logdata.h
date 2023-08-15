@@ -10,6 +10,8 @@ ________________________________________________________________________
 
 #include "uiwellchartsmod.h"
 
+#include "draw.h"
+#include "mnemonics.h"
 #include "multiid.h"
 #include "ranges.h"
 #include "wellchartcommon.h"
@@ -45,11 +47,18 @@ protected:
     bool		initLog(const char*,const Well::Log&);
     void		copyFrom(const LogData&);
 
-    BufferString	logname_;
-    BufferString	uomlbl_;
-    BufferString	mnemlbl_;
-    Interval<float>	dahrange_;
-    Interval<float>	zrange_;
-    Interval<float>	valrange_;
-    Interval<float>	disprange_;
+    const Mnemonic*		logmnem_ = nullptr;
+    const UnitOfMeasure*	loguom_ = nullptr;
+    BufferString		logname_;
+    BufferString		uomlbl_;
+    BufferString		mnemlbl_;
+    Interval<float>		dahrange_;
+    Interval<float>		zrange_;
+    Interval<float>		valrange_;
+
+    Mnemonic::Scale		dispscale_;
+    const UnitOfMeasure*	dispuom_ = nullptr;
+    BufferString		displbl_;
+    Interval<float>		disprange_;
+    OD::LineStyle		linestyle_;
 };

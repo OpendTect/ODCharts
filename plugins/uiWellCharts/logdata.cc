@@ -65,19 +65,11 @@ bool LogData::initLog( const Well::Log& log )
     zrange_ = dahToZ( dahrange_, ztype_ );
     valrange_ = log.valueRange();
     disprange_.setUdf();
-
-    const Mnemonic* mnem = log.mnemonic();
-    if ( mnem )
-    {
-	const Mnemonic::DispDefs& disp = mnem->disp_;
-	const UnitOfMeasure* mnem_uom = mnem->unit();
-	const UnitOfMeasure* log_uom = log.unitOfMeasure();
-
-	disprange_.start = getConvertedValue( disp.typicalrange_.start,
-					      mnem_uom, log_uom );
-	disprange_.stop = getConvertedValue( disp.typicalrange_.stop,
-					     mnem_uom, log_uom );
-    }
+    logmnem_ = log.mnemonic();
+    loguom_ = log.unitOfMeasure();
+    if ( logmnem_ )
+	dispuom_ = logmnem_->getDisplayInfo( dispscale_, disprange_, displbl_,
+					     linestyle_ );
     else
     {
 	disprange_.start = valrange_.start;
@@ -96,7 +88,13 @@ void LogData::copyFrom( const LogData& oth )
     dahrange_ = oth.dahrange_;
     zrange_ = oth.zrange_;
     valrange_ = oth.valrange_;
+    logmnem_ = oth.logmnem_;
+    loguom_ = oth.loguom_;
+    dispscale_ =oth.dispscale_;
+    dispuom_ = oth.dispuom_;
+    displbl_ = oth.displbl_;
     disprange_ = oth.disprange_;
+    linestyle_ = oth.linestyle_;
 }
 
 
