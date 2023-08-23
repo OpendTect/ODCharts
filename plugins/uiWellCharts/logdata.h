@@ -33,6 +33,7 @@ public:
     Interval<float>	zRange() const		{ return zrange_; }
     Interval<float>	logRange() const	{ return valrange_; }
     Interval<float>	dispRange();
+    const Mnemonic*	mnemonic() const	{ return logmnem_; }
 
     void		setDisplayRange(float left,float right);
     virtual void	setDisplayRange(const Interval<float>& range);
