@@ -71,8 +71,10 @@ bool LogData::initLog( const Well::Log& log )
     if ( logmnem_ )
 	dispuom_ = logmnem_->getDisplayInfo( dispscale_, disprange_, displbl_,
 					     linestyle_ );
-    else
+
+    if ( !loguom_ )
     {
+	dispuom_ = nullptr;
 	disprange_.start = valrange_.start;
 	disprange_.stop = valrange_.stop;
     }
