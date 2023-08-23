@@ -162,7 +162,7 @@ void uiLogViewTable::addWellData( const BufferStringSet& wellnms,
 	    if ( logcurve_in )
 	    {
 		const Interval<float>& dr = logcurve_in->dispRange();
-		if ( dr.includes(curvecopy->logRange()) )
+		if ( logcurve_in->mnemonic()==curvecopy->mnemonic() )
 		    curvecopy->setDisplayRange( dr );
 		else
 		    curvecopy->setDisplayRange( StepInterval<float>::udf() );
