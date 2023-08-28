@@ -453,10 +453,7 @@ StepInterval<float> uiChartsAxisHandler::range() const
 {
     StepInterval<float> res = StepInterval<float>::udf();
     if ( axis_ )
-    {
-	res = axis_->range();
-	res.step = axis_->getTickInterval();
-    }
+	res.set( axis_->range(), axis_->getTickInterval() );
 
     return res;
 }
