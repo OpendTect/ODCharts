@@ -139,11 +139,11 @@ void uiWellChartsLogToolWinGrp::displayLogs()
     ObjectSet<const Well::Log> outplogs;
     for ( const auto* logdata : logdatas_ )
     {
-	for ( const auto* log : logdata->inpLogs() )
+	for ( int lidx=0; lidx<logdata->inpLogs().size(); lidx++ )
 	{
 	    wellnms.add( logdata->wellName() );
-	    inplogs += log;
-	    outplogs += logdata->logs().getLog( log->name().buf() );
+	    inplogs += logdata->inpLogs()[lidx];
+	    outplogs += logdata->outpLogs()[lidx];
 	}
     }
 
