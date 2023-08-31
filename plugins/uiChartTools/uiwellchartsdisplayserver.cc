@@ -143,8 +143,9 @@ void uiWellChartsLogToolWinGrp::displayLogs()
 	{
 	    wellnms.add( logdata->wellName() );
 	    inplogs += log;
-	    outplogs += logdata->logs().getLog( log->name().buf() );
 	}
+	for ( const auto* log : logdata->outpLogs() )
+	    outplogs += log;
     }
 
     uiLogChart* chart = logviewtbl_->getLogChart( 0 );
