@@ -66,10 +66,9 @@ uiMainWin* uiWellChartsDisplayServer::createLogViewWinCB( uiParent* p,
 			const BufferStringSet& markernms,
 		        const DBKeySet& sel_ids,
 			const BufferStringSet& sel_lognms,
-			const BufferStringSet& sel_markernms,
-		        const CallBack& filtercb )
+			const BufferStringSet& sel_markernms )
 {
-    auto* dlg = new uiLockedLogViewWin( p, wd, lognms, markernms, filtercb );
+    auto* dlg = new uiLockedLogViewWin( p, wd, lognms, markernms );
     dlg->setSelected( sel_ids, sel_lognms, sel_markernms, false );
     dlg->setDeleteOnClose( true );
     dlg->setCurrentView( 0 );
@@ -83,10 +82,9 @@ uiMainWin* uiWellChartsDisplayServer::createLogViewWinCB( uiParent* p,
 			const BufferStringSet& markernms,
 		        const DBKeySet& sel_ids,
 			const MnemonicSelection& sel_mns,
-			const BufferStringSet& sel_markernms,
-		        const CallBack& filtercb )
+			const BufferStringSet& sel_markernms )
 {
-    auto* dlg = new uiLockedLogViewWin( p, wd, sel, markernms, filtercb );
+    auto* dlg = new uiLockedLogViewWin( p, wd, sel, markernms );
     dlg->setSelected( sel_ids, sel_mns, sel_markernms, false );
     dlg->setDeleteOnClose( true );
     dlg->setCurrentView( 0 );
