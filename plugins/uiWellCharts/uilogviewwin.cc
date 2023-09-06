@@ -49,7 +49,6 @@ static const int sWinWidth = 500;
 
 uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
     : uiMainWin(p,toUiString("OpendTect - Log Viewer"))
-    , showfilter_(false)
     , newitem_(uiStrings::sNew(),"new","",
 				mCB(this,uiLogViewWinBase,newCB),sMnuID++)
     , openitem_(uiStrings::sOpen(),"open","",
@@ -69,15 +68,6 @@ uiLogViewWinBase::uiLogViewWinBase( uiParent* p, int nrcol, bool showtools )
 }
 
 
-uiLogViewWinBase::uiLogViewWinBase( uiParent* p, const CallBack& filtercb,
-				    int nrcol, bool showtools )
-    : uiLogViewWinBase(p,nrcol,showtools)
-{
-    filtercb_ = filtercb;
-    showfilter_ = true;
-}
-
-
 uiLogViewWinBase::~uiLogViewWinBase()
 {
     detachAllNotifiers();
@@ -91,9 +81,6 @@ void uiLogViewWinBase::createToolBar()
     tb_->addButton( openitem_ );
     tb_->addButton( saveitem_ );
     tb_->addButton( saveasitem_ );
-    if ( showfilter_ )
-	tb_->addButton( "filter", tr("Set Display Filter"),
-			mCB(this,uiLogViewWinBase,filterCB) );
     tb_->addSeparator();
 
     EnumDef def = uiWellCharts::ZTypeDef();
@@ -130,13 +117,6 @@ void uiLogViewWinBase::uiInitCB( CallBacker* )
 	    loadWells( wellids, welllogs );
 	}
     }
-}
-
-
-void uiLogViewWinBase::filterCB( CallBacker* )
-{
-    if ( showfilter_ )
-	filtercb_.doCall( this );
 }
 
 
@@ -337,9 +317,8 @@ void uiLogViewWinBase::saveFile( const char* nm )
 uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 					const ObjectSet<Well::Data>& wds,
 					const BufferStringSet& lognms,
-					const BufferStringSet& markernms,
-					const CallBack& filtercb )
-    : uiLogViewWinBase(p,filtercb, 0, false)
+					const BufferStringSet& markernms )
+    : uiLogViewWinBase(p, 0, false)
     , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
     , unzoombuttonitem_(tr("View All Z"),"view_all","",
@@ -366,9 +345,8 @@ uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 uiLockedLogViewWin::uiLockedLogViewWin( uiParent* p,
 					const ObjectSet<Well::Data>& wds,
 					const MnemonicSelection& mns,
-					const BufferStringSet& markernms,
-					const CallBack& filtercb )
-    : uiLogViewWinBase(p, filtercb, 0, false)
+					const BufferStringSet& markernms )
+    : uiLogViewWinBase(p, 0, false)
     , settingsbuttonitem_(uiStrings::sSettings(),"settings","",
 			mCB(this,uiLockedLogViewWin,showSettingsCB),sMnuID++)
     , unzoombuttonitem_(tr("View All Z"),"view_all","",

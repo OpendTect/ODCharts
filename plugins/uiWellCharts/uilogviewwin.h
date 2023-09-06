@@ -69,8 +69,6 @@ public:
 protected:
 			uiLogViewWinBase(uiParent*,int nrcol=0,
 					 bool showtools=true);
-			uiLogViewWinBase(uiParent*,const CallBack&filtercb,
-					 int nrcol=0, bool showtools=true);
 
     uiToolBar*		tb_ = nullptr;
     uiLogViewTable*	logviewtbl_;
@@ -83,8 +81,6 @@ protected:
     MenuItem		openitem_;
     MenuItem		saveitem_;
     MenuItem		saveasitem_;
-    bool		showfilter_;
-    CallBack		filtercb_;
 
     bool		checkSave();
     void		createToolBar();
@@ -110,13 +106,11 @@ public:
 			uiLockedLogViewWin(uiParent*,
 					   const ObjectSet<Well::Data>&,
 					   const BufferStringSet& lognms,
-					   const BufferStringSet& markernms,
-					   const CallBack& filtercb);
+					   const BufferStringSet& markernms);
 			uiLockedLogViewWin(uiParent*,
 					   const ObjectSet<Well::Data>&,
 					   const MnemonicSelection& mns,
-					   const BufferStringSet& markernms,
-					   const CallBack& filtercb);
+					   const BufferStringSet& markernms);
 			~uiLockedLogViewWin();
 
     void		setSelected(const DBKeySet&,
