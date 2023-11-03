@@ -605,6 +605,9 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 	    logcurve->usePar( *tmp, true );
 
 	uiChartAxis* laxis = logcurve->getAxis();
+	if ( !laxis )
+	    continue;
+
 	laxis->setTickCount( lfms_major.getIValue(0) );
 	laxis->setGridStyle( ls_major );
 	laxis->setGridLineVisible( lfms_major.getYN(1) );

@@ -232,6 +232,9 @@ void uiLogChartGrp::lgridChgCB( CallBacker* )
     for ( auto* logcurve : logchart_->logcurves() )
     {
 	uiChartAxis* laxis = logcurve->getAxis();
+	if ( !laxis )
+	    continue;
+
 	laxis->setTickCount( majorloggridfld_->getSteps() );
 	laxis->setGridStyle( majorloggridfld_->getStyle() );
 	laxis->setGridLineVisible( majorloggridfld_->isVisible() );
