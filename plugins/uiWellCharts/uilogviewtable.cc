@@ -31,6 +31,7 @@ uiLogViewTable::uiLogViewTable( uiParent* p, int nrcol, bool showtools )
 				.fillrow(true).fillcol(true)
 				.defrowlbl(false).defcollbl(false)
 				.insertrowallowed(false).removerowallowed(false)
+				.insertcolallowed(false).removecolallowed(false)
 				.mincolwdt(30.0), "" );
     logviews_->setStretch( 2, 2 );
     logviews_->showGrid( false );
