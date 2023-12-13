@@ -48,6 +48,18 @@ uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart* logchart,
     if ( edmarkers )
 	tabs_->addTab( markersgrp_, uiStrings::sMarker(2) );
 
+    mAttachCB( postFinalize(), uiLogViewPropDlg::initCB);
+}
+
+
+uiLogViewPropDlg::~uiLogViewPropDlg()
+{
+    detachAllNotifiers();
+}
+
+
+void uiLogViewPropDlg::initCB( CallBacker* )
+{
     mAttachCB(logchart_->logChange, uiLogViewPropDlg::updateLogsCB);
     mAttachCB(logchart_->markerChange, uiLogViewPropDlg::updateMarkersCB);
     if ( withapply_ )
@@ -57,12 +69,6 @@ uiLogViewPropDlg::uiLogViewPropDlg( uiParent* p, uiLogChart* logchart,
 	       uiLogViewPropDlg::closeCB );
 
     logchart_->fillPar( settingsbackup_ );
-}
-
-
-uiLogViewPropDlg::~uiLogViewPropDlg()
-{
-    detachAllNotifiers();
 }
 
 
@@ -162,6 +168,18 @@ uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart* lc )
 		new uiGridStyleGrp( this, tr("Minor Log Grid Count"), true );
     minorloggridfld_->attach( alignedBelow, majorloggridfld_ );
 
+    mAttachCB( postFinalize(), uiLogChartGrp::initCB);
+}
+
+
+uiLogChartGrp::~uiLogChartGrp()
+{
+    detachAllNotifiers();
+}
+
+
+void uiLogChartGrp::initCB( CallBacker* )
+{
     update();
     mAttachCB( bgcolorfld_->colorChanged, uiLogChartGrp::bgColorChgCB );
     mAttachCB( scalefld_->valueChanged, uiLogChartGrp::scaleChgCB );
@@ -169,12 +187,6 @@ uiLogChartGrp::uiLogChartGrp( uiParent* p, uiLogChart* lc )
     mAttachCB( minorzgridfld_->changed, uiLogChartGrp::zgridChgCB );
     mAttachCB( majorloggridfld_->changed, uiLogChartGrp::lgridChgCB );
     mAttachCB( minorloggridfld_->changed, uiLogChartGrp::lgridChgCB );
-}
-
-
-uiLogChartGrp::~uiLogChartGrp()
-{
-    detachAllNotifiers();
 }
 
 
@@ -263,6 +275,7 @@ void uiLogChartGrp::scaleChgCB( CallBacker* )
 uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart* lc, bool commonrange )
     : uiGroup(p,"Logs")
     , logchart_(lc)
+    , commonrange_(commonrange)
 {
     logselfld_ = new uiListBox( this, "Logs", OD::ChooseOnlyOne );
     logselfld_->setAllowNoneChosen( false );
@@ -270,16 +283,24 @@ uiLogsGrp::uiLogsGrp( uiParent* p, uiLogChart* lc, bool commonrange )
 
     logpropfld_ = new uiLogCurveProps( this, lc );
     logpropfld_->attach( rightTo, logselfld_, 5 );
-    update();
-    mAttachCB( logselfld_->selectionChanged, uiLogsGrp::logselCB );
-    if ( commonrange )
-	mAttachCB( logpropfld_->rangeChanged, uiLogsGrp::updateRangesCB );
+
+    mAttachCB( postFinalize(), uiLogsGrp::initCB);
 }
 
 
 uiLogsGrp::~uiLogsGrp()
 {
     detachAllNotifiers();
+}
+
+
+void uiLogsGrp::initCB( CallBacker* )
+{
+    update();
+    mAttachCB( logselfld_->selectionChanged, uiLogsGrp::logselCB );
+    if ( commonrange_ )
+	mAttachCB( logpropfld_->rangeChanged, uiLogsGrp::updateRangesCB );
+
 }
 
 
@@ -339,15 +360,21 @@ uiMarkersGrp::uiMarkersGrp( uiParent* p, uiLogChart* lc )
 
     markerlinefld_ = new uiSelLineStyle( this, OD::LineStyle() );
     markerlinefld_->attach( rightOf, markerselfld_ );
-    update();
-    mAttachCB( markerselfld_->selectionChanged, uiMarkersGrp::markerselCB );
-    mAttachCB( markerlinefld_->changed, uiMarkersGrp::lineStyleChgCB );
+    mAttachCB( postFinalize(), uiMarkersGrp::initCB);
 }
 
 
 uiMarkersGrp::~uiMarkersGrp()
 {
     detachAllNotifiers();
+}
+
+
+void uiMarkersGrp::initCB( CallBacker* )
+{
+    update();
+    mAttachCB( markerselfld_->selectionChanged, uiMarkersGrp::markerselCB );
+    mAttachCB( markerlinefld_->changed, uiMarkersGrp::lineStyleChgCB );
 }
 
 
@@ -413,15 +440,21 @@ uiGridStyleGrp::uiGridStyleGrp( uiParent* p, const uiString& lbl,
 
     setHAlignObj( linestylefld_ );
 
-    mAttachCB( stepsfld_->valueChanged, uiGridStyleGrp::stepChgCB );
-    mAttachCB( stepsfld_->checked, uiGridStyleGrp::stepCheckedCB );
-    mAttachCB( linestylefld_->changed, uiGridStyleGrp::lineStyleChgCB );
+    mAttachCB( postFinalize(), uiGridStyleGrp::initCB);
 }
 
 
 uiGridStyleGrp::~uiGridStyleGrp()
 {
     detachAllNotifiers();
+}
+
+
+void uiGridStyleGrp::initCB( CallBacker* )
+{
+    mAttachCB( stepsfld_->valueChanged, uiGridStyleGrp::stepChgCB );
+    mAttachCB( stepsfld_->checked, uiGridStyleGrp::stepCheckedCB );
+    mAttachCB( linestylefld_->changed, uiGridStyleGrp::lineStyleChgCB );
 }
 
 

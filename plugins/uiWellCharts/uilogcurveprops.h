@@ -44,6 +44,7 @@ protected:
     uiGenInput*		fillbasefld_;
     uiGenInput*		fillseriesfld_;
 
+    void		initCB(CallBacker*);
     void		fillTypeChgCB(CallBacker*);
     void		fillLimitChgCB(CallBacker*);
     void		fillColorChgCB(CallBacker*);
@@ -78,6 +79,7 @@ protected:
     uiLogFillProps*	leftfillfld_;
     uiLogFillProps*	rightfillfld_;
 
+    void		initCB(CallBacker*);
     void		lineStyleChgCB(CallBacker*);
     void		rangeChgCB(CallBacker*);
 };

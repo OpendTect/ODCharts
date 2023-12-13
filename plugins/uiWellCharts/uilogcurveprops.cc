@@ -62,6 +62,21 @@ uiLogFillProps::uiLogFillProps( uiParent* p, uiChartFillx::FillDir fdir,
 
     setHAlignObj( filltypefld_ );
 
+    mAttachCB( postFinalize(), uiLogFillProps::initCB);
+}
+
+
+uiLogFillProps::~uiLogFillProps()
+{
+    detachAllNotifiers();
+}
+
+
+void uiLogFillProps::initCB( CallBacker* )
+{
+    fillTypeChgCB( nullptr );
+    fillLimitChgCB( nullptr );
+
     mAttachCB( filltypefld_->valueChanged, uiLogFillProps::fillTypeChgCB );
     mAttachCB( filllimitfld_->valueChanged, uiLogFillProps::fillLimitChgCB );
     mAttachCB( fillcolorfld_->colorChanged, uiLogFillProps::fillColorChgCB );
@@ -73,15 +88,6 @@ uiLogFillProps::uiLogFillProps( uiParent* p, uiChartFillx::FillDir fdir,
 	       uiLogFillProps::fillGradientChgCB );
     mAttachCB( fillbasefld_->valueChanged, uiLogFillProps::fillBaseChgCB );
     mAttachCB( fillseriesfld_->valueChanged, uiLogFillProps::fillSeriesChgCB );
-
-    fillTypeChgCB( nullptr );
-    fillLimitChgCB( nullptr );
-}
-
-
-uiLogFillProps::~uiLogFillProps()
-{
-    detachAllNotifiers();
 }
 
 
@@ -120,6 +126,8 @@ void uiLogFillProps::setLogFill( int lcidx )
     fillbasefld_->setValue( baseval );
     BufferStringSet lognms = logchart_->getDispLogsForID( logcurve_->wellID() );
     lognms.remove( logcurve_->logName() );
+    filllimitfld_->setEmpty();
+    fillseriesfld_->setEmpty();
     if ( lognms.isEmpty() )
     {
 	uiStringSet uistr( uiWellCharts::FillLimitDef().strings() );
@@ -134,7 +142,7 @@ void uiLogFillProps::setLogFill( int lcidx )
 		StringListInpSpec(uiWellCharts::FillLimitDef()), 0 );
 	filllimitfld_->setValue( flim );
 	fillseriesfld_->newSpec( StringListInpSpec(lognms), 0 );
-	fillseriesfld_->setValue( logcurve_->fillToLog(
+	fillseriesfld_->setText( logcurve_->fillToLog(
 					    filldir_==uiChartFillx::Left) );
     }
 
@@ -273,6 +281,9 @@ void uiLogFillProps::fillSeriesChgCB( CallBacker* )
 
     LogCurve* lc = logchart_->getLogCurve( logcurve_->wellID(),
 					  fillseriesfld_->text() );
+    if ( !lc )
+	return;
+
     logcurve_->setFillToLog( fillseriesfld_->text(),
 			     fill_->fillDir()==uiChartFillx::Left );
     fill_->setBaseLine( lc->getSeries() );
@@ -299,14 +310,20 @@ uiLogCurveProps::uiLogCurveProps( uiParent* p, uiLogChart* lc )
     rightfillfld_ = new uiLogFillProps( this, uiChartFillx::Right, lc );
     rightfillfld_->attach( alignedBelow, leftfillfld_ );
 
-    mAttachCB( rangefld_->valueChanged, uiLogCurveProps::rangeChgCB );
-    mAttachCB( linestylefld_->changed, uiLogCurveProps::lineStyleChgCB );
+    mAttachCB( postFinalize(), uiLogCurveProps::initCB);
 }
 
 
 uiLogCurveProps::~uiLogCurveProps()
 {
     detachAllNotifiers();
+}
+
+
+void uiLogCurveProps::initCB( CallBacker* )
+{
+    mAttachCB( rangefld_->valueChanged, uiLogCurveProps::rangeChgCB );
+    mAttachCB( linestylefld_->changed, uiLogCurveProps::lineStyleChgCB );
 }
 
 
