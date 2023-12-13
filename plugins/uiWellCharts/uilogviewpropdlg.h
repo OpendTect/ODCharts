@@ -46,6 +46,7 @@ protected:
     uiGenInput*		stepsfld_;
     bool		ticksbycount_;
 
+    void		initCB(CallBacker*);
     void		stepChgCB(CallBacker*);
     void		stepCheckedCB(CallBacker*);
     void		lineStyleChgCB(CallBacker*);
@@ -70,6 +71,7 @@ protected:
     uiGridStyleGrp*	majorloggridfld_;
     uiGridStyleGrp*	minorloggridfld_;
 
+    void		initCB(CallBacker*);
     void		bgColorChgCB(CallBacker*);
     void		zgridChgCB(CallBacker*);
     void		lgridChgCB(CallBacker*);
@@ -91,7 +93,9 @@ protected:
     uiLogChart*		logchart_;
     uiListBox*		logselfld_;
     uiLogCurveProps*	logpropfld_;
+    bool		commonrange_;
 
+    void		initCB(CallBacker*);
     void		logselCB(CallBacker*);
     void		updateRangesCB(CallBacker*);
 };
@@ -111,6 +115,7 @@ protected:
     uiListBox*		markerselfld_;
     uiSelLineStyle*	markerlinefld_;
 
+    void		initCB(CallBacker*);
     void		markerselCB(CallBacker*);
     void		lineStyleChgCB(CallBacker*);
 };
@@ -137,6 +142,7 @@ protected:
     IOPar		settingsbackup_;
     bool		withapply_ = false;
 
+    void		initCB(CallBacker*);
     void		applyCB(CallBacker*);
     void		updateLogsCB(CallBacker*);
     void		updateMarkersCB(CallBacker*);
