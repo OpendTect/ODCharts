@@ -496,11 +496,13 @@ void uiChartsAxisHandler::setAxisStyle()
     if ( !axis_ )
 	return;
 
+    const OD::Color nmcolor = setup().nmcolor_ == OD::Color::NoColor() ?
+				    setup().style_.color_ : setup().nmcolor_;
     axis_->setLineVisible( !setup().noaxisline_ );
     axis_->setLabelsVisible( !setup().noaxisannot_ );
     axis_->setGridLineVisible( !setup().nogridline_ );
     axis_->setMinorGridLineVisible( false );
-    axis_->setTitleColor( setup().nmcolor_ );
+    axis_->setTitleColor( nmcolor );
     axis_->setLineStyle( setup().style_ );
     axis_->setGridStyle( setup().gridlinestyle_ );
 }
