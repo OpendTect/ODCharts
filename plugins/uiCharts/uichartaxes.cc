@@ -93,19 +93,20 @@ void uiChartAxis::setMinorGridStyle( const OD::LineStyle& ls, bool usetransp )
 
 OD::LineStyle uiChartAxis::lineStyle() const
 {
-    return fromQPen( qabstractaxis_->linePen() );
+    return fromQPen( qabstractaxis_ ? qabstractaxis_->linePen() : QPen() );
 }
 
 
 OD::LineStyle uiChartAxis::getGridStyle() const
 {
-    return fromQPen( qabstractaxis_->gridLinePen() );
+    return fromQPen( qabstractaxis_ ? qabstractaxis_->gridLinePen() : QPen() );
 }
 
 
 OD::LineStyle uiChartAxis::getMinorGridStyle() const
 {
-    return fromQPen( qabstractaxis_->minorGridLinePen() );
+    return fromQPen( qabstractaxis_ ? qabstractaxis_->minorGridLinePen() :
+				      QPen() );
 }
 
 
