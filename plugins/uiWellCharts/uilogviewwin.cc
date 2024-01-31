@@ -153,7 +153,6 @@ void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
 				const ManagedObjectSet<TypeSet<int>>& logidxs )
 {
     logviewtbl_->addWellData( wellids, logidxs );
-    needsave_ = true;
 }
 
 
@@ -162,7 +161,6 @@ void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
 				const BufferStringSet& mrknms )
 {
     logviewtbl_->addWellData( wellids, logidxs, mrknms );
-    needsave_ = true;
 }
 
 
@@ -171,7 +169,6 @@ void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
 				    const BufferStringSet& mrknms )
 {
     logviewtbl_->addWellData( wellids, lognms, mrknms );
-    needsave_ = true;
 }
 
 
