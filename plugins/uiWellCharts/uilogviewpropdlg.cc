@@ -210,6 +210,9 @@ void uiLogChartGrp::update()
     minorzgridfld_->setSteps( zaxis->getMinorTickCount() );
     minorzgridfld_->setVisible( zaxis->minorGridVisible() );
 
+    if ( logchart_->logcurves().isEmpty() )
+	return;
+
     uiChartAxis* laxis = logchart_->logcurves()[0]->getAxis();
     majorloggridfld_->setStyle( laxis->getGridStyle() );
     majorloggridfld_->setSteps( laxis->getTickCount() );
