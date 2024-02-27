@@ -257,6 +257,9 @@ Interval<float> ODChartFillx::getAxisRange( Qt::Orientations qor, bool qlines )
     Interval<float> res;
 
     ObjectSet<QLineSeries>& series = qlines ? qlines_ : qbaselines_;
+    if ( series.isEmpty() )
+	return res;
+
     auto axes = qchart_->axes( qor, series.first() );
     QAbstractAxis* axis = qAsConst( axes )[0];
     auto* qvaxis = qobject_cast<QValueAxis*>( axis );
@@ -306,7 +309,7 @@ void ODChartFillx::updateGeometry()
     path = makePath( true );
 
     Interval<float> rng = getAxisRange( Qt::Horizontal, true );
-    if ( !mIsUdf(baseline_) && rng.includes(baseline_,true) )
+    if ( !mIsUdf(baseline_) && !rng.isUdf() && rng.includes(baseline_,true) )
     {
 	QLineSeries* first = qlines_.first();
 	QLineSeries* last = qlines_.last();
