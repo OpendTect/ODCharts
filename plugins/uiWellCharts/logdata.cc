@@ -9,6 +9,7 @@ ________________________________________________________________________
 
 #include "logdata.h"
 
+#include "keystrs.h"
 #include "mnemonics.h"
 #include "multiid.h"
 #include "ranges.h"

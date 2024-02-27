@@ -14,6 +14,7 @@ ________________________________________________________________________
 #include "uistring.h"
 
 #include "draw.h"
+#include "keystrs.h"
 #include "logcurve.h"
 #include "markerline.h"
 #include "math2.h"

@@ -14,6 +14,7 @@ ________________________________________________________________________
 #include "uilogchart.h"
 
 #include "draw.h"
+#include "keystrs.h"
 #include "multiid.h"
 #include "wellbase.h"
 #include "welldata.h"

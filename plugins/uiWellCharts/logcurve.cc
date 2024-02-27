@@ -8,18 +8,19 @@ ________________________________________________________________________
 -*/
 
 #include "logcurve.h"
-
 #include "loggradient.h"
-#include "uichartfillx.h"
+
 #include "uichartaxes.h"
+#include "uichartfillx.h"
 #include "uilogchart.h"
-#include "wellchartcommon.h"
 
 #include "draw.h"
+#include "keystrs.h"
 #include "mnemonics.h"
 #include "multiid.h"
 #include "ranges.h"
 #include "separstr.h"
+#include "wellchartcommon.h"
 #include "welld2tmodel.h"
 #include "welldata.h"
 #include "welllog.h"
@@ -463,8 +464,8 @@ BufferString LogCurve::getFillPar( bool left ) const
     BufferString res;
     const BufferString tolognm = left ? lefttolog_ : righttolog_;
     uiChartFillx* fill = left ? leftfill_ : rightfill_;
-    const uiChartFillx::FillType filltyp = fill ? fill->fillType() :
-						    uiChartFillx::NoFill;
+    const uiChartFillx::FillType filltyp =
+		fill ? fill->fillType() : uiChartFillx::NoFill;
     FileMultiString fms = uiChartFillx::toString( filltyp );
     const float baseval = fill ? fill->baseLineValue() : mUdf(float);
     const bool hascurve = fill ? fill->hasBaseLineSeries() : false;

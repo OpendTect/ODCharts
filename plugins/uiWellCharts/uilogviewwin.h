@@ -88,7 +88,6 @@ protected:
     virtual void	clearAll();
 
     virtual void	uiInitCB(CallBacker*);
-    void		filterCB(CallBacker*);
     virtual void	newCB(CallBacker*);
     virtual void	openCB(CallBacker*);
     virtual void	saveCB(CallBacker*);

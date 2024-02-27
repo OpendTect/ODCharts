@@ -7,13 +7,13 @@ ________________________________________________________________________
 
 -*/
 
-#include "logdata.h"
+#include "wellbase.h"
 
 #include "ioobj.h"
+#include "keystrs.h"
 #include "multiid.h"
 #include "ranges.h"
 #include "unitofmeasure.h"
-#include "wellbase.h"
 #include "welld2tmodel.h"
 #include "welldata.h"
 #include "wellman.h"
