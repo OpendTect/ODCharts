@@ -203,23 +203,29 @@ void uiLogChartGrp::update()
     scalefld_->setValue( logchart_->getScale() );
 
     uiValueAxis* zaxis = logchart_->getZAxis();
-    majorzgridfld_->setStyle( zaxis->getGridStyle() );
-    majorzgridfld_->setSteps( zaxis->getTickInterval() );
-    majorzgridfld_->setVisible( zaxis->gridVisible() );
-    minorzgridfld_->setStyle( zaxis->getMinorGridStyle() );
-    minorzgridfld_->setSteps( zaxis->getMinorTickCount() );
-    minorzgridfld_->setVisible( zaxis->minorGridVisible() );
+    if ( zaxis )
+    {
+	majorzgridfld_->setStyle( zaxis->getGridStyle() );
+	majorzgridfld_->setSteps( zaxis->getTickInterval() );
+	majorzgridfld_->setVisible( zaxis->gridVisible() );
+	minorzgridfld_->setStyle( zaxis->getMinorGridStyle() );
+	minorzgridfld_->setSteps( zaxis->getMinorTickCount() );
+	minorzgridfld_->setVisible( zaxis->minorGridVisible() );
+    }
 
     if ( logchart_->logcurves().isEmpty() )
 	return;
 
     uiChartAxis* laxis = logchart_->logcurves()[0]->getAxis();
-    majorloggridfld_->setStyle( laxis->getGridStyle() );
-    majorloggridfld_->setSteps( laxis->getTickCount() );
-    majorloggridfld_->setVisible( laxis->gridVisible() );
-    minorloggridfld_->setStyle( laxis->getMinorGridStyle() );
-    minorloggridfld_->setSteps( laxis->getMinorTickCount() );
-    minorloggridfld_->setVisible( laxis->minorGridVisible() );
+    if ( laxis )
+    {
+	majorloggridfld_->setStyle( laxis->getGridStyle() );
+	majorloggridfld_->setSteps( laxis->getTickCount() );
+	majorloggridfld_->setVisible( laxis->gridVisible() );
+	minorloggridfld_->setStyle( laxis->getMinorGridStyle() );
+	minorloggridfld_->setSteps( laxis->getMinorTickCount() );
+	minorloggridfld_->setVisible( laxis->minorGridVisible() );
+    }
 }
 
 
@@ -267,8 +273,12 @@ void uiLogChartGrp::scaleChgCB( CallBacker* )
 	uiWellCharts::ScaleDef().getEnumForIndex( scalefld_->getIntValue() );
     logchart_->setScale( scaletyp );
     uiChartAxis* laxis = logchart_->logcurves()[0]->getAxis();
-    minorloggridfld_->setSteps( laxis->getMinorTickCount() );
-    majorloggridfld_->setSteps( laxis->getTickCount() );
+    if ( laxis )
+    {
+	minorloggridfld_->setSteps( laxis->getMinorTickCount() );
+	majorloggridfld_->setSteps( laxis->getTickCount() );
+    }
+
     majorloggridfld_->setStepSensitive( scaletyp==uiWellCharts::Linear );
     minorloggridfld_->setStepSensitive( scaletyp==uiWellCharts::Linear );
 }
