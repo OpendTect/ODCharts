@@ -502,19 +502,22 @@ void uiLogChart::fillPar( IOPar& iop ) const
 	return;
 
     uiChartAxis* laxis = logcurves_[0]->getAxis();
-    FileMultiString lfms;
-    lfms.add( laxis->getTickCount() );
-    lfms.add( laxis->gridVisible() );
-    iop.set( sKey::LogMajorGrid(), lfms );
-    laxis->getGridStyle().toString( lsstr );
-    iop.set( sKey::LogMajorGridStyle(), lsstr );
+    if ( laxis )
+    {
+	FileMultiString lfms;
+	lfms.add( laxis->getTickCount() );
+	lfms.add( laxis->gridVisible() );
+	iop.set( sKey::LogMajorGrid(), lfms );
+	laxis->getGridStyle().toString( lsstr );
+	iop.set( sKey::LogMajorGridStyle(), lsstr );
 
-    lfms.setEmpty();
-    lfms.add( laxis->getMinorTickCount() );
-    lfms.add( laxis->minorGridVisible() );
-    iop.set( sKey::LogMinorGrid(), lfms );
-    laxis->getMinorGridStyle().toString( lsstr );
-    iop.set( sKey::LogMinorGridStyle(), lsstr );
+	lfms.setEmpty();
+	lfms.add( laxis->getMinorTickCount() );
+	lfms.add( laxis->minorGridVisible() );
+	iop.set( sKey::LogMinorGrid(), lfms );
+	laxis->getMinorGridStyle().toString( lsstr );
+	iop.set( sKey::LogMinorGridStyle(), lsstr );
+    }
 
     for ( int idx=0; idx<nitems; idx++ )
     {
@@ -528,6 +531,7 @@ void uiLogChart::fillPar( IOPar& iop ) const
     iop.set( sKey::NrValues(), nmrkrs );
     if ( nmrkrs<1 )
 	return;
+
     for ( int idx=0; idx<nmrkrs; idx++ )
     {
 	IOPar tmp;
@@ -548,10 +552,10 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
     int parval;
     iop.get( sKey::Type(), parval );
     uiWellCharts::ZType ztype =
-			    uiWellCharts::ZTypeDef().getEnumForIndex( parval );
+			uiWellCharts::ZTypeDef().getEnumForIndex( parval );
     iop.get( sKey::Scale(), parval );
     uiWellCharts::Scale scale =
-			    uiWellCharts::ScaleDef().getEnumForIndex( parval );
+			uiWellCharts::ScaleDef().getEnumForIndex( parval );
 
     FileMultiString zfms_major( iop.find(sKey::ZMajorGrid()) );
     FileMultiString zfms_minor( iop.find(sKey::ZMinorGrid()) );
