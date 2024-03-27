@@ -105,7 +105,12 @@ Interval<float> LogData::dispRange()
 {
     if ( disprange_.isUdf() )
     {
-	const StepInterval<float> ni( valrange_ );
+	StepInterval<float> ni( valrange_ );
+	if ( loguom_ && dispuom_ )
+	{
+	    ni.start = getConvertedValue( ni.start, loguom_, dispuom_ );
+	    ni.stop = getConvertedValue( ni.stop, loguom_, dispuom_ );
+	}
 	disprange_ = ni.niceInterval( 10, false );
     }
     return disprange_;
