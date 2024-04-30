@@ -23,8 +23,9 @@ class ODChartLabel : public QGraphicsItem
 public:
 		ODChartLabel(QChart*);
 
-    QRectF	boundingRect() const;
-    void	paint(QPainter*,const QStyleOptionGraphicsItem*,QWidget*);
+    QRectF	boundingRect() const override;
+    void	paint(QPainter*,
+                      const QStyleOptionGraphicsItem*,QWidget*) override;
     void	updateGeometry();
     void	updateTextGeometry();
 

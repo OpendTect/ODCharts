@@ -37,8 +37,9 @@ public:
 		ODChartFillx(QChart*);
 		~ODChartFillx();
 
-    QRectF	boundingRect() const;
-    void	paint(QPainter*,const QStyleOptionGraphicsItem*,QWidget*);
+    QRectF	boundingRect() const override;
+    void	paint(QPainter*,
+                      const QStyleOptionGraphicsItem*,QWidget*) override;
     void	updateGeometry();
     QPainterPath		makePath(bool qlines=true);
     Interval<float>		getAxisRange(Qt::Orientations,bool qlines=true);

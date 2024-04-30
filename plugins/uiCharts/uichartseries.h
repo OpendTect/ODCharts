@@ -180,7 +180,7 @@ public:
     bool		linesVisible() const;
     void		setLinesVisible(bool);
 
-    void		initCallBacks();
+    void		initCallBacks() override;
 
     QtCharts::QAreaSeries*	getQAreaSeries();
 
