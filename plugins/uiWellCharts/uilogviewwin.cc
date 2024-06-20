@@ -411,6 +411,7 @@ void uiLockedLogViewWin::fillPar( IOPar& iop ) const
 
 void uiLockedLogViewWin::usePar( const IOPar& iop )
 {
+    closePropertiesDlg();
     uiLogViewWinBase::usePar( iop );
     bool islogmode = true;
     iop.getYN( BufferString(sKey::Log(), sKey::Mode()), islogmode );
