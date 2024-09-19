@@ -1000,9 +1000,11 @@ void uiLogViewWin::loadWells( const BufferStringSet& wellids,
     if ( wellids.size() != logids.size() )
 	return;
 
+    DBKey wellkey;
     for ( int idx=0; idx<wellids.size(); idx++ )
     {
-	const DBKey wellkey( MultiID(wellids.get(idx).buf()) );
+	wellkey.fromString( wellids.get(idx).buf() );
+
 	BufferStringSet lognums;
 	lognums.unCat( logids.get(idx), "," );
 	TypeSet<int> logs;
