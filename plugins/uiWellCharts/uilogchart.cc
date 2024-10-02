@@ -329,7 +329,7 @@ void uiLogChart::updateZAxisTitle()
 
 void uiLogChart::setZRange( const Interval<float>& zrange )
 {
-    setZRange( zrange.start, zrange.stop );
+    setZRange( zrange.start_, zrange.stop_ );
 }
 
 
@@ -375,8 +375,8 @@ uiChartAxis* uiLogChart::makeLogAxis( const BufferString& logtitle, float axmin,
 	{
 	    Interval<float> maxis = logcurves_.first()->dispRange();
 	    reverse = maxis.isRev();
-	    const float mmax = maxis.isRev() ? maxis.start : maxis.stop;
-	    const float mmin = maxis.isRev() ? maxis.stop : maxis.start;
+            const float mmax = maxis.isRev() ? maxis.start_ : maxis.stop_;
+            const float mmin = maxis.isRev() ? maxis.stop_ : maxis.start_;
 	    const float mexp = Math::Log10(mmax) -
 			       Math::Floor(Math::Log10(mmax/axmax));
 	    axmax = Math::PowerOf( 10.f, mexp );
@@ -451,8 +451,8 @@ void uiLogChart::setScale( uiWellCharts::Scale scaletyp )
     {
 	logcurve->removeFrom( *this );
 	const Interval<float> dr = logcurve->dispRange();
-	float min = dr.isRev() ? dr.stop : dr.start;
-	float max = dr.isRev() ? dr.start : dr.stop;
+        float min = dr.isRev() ? dr.stop_ : dr.start_;
+        float max = dr.isRev() ? dr.start_ : dr.stop_;
 	bool reverse = dr.isRev();
 	logcurve->addTo( *this, logcurve->lineStyle(), min, max, reverse );
     }
@@ -470,7 +470,7 @@ void uiLogChart::setZShift( float zshift )
 
     zrange = zaxis_->range();
     zrange.shift( rngshift );
-    zaxis_->setRange( zrange.start, zrange.stop );
+    zaxis_->setRange( zrange.start_, zrange.stop_ );
 }
 
 

@@ -170,12 +170,12 @@ void uiChartAxis::setRange( const Interval<float>& range )
     if ( range.isRev() )
     {
 	setReverse( true );
-	setRange( range.stop, range.start );
+        setRange( range.stop_, range.start_ );
     }
     else
     {
 	setReverse( false );
-	setRange( range.start, range.stop );
+        setRange( range.start_, range.stop_ );
     }
 }
 
@@ -369,7 +369,7 @@ void uiValueAxis::setAxisLimits( const Interval<float>& range, bool include )
     else
        axislimits_ = range;
 
-    setRange( axislimits_.start, axislimits_.stop );
+    setRange( axislimits_.start_, axislimits_.stop_ );
 }
 
 
@@ -387,16 +387,16 @@ void uiValueAxis::snapRange( float min, float max )
 	return;
 
     const float width = rg.width();
-    if ( min<axislimits_.start )
+    if ( min<axislimits_.start_ )
     {
-	min = axislimits_.start;
+	min = axislimits_.start_;
 	max = min + width;
     }
 
-    if ( max>axislimits_.stop )
+    if ( max>axislimits_.stop_ )
     {
-	max = axislimits_.stop;
-	min = max-width<axislimits_.start ? axislimits_.start : max-width;
+        max = axislimits_.stop_;
+	min = max-width<axislimits_.start_ ? axislimits_.start_ : max-width;
     }
 
     setRange( min, max );

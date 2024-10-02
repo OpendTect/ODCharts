@@ -130,8 +130,8 @@ void LogCurve::addTo( uiLogChart& logchart, const OD::LineStyle& lstyle,
 {
     const auto& dr = dispRange();
     const bool reverse = dr.isRev();
-    const float min = reverse ? dr.stop : dr.start;
-    const float max = reverse ? dr.start : dr.stop;
+    const float min = reverse ? dr.stop_ : dr.start_;
+    const float max = reverse ? dr.start_ : dr.stop_;
     addTo( logchart, lstyle, min, max, reverse, show_wellnm, show_uom );
 }
 

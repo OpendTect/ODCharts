@@ -243,7 +243,7 @@ void ODChartFillx::paint( QPainter* painter,
     else if ( filltype_==uiChartFillx::GradientFill && gradientimg_ )
     {
 	StepInterval<float> si( getAxisRange(Qt::Vertical) );
-	si.step = si.width() / plotarea.height();
+        si.step_ = si.width() / plotarea.height();
 	gradientimg_->updateImg( si );
 	painter->setClipPath( qpath_, Qt::IntersectClip );
 	painter->drawImage( plotarea, gradientimg_->qImage() );
@@ -290,9 +290,9 @@ QPainterPath ODChartFillx::makePath( bool qlines )
 
 	const Interval<float> rng = getAxisRange( Qt::Horizontal, qlines );
 	if ( filldir_==uiChartFillx::Left )
-	    p1.rx() = qlines ? rng.start : rng.stop;
+            p1.rx() = qlines ? rng.start_ : rng.stop_;
 	else
-	    p1.rx() = qlines ? rng.stop : rng.start;
+            p1.rx() = qlines ? rng.stop_ : rng.start_;
 
 	p2.rx() = p1.x();
 	path.lineTo( qchart_->mapToPosition(p1, part) );
@@ -319,7 +319,7 @@ void ODChartFillx::updateGeometry()
 	QPointF br2 = last->at( last->count()-1 );
 	br2.rx() = baseline_;
 	QPointF br3 = br2;
-	br3.rx() = filldir_==uiChartFillx::Left ? rng.stop : rng.start;
+        br3.rx() = filldir_==uiChartFillx::Left ? rng.stop_ : rng.start_;
 	QPointF br4 = br1;
 	br4.rx() = br3.x();
 

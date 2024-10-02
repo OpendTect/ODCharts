@@ -75,8 +75,8 @@ bool LogData::initLog( const Well::Log& log )
     if ( !loguom_ )
     {
 	dispuom_ = nullptr;
-	disprange_.start = valrange_.start;
-	disprange_.stop = valrange_.stop;
+	disprange_.start_ = valrange_.start_;
+        disprange_.stop_ = valrange_.stop_;
     }
     return true;
 }
@@ -108,8 +108,8 @@ Interval<float> LogData::dispRange()
 	StepInterval<float> ni( valrange_ );
 	if ( loguom_ && dispuom_ )
 	{
-	    ni.start = getConvertedValue( ni.start, loguom_, dispuom_ );
-	    ni.stop = getConvertedValue( ni.stop, loguom_, dispuom_ );
+	    ni.start_ = getConvertedValue( ni.start_, loguom_, dispuom_ );
+            ni.stop_ = getConvertedValue( ni.stop_, loguom_, dispuom_ );
 	}
 	disprange_ = ni.niceInterval( 10, false );
     }

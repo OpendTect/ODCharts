@@ -687,8 +687,8 @@ void uiLockedLogViewWin::zoomRangeCB( CallBacker* )
 	    return;
 
 	zrange.include( lc->getMarkerZ(marker) );
-	zrange.start -= istwt ? topoff*twtfac : topoff;
-	zrange.stop += istwt ? botoff*twtfac : botoff;
+	zrange.start_ -= istwt ? topoff*twtfac : topoff;
+        zrange.stop_ += istwt ? botoff*twtfac : botoff;
 	zrange.shift( -lc->zShift() );
     }
     else if ( zrangeselfld_->inMarkerMode() )
@@ -710,8 +710,8 @@ void uiLockedLogViewWin::zoomRangeCB( CallBacker* )
 	    return;
 	}
 
-	zrange.start -= istwt ? topoff*twtfac : topoff;
-	zrange.stop += istwt ? botoff*twtfac : botoff;
+	zrange.start_ -= istwt ? topoff*twtfac : topoff;
+        zrange.stop_ += istwt ? botoff*twtfac : botoff;
     }
     else if ( zrange.isUdf() )
     {

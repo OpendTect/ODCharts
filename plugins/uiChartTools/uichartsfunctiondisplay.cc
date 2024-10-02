@@ -429,7 +429,7 @@ void uiChartsAxisHandler::setRange( const StepInterval<float>& rg,
     if ( !axis_ )
 	return;
 
-    axis_->setDynamicTicks( rg.step, astart ? *astart : rg.start );
+    axis_->setDynamicTicks( rg.step_, astart ? *astart : rg.start_ );
     axis_->setRange( rg );
 }
 
@@ -552,8 +552,8 @@ void uiChartsFunctionDrawer::draw( CallBacker* )
     if ( !selitemsidx_.size() && functions_.size() )
 	selitemsidx_ += 0;
 
-    LinScaler scaler( funcrg_.start, xax_->range().start,
-		      funcrg_.stop, xax_->range().stop );
+    LinScaler scaler( funcrg_.start_, xax_->range().start_,
+                      funcrg_.stop_, xax_->range().stop_ );
     for ( int ifun=0; ifun<selitemsidx_.size(); ifun++ )
     {
 	const int selidx = selitemsidx_[ifun];
@@ -572,7 +572,7 @@ void uiChartsFunctionDrawer::draw( CallBacker* )
 	series->setLineStyle( ls );
 
 	StepInterval<float> xrg( funcrg_ );
-	xrg.step = 0.0001;
+        xrg.step_ = 0.0001;
 	TypeSet<float> xvals;
 	TypeSet<float> yvals;
 	for ( int idx=0; idx<xrg.nrSteps()+1; idx++ )

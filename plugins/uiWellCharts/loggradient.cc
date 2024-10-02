@@ -96,8 +96,8 @@ FileMultiString LogGradient::toString() const
     FileMultiString fms;
     fms += FileMultiString( logName() );
     fms += FileMultiString( ctseq_.name() );
-    fms += ctmapper_.setup_.range_.start;
-    fms += ctmapper_.setup_.range_.stop;
+    fms += ctmapper_.setup_.range_.start_;
+    fms += ctmapper_.setup_.range_.stop_;
     return fms;
 }
 

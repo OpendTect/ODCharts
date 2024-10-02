@@ -156,9 +156,9 @@ float WellData::dahToZ( float dah, ZType zt  ) const
     const float kb = track.getKbElev();
     const float srd = SI().seismicReferenceDatum();
     const float zpos =
-	zt==TVD ? track.getPos(dah).z+kb
-		: zt==TVDSS ? track.getPos(dah).z
-			    : zt==TVDSD ? track.getPos(dah).z+srd
+            zt==TVD ? track.getPos(dah).z_+kb
+                    : zt==TVDSS ? track.getPos(dah).z_
+                                : zt==TVDSD ? track.getPos(dah).z_+srd
 					: d2t->getTime(dah,track);
 
     return zt==TWT ? getConvertedValue( zpos, ztsuom, ztuom )
@@ -168,8 +168,8 @@ float WellData::dahToZ( float dah, ZType zt  ) const
 
 Interval<float> WellData::dahToZ( const Interval<float>& dahrg, ZType zt ) const
 {
-    const float zstart = dahToZ( dahrg.start, zt );
-    const float zstop = dahToZ( dahrg.stop, zt );
+    const float zstart = dahToZ( dahrg.start_, zt );
+    const float zstop = dahToZ( dahrg.stop_, zt );
     return Interval<float>( zstart, zstop );
 }
 
