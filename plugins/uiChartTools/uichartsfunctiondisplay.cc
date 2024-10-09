@@ -138,8 +138,8 @@ bool uiChartsFunctionDisplay::setSelPt( const Geom::PointF& pos )
     {
 	const Geom::PointF pospt = mapToPosition( Geom::PointF(xvals_[idx],
 							       yvals_[idx]) );
-	const float distsq = (pospt.x-pos.x)*(pospt.x-pos.x) +
-						(pospt.y-pos.y)*(pospt.y-pos.y);
+	const float distsq = (pospt.x_-pos.x_)*(pospt.x_-pos.x_) +
+			     (pospt.y_-pos.y_)*(pospt.y_-pos.y_);
 	if ( distsq < mindistsq )
 	{
 	    newsel = idx;
@@ -218,15 +218,15 @@ void uiChartsFunctionDisplay::mouseMoveCB( CallBacker* cb )
 	return;
 
     Geom::PointF newpos = mapToValue( pos );
-    if ( selpt_>0 && xvals_[selpt_-1]>=newpos.x )
-        newpos.x = xvals_[selpt_-1];
-    else if ( selpt_<xvals_.size()-1 && xvals_[selpt_+1]<=newpos.x )
-        newpos.x = xvals_[selpt_+1];
+    if ( selpt_>0 && xvals_[selpt_-1]>=newpos.x_ )
+        newpos.x_ = xvals_[selpt_-1];
+    else if ( selpt_<xvals_.size()-1 && xvals_[selpt_+1]<=newpos.x_ )
+        newpos.x_ = xvals_[selpt_+1];
 
-    newpos.x = xAxis()->range().limitValue( newpos.x );
-    newpos.y = yAxis( false )->range().limitValue( newpos.y );
-    xvals_[selpt_] = newpos.x;
-    yvals_[selpt_] = newpos.y;
+    newpos.x_ = xAxis()->range().limitValue( newpos.x_ );
+    newpos.y_ = yAxis( false )->range().limitValue( newpos.y_ );
+    xvals_[selpt_] = newpos.x_;
+    yvals_[selpt_] = newpos.y_;
 
     pointSelectedCB( nullptr );
     pointChanged.trigger();

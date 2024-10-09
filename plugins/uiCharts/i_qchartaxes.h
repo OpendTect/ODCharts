@@ -12,7 +12,9 @@ ________________________________________________________________________
 
 #include <QValueAxis>
 
-using namespace QtCharts;
+#if QT_VERSION < x060000
+    using namespace QtCharts;
+#endif
 
 class i_valueAxisMsgHandler : public  QObject
 {

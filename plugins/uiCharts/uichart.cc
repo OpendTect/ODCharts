@@ -16,7 +16,9 @@ ________________________________________________________________________
 #include <QChart>
 #include <QLegend>
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+    using namespace QtCharts;
+#endif
 
 class ODChart : public QChart
 {
@@ -98,7 +100,7 @@ Geom::RectI uiChart::margins() const
 Geom::PointF uiChart::mapToPosition( const Geom::PointF& value,
 				     uiChartSeries* series )
 {
-    const QPointF qpos = odchart_->mapToPosition( QPoint(value.x, value.y),
+    const QPointF qpos = odchart_->mapToPosition( QPoint(value.x_, value.y_),
 			series ? series->getQSeries() : nullptr );
     return Geom::PointF( qpos.x(), qpos.y() );
 }
@@ -107,7 +109,7 @@ Geom::PointF uiChart::mapToPosition( const Geom::PointF& value,
 Geom::PointF uiChart::mapToValue( const Geom::PointF& pos,
 				  uiChartSeries* series )
 {
-    const QPointF qpos = odchart_->mapToValue( QPoint(pos.x, pos.y),
+    const QPointF qpos = odchart_->mapToValue( QPoint(pos.x_, pos.y_),
 			series ? series->getQSeries() : nullptr );
     return Geom::PointF( qpos.x(), qpos.y() );
 }
@@ -151,7 +153,7 @@ void uiChart::removeAllAxes( OD::Orientation orient, uiChartSeries* series )
 		orient==OD::Vertical ? Qt::Vertical : Qt::Horizontal;
     auto qaxes = odchart_->axes( qorient,
 				 series ? series->getQSeries() : nullptr );
-    for ( auto* qaxis : qAsConst(qaxes) )
+    for ( auto* qaxis : std::as_const(qaxes) )
 	odchart_->removeAxis( qaxis );
 }
 
@@ -237,8 +239,7 @@ void uiChart::axisRangeChgCB( CallBacker* )
     needsRedraw.trigger();
 }
 
-
-QtCharts::QChart* uiChart::getQChart()
+QChart* uiChart::getQChart()
 {
-    return sCast(QtCharts::QChart*,odchart_);
+    return sCast(QChart*,odchart_);
 }

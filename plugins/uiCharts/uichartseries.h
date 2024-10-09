@@ -17,19 +17,20 @@ ________________________________________________________________________
 #include "geometry.h"
 #include "uistring.h"
 
+#if QT_VERSION < x060000
+    using namespace QtCharts;
+#endif
+
 class uiCallout;
 class uiChartAxis;
 class i_xySeriesMsgHandler;
 
 namespace OD		{ class LineStyle; }
-namespace QtCharts
-{
-    class QAbstractSeries;
-    class QAreaSeries;
-    class QLineSeries;
-    class QScatterSeries;
-    class QXYSeries;
-}
+class QAbstractSeries;
+class QAreaSeries;
+class QLineSeries;
+class QScatterSeries;
+class QXYSeries;
 
 
 mExpClass(uiCharts) uiChartSeries : public CallBacker
@@ -46,12 +47,12 @@ public:
 
     virtual void		initCallBacks() = 0;
 
-    QtCharts::QAbstractSeries*	getQSeries();
+    QAbstractSeries*		getQSeries();
 
 protected:
-				uiChartSeries(QtCharts::QAbstractSeries*);
+				uiChartSeries(QAbstractSeries*);
 
-    QtCharts::QAbstractSeries*	qabstractseries_;
+    QAbstractSeries*		qabstractseries_;
 };
 
 
@@ -87,12 +88,12 @@ public:
     CNotifier<uiXYChartSeries,const Geom::PointF&>	hoverOff;
 
 protected:
-			uiXYChartSeries(QtCharts::QXYSeries*);
+			uiXYChartSeries(QXYSeries*);
 
     void		showCallout(CallBacker*);
     void		hideCallout(CallBacker*);
 
-    QtCharts::QXYSeries*	qxyseries_ = nullptr;
+    QXYSeries*			qxyseries_ = nullptr;
     uiCallout*			callout_ = nullptr;
     BufferString		callouttxt_;
     int				nrdecx_ = 2;
@@ -120,10 +121,10 @@ public:
 
     void		copyPoints(const uiLineSeries&);
 
-    QtCharts::QLineSeries*	getQLineSeries();
+    QLineSeries*	getQLineSeries();
 
 protected:
-    QtCharts::QLineSeries*	qlineseries_;
+    QLineSeries*		qlineseries_;
     OD::LineStyle::Type		savedlinetype_ = OD::LineStyle::Solid;
 };
 
@@ -149,10 +150,10 @@ public:
 
     void		copyPoints(const uiScatterSeries&);
 
-    QtCharts::QScatterSeries*	getQScatterSeries();
+    QScatterSeries*	getQScatterSeries();
 
 protected:
-    QtCharts::QScatterSeries*	qscatterseries_;
+    QScatterSeries*	qscatterseries_;
 };
 
 
@@ -182,10 +183,10 @@ public:
 
     void		initCallBacks() override;
 
-    QtCharts::QAreaSeries*	getQAreaSeries();
+    QAreaSeries*	getQAreaSeries();
 
 protected:
-    QtCharts::QAreaSeries*	qareaseries_;
+    QAreaSeries*		qareaseries_;
     uiLineSeries*		upperseries_ = nullptr;
     uiLineSeries*		lowerseries_ = nullptr;
     OD::LineStyle::Type		savedlinetype_ = OD::LineStyle::Solid;

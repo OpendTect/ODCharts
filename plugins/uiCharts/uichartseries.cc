@@ -20,7 +20,9 @@ ________________________________________________________________________
 #include <QScatterSeries>
 
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+    using namespace QtCharts;
+#endif
 
 uiChartSeries::uiChartSeries( QAbstractSeries* series )
     : qabstractseries_(series)
@@ -172,7 +174,7 @@ bool uiXYChartSeries::replace_x( int sz, const float* xarr, float xshift )
     if ( sz != size() )
 	return false;
 
-    QVector<QPointF> points = qxyseries_->pointsVector();
+    QVector<QPointF> points = qxyseries_->points();
     for ( int idx=0; idx<sz; idx++ )
 	points[idx].setX( xarr[idx]+xshift );
 
@@ -186,7 +188,7 @@ bool uiXYChartSeries::replace_y( int sz, const float* yarr, float yshift )
     if ( sz != size() )
 	return false;
 
-    QVector<QPointF> points = qxyseries_->pointsVector();
+    QVector<QPointF> points = qxyseries_->points();
     for ( int idx=0; idx<sz; idx++ )
 	points[idx].setY( yarr[idx]+yshift );
 
@@ -197,7 +199,7 @@ bool uiXYChartSeries::replace_y( int sz, const float* yarr, float yshift )
 
 void uiXYChartSeries::setAll_Y( float newy )
 {
-    QVector<QPointF> points = qxyseries_->pointsVector();
+    QVector<QPointF> points = qxyseries_->points();
     for ( int idx=0; idx<size(); idx++ )
 	points[idx].setY( newy );
 
@@ -245,11 +247,11 @@ void uiXYChartSeries::showCallout( CallBacker* cb )
     mCBCapsuleUnpack(const Geom::PointF&,pos,cb);
     if ( callouttxt_.find("%1") && callouttxt_.find("%2") )
 	callout_->setText(
-		tr(callouttxt_).arg(pos.x,nrdecx_).arg(pos.y,nrdecy_) );
+		tr(callouttxt_).arg(pos.x_,nrdecx_).arg(pos.y_,nrdecy_) );
     else if ( callouttxt_.find("%1") )
-	callout_->setText( tr(callouttxt_).arg(pos.x,nrdecx_) );
+	callout_->setText( tr(callouttxt_).arg(pos.x_,nrdecx_) );
     else if ( callouttxt_.find("%2") )
-	callout_->setText( tr(callouttxt_).arg(pos.y,nrdecy_) );
+	callout_->setText( tr(callouttxt_).arg(pos.y_,nrdecy_) );
     else
 	callout_->setText( tr(callouttxt_) );
 
@@ -296,7 +298,7 @@ OD::LineStyle uiLineSeries::lineStyle() const
 
 void uiLineSeries::copyPoints( const uiLineSeries& other )
 {
-    qlineseries_->replace( other.qlineseries_->pointsVector() );
+    qlineseries_->replace( other.qlineseries_->points() );
 }
 
 
@@ -409,7 +411,7 @@ void uiScatterSeries::setMarkerSize( float size )
 
 void uiScatterSeries::copyPoints( const uiScatterSeries& other )
 {
-    qscatterseries_->replace( other.qscatterseries_->pointsVector() );
+    qscatterseries_->replace( other.qscatterseries_->points() );
 }
 
 

@@ -14,12 +14,13 @@ ________________________________________________________________________
 #include "draw.h"
 #include "odcommonenums.h"
 
-namespace QtCharts
-{
-    class QAbstractAxis;
-    class QLogValueAxis;
-    class QValueAxis;
-}
+#if QT_VERSION < x060000
+    using namespace QtCharts;
+#endif
+
+class QAbstractAxis;
+class QLogValueAxis;
+class QValueAxis;
 
 class i_valueAxisMsgHandler;
 
@@ -77,14 +78,14 @@ public:
 
     AxisType		type() const;
 
-    QtCharts::QAbstractAxis*	getQAxis();
+    QAbstractAxis*	getQAxis();
 
     CNotifier<uiChartAxis,const Interval<float>&>	rangeChanged;
 
 protected:
-			uiChartAxis(QtCharts::QAbstractAxis*);
+			uiChartAxis(QAbstractAxis*);
 
-    QtCharts::QAbstractAxis*	qabstractaxis_;
+    QAbstractAxis*	qabstractaxis_;
 };
 
 
@@ -110,8 +111,8 @@ public:
     void		applyNiceNumbers();
 
 protected:
-    QtCharts::QValueAxis*	qvalueaxis_;
-    Interval<float>		axislimits_;
+    QValueAxis*		qvalueaxis_;
+    Interval<float>	axislimits_;
 
 private:
     i_valueAxisMsgHandler*	msghandler_;
@@ -131,6 +132,6 @@ public:
     void		setBase(float);
 
 protected:
-    QtCharts::QLogValueAxis*	qlogvalueaxis_;
+    QLogValueAxis*	qlogvalueaxis_;
 
 };

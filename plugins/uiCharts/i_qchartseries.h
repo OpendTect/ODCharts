@@ -13,7 +13,9 @@ ________________________________________________________________________
 
 #include <QXYSeries>
 
-using namespace QtCharts;
+#if QT_VERSION < x060000
+    using namespace QtCharts;
+#endif
 
 class i_xySeriesMsgHandler : public  QObject
 {

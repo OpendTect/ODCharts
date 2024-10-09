@@ -14,7 +14,9 @@ ________________________________________________________________________
 #include <QLogValueAxis>
 #include <QValueAxis>
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+    using namespace QtCharts;
+#endif
 
 
 

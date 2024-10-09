@@ -16,7 +16,9 @@ ________________________________________________________________________
 #include <QGraphicsItem>
 #include <QPainter>
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+    using namespace QtCharts;
+#endif
 
 class ODChartLabel : public QGraphicsItem
 {
@@ -76,7 +78,7 @@ void uiChartLabel::setText( const uiString& uistr )
 
 void uiChartLabel::setAnchor( Geom::PointF pos, Alignment all )
 {
-    const QPointF qp( qreal(pos.x), qreal(pos.y) );
+    const QPointF qp( qreal(pos.x_), qreal(pos.y_) );
     odlabel_->qanchor_ = qp;
     odlabel_->align_ = sCast(Qt::AlignmentFlag,all.uiValue());
 }

@@ -21,7 +21,9 @@ ________________________________________________________________________
 #include <QPainter>
 #include <QValueAxis>
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+    using namespace QtCharts;
+#endif
 
 mDefineEnumUtils( uiChartFillx, FillDir, "Fill direction" )
     { "Left", "Right", nullptr };
@@ -262,7 +264,7 @@ Interval<float> ODChartFillx::getAxisRange( Qt::Orientations qor, bool qlines )
 	return res;
 
     auto axes = qchart_->axes( qor, series.first() );
-    QAbstractAxis* axis = qAsConst( axes )[0];
+    QAbstractAxis* axis = std::as_const( axes )[0];
     auto* qvaxis = qobject_cast<QValueAxis*>( axis );
     auto* qlvaxis = qobject_cast<QLogValueAxis*>( axis );
     if ( qvaxis )

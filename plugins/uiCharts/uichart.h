@@ -17,8 +17,12 @@ ________________________________________________________________________
 #include "geometry.h"
 #include "odcommonenums.h"
 
+#if QT_VERSION < x060000
+    using namespace QtCharts;
+#endif
+
 class ODChart;
-namespace QtCharts { class QChart; }
+class QChart;
 class uiChartAxis;
 class uiChartSeries;
 class i_chartMsgHandler;
@@ -54,7 +58,7 @@ public:
     void			setTitle(const uiString&);
     BufferString		title() const;
 
-    QtCharts::QChart*		getQChart();
+    QChart*			getQChart();
 
     Notifier<uiChart>		plotAreaChanged;
     Notifier<uiChart>		needsRedraw;

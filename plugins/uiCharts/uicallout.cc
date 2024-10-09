@@ -15,7 +15,9 @@ ________________________________________________________________________
 #include <QGraphicsItem>
 #include <QPainter>
 
-using namespace QtCharts;
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+    using namespace QtCharts;
+#endif
 
 class ODCallout : public QGraphicsItem
 {
@@ -68,7 +70,7 @@ void uiCallout::setText( const uiString& uistr )
 
 void uiCallout::setAnchor( Geom::PointF pos, uiChartSeries* series )
 {
-    const QPointF qp( qreal(pos.x), qreal(pos.y) );
+    const QPointF qp( qreal(pos.x_), qreal(pos.y_) );
     const QRectF qrect = odcallout_->qchart_->plotArea();
     odcallout_->qanchor_ =
 		odcallout_->qchart_->mapToPosition( qp,
