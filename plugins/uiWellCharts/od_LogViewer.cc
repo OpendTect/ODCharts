@@ -22,7 +22,7 @@ ________________________________________________________________________
 
 int mProgMainFnName( int argc, char** argv )
 {
-    mInitProg( OD::UiProgCtxt )
+    mInitProg( OD::RunCtxt::UiProgCtxt )
     SetProgramArgs( argc, argv );
     uiMain app( argc, argv );
     app.setIcon( "welllogbased" );
