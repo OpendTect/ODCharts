@@ -37,7 +37,7 @@ int mProgMainFnName( int argc, char** argv )
     PIM().loadAuto( false );
     OD::ModDeps().ensureLoaded( "uiWell" );
     PtrMan<uiMainWin> topmw = new uiLogViewWin( nullptr );
-    app.setTopLevel( topmw );
+    app.setTopLevel( topmw.ptr() );
     PIM().loadAuto( true );
     topmw->show();
 
