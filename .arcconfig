@@ -1,0 +1,8 @@
+{
+  "project_id" :        "ODCharts,
+  "arc.land.onto" :     ["charts7.0"],
+  "arc.land.onto.default" :     "charts7.0",
+  "phabricator.uri" :   "https://phabricator.dgbes.com",
+  "base" :              "git:merge-base(origin/charts7.0), arc:prompt"
+}
+
