@@ -246,12 +246,21 @@ void uiXYChartSeries::showCallout( CallBacker* cb )
 
     mCBCapsuleUnpack(const Geom::PointF&,pos,cb);
     if ( callouttxt_.find("%1") && callouttxt_.find("%2") )
-	callout_->setText(
-		tr(callouttxt_).arg(pos.x_,nrdecx_).arg(pos.y_,nrdecy_) );
+    {
+	const uiString xtxt = toUiString( pos.x_, 0, 'f', nrdecx_ );
+	const uiString ytxt = toUiString( pos.y_, 0, 'f', nrdecy_ );
+	callout_->setText( tr(callouttxt_).arg( xtxt ).arg( ytxt ) );
+    }
     else if ( callouttxt_.find("%1") )
-	callout_->setText( tr(callouttxt_).arg(pos.x_,nrdecx_) );
+    {
+	const uiString xtxt = toUiString( pos.x_, 0, 'f', nrdecx_ );
+	callout_->setText( tr(callouttxt_).arg( xtxt ) );
+    }
     else if ( callouttxt_.find("%2") )
-	callout_->setText( tr(callouttxt_).arg(pos.y_,nrdecy_) );
+    {
+	const uiString ytxt = toUiString( pos.y_, 0, 'f', nrdecy_ );
+	callout_->setText( tr(callouttxt_).arg( ytxt ) );
+    }
     else
 	callout_->setText( tr(callouttxt_) );
 
