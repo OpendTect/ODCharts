@@ -579,6 +579,7 @@ void uiLogViewTable::addViewer( int col )
 
     chart->setZRange( primaryzrange_ );
     vwr->setChart( chart );
+    vwr->setLogViewTable( this );
     chart->displayLegend( false );
     chart->setMargins( 0, 0, 0, 0 );
     vwr->setStretch( 2, 2 );

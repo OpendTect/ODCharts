@@ -596,29 +596,42 @@ void uiLogChart::usePar( const IOPar& iop, bool styleonly )
 	for ( int idx=0; idx<nlog; idx++ )
 	{
 	    PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
+	    if ( !tmp )
+		continue;
+
 	    auto* logcurve = new LogCurve;
 	    logcurve->addTo( *this, *tmp );
 	    logcurves_ += logcurve;
 	}
     }
-    nlog = nlog>logcurves_.size() ? logcurves_.size() : nlog;
+
     for ( int idx=0; idx<nlog; idx++ )
     {
-	auto* logcurve = logcurves_[idx];
 	PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::Log(), idx) );
-	if ( styleonly )
-	    logcurve->usePar( *tmp, true );
-
-	uiChartAxis* laxis = logcurve->getAxis();
-	if ( !laxis )
+	if ( !tmp )
 	    continue;
 
-	laxis->setTickCount( lfms_major.getIValue(0) );
-	laxis->setGridStyle( ls_major );
-	laxis->setGridLineVisible( lfms_major.getYN(1) );
-	laxis->setMinorTickCount( lfms_minor.getIValue(0) );
-	laxis->setMinorGridStyle( ls_minor );
-	laxis->setMinorGridLineVisible( lfms_minor.getYN(1) );
+	BufferString logname;
+	tmp->get( sKey::Log(), logname );
+	for ( auto* logcurve : logcurves_ )
+	{
+	    if ( logname!=logcurve->logName() )
+		continue;
+
+	    if ( styleonly )
+		logcurve->usePar( *tmp, true );
+
+	    uiChartAxis* laxis = logcurve->getAxis();
+	    if ( !laxis )
+		continue;
+
+	    laxis->setTickCount( lfms_major.getIValue(0) );
+	    laxis->setGridStyle( ls_major );
+	    laxis->setGridLineVisible( lfms_major.getYN(1) );
+	    laxis->setMinorTickCount( lfms_minor.getIValue(0) );
+	    laxis->setMinorGridStyle( ls_minor );
+	    laxis->setMinorGridLineVisible( lfms_minor.getYN(1) );
+	}
     }
 //    logChange.trigger();
 
