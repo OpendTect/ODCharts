@@ -41,9 +41,9 @@ uiChartsLogDisplayGrp::uiChartsLogDisplayGrp( uiParent* p )
     auto* butgrp = new uiButtonGroup( this, "change log", OD::Horizontal );
     CallBack cbm = mCB(this,uiChartsLogDisplayGrp,changeWellButPush);
     prevlog_ = new uiToolButton( butgrp, uiToolButton::LeftArrow,
-				 tr("Previous log"), cbm );
+				 tr("Previous well"), cbm );
     nextlog_ = new uiToolButton( butgrp, uiToolButton::RightArrow,
-				 tr("Next log"), cbm );
+				 tr("Next well"), cbm );
 
     new uiToolButton( butgrp, "view_all", tr("View all"),
 			mCB(logdisp_,uiLogView,zoomResetCB) );
@@ -56,7 +56,10 @@ uiChartsLogDisplayGrp::uiChartsLogDisplayGrp( uiParent* p )
 
 
 uiChartsLogDisplayGrp::~uiChartsLogDisplayGrp()
-{}
+{
+    detachAllNotifiers();
+    delete propdlg_;
+}
 
 
 void uiChartsLogDisplayGrp::addLogSelection(
@@ -158,8 +161,39 @@ void uiChartsLogDisplayGrp::changeWellButPush( CallBacker* cb )
 void uiChartsLogDisplayGrp::showSettingsCB( CallBacker* )
 {
     if ( !propdlg_ )
+    {
 	propdlg_ = new uiLogViewPropDlg( this, logdisp_->logChart(), true,
 					 false, true );
+	mAttachCB(propdlg_->applyPushed, uiChartsLogDisplayGrp::settingsApplyCB);
+    }
 
     propdlg_->show();
+}
+
+
+void uiChartsLogDisplayGrp::settingsApplyCB( CallBacker* )
+{
+    if ( !propdlg_ )
+	return;
+
+    uiLogChart* lc = logdisp_->logChart();
+    if ( !lc )
+	return;
+
+    for ( auto* logcurve : lc->logcurves() )
+    {
+	OD::LineStyle ls = logcurve->lineStyle();
+	if ( !specstyles_.isPresent(logcurve->logName()) )
+	{
+	    BufferString lsstr;
+	    ls.toString( lsstr );
+	    specstyles_.add( logcurve->logName(), lsstr );
+	}
+	else
+	{
+	    const int idx = specstyles_.indexOf( logcurve->logName() );
+	    ls.toString( specstyles_.get(idx).second() );
+	}
+    }
+    propdlg_->showMinimized();
 }

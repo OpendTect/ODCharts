@@ -42,6 +42,7 @@ protected:
 
     void			changeWellButPush(CallBacker*);
     void			showSettingsCB(CallBacker*);
+    void			settingsApplyCB(CallBacker*);
 
     int				wellidx_		= 0;
     ObjectSet<Well::SubSelData>	logdatas_;
