@@ -19,6 +19,7 @@ qtcsettings.cmake
 *.log
 *.tlog
 *.recipe
+*.dir
 
 # OpendTect
 *.alo
@@ -30,6 +31,8 @@ qtcsettings.cmake
 # Qt
 moc_*
 plugins/*/*_autogen
+plugins/*/launch-*.cmd
 
 # Others
 *.patch
+*.sw?
