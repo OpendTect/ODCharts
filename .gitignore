@@ -19,7 +19,7 @@ qtcsettings.cmake
 *.log
 *.tlog
 *.recipe
-*.ilk
+*.dir
 
 # OpendTect
 *.alo
@@ -35,3 +35,4 @@ plugins/*/launch-*.cmd
 
 # Others
 *.patch
+*.sw?
