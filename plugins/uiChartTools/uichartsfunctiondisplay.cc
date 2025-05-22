@@ -50,10 +50,9 @@ uiChartsFunctionDisplay::uiChartsFunctionDisplay( uiParent* p, const Setup& su )
     asu.annotinint_ = setup_.yannotinint_;
     xax_->setBounds(setup_.xrg_);
     yax_ = new uiChartsAxisHandler( this, asu );
-    OD::LineStyle ls( OD::LineStyle::Dash, 1, setup_.y2col_ );
     asu.noaxisline( setup_.noy2axis_ );
     asu.noaxisannot( asu.noaxisline_ ? true : !setup_.annoty2_ );
-    asu.nogridline( setup_.noy2gridline_ ).gridlinestyle( ls );
+    asu.nogridline( setup_.noy2gridline_ ).gridlinestyle( setup_.y2linestyle_ );
     asu.side( uiRect::Right );
     y2ax_ = new uiChartsAxisHandler( this, asu );
 
@@ -322,10 +321,7 @@ void uiChartsFunctionDisplay::setSeriesStyle()
     if ( yseries_ )
     {
 	yseries_->setVisible( !setup().fillbelow_ );
-	OD::LineStyle ls;
-	ls.color_ = setup().ycol_;
-	ls.width_ = setup().ywidth_;
-	yseries_->setLineStyle( ls );
+	yseries_->setLineStyle( setup().ylinestyle_ );
 	yseries_->setLineVisible( setup().drawliney_ );
 	yseries_->setPointsVisible( setup().drawscattery1_ );
     }
@@ -333,10 +329,7 @@ void uiChartsFunctionDisplay::setSeriesStyle()
     if ( y2series_ )
     {
 	y2series_->setVisible( !setup().fillbelowy2_ );
-	OD::LineStyle ls;
-	ls.color_ = setup().y2col_;
-	ls.width_ = setup().y2width_;
-	y2series_->setLineStyle( ls );
+	y2series_->setLineStyle( setup().y2linestyle_ );
 	y2series_->setVisible( setup().drawliney2_ );
 	y2series_->setPointsVisible( setup().drawscattery2_ );
     }
@@ -344,11 +337,8 @@ void uiChartsFunctionDisplay::setSeriesStyle()
     if ( yarea_ )
     {
 	yarea_->setVisible( setup().fillbelow_ );
-	OD::LineStyle ls;
-	ls.color_ = setup().ycol_;
-	ls.width_ = setup().ywidth_;
-	yarea_->setBorderStyle( ls );
-	yarea_->setColor( setup().ycol_ );
+	yarea_->setBorderStyle( setup().ylinestyle_ );
+	yarea_->setColor( setup().ylinestyle_.color_ );
 	yarea_->setLinesVisible( setup().drawliney_ );
 	yarea_->setPointsVisible( setup().drawscattery1_ );
     }
@@ -356,11 +346,8 @@ void uiChartsFunctionDisplay::setSeriesStyle()
     if ( y2area_ )
     {
 	y2area_->setVisible( setup().fillbelowy2_ );
-	OD::LineStyle ls;
-	ls.color_ = setup().y2col_;
-	ls.width_ = setup().y2width_;
-	y2area_->setBorderStyle( ls );
-	y2area_->setColor( setup().y2col_ );
+	y2area_->setBorderStyle( setup().y2linestyle_ );
+	y2area_->setColor( setup().y2linestyle_.color_ );
 	y2area_->setLinesVisible( setup().drawliney2_ );
 	y2area_->setPointsVisible( setup().drawscattery2_ );
     }
