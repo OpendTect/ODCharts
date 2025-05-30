@@ -30,7 +30,8 @@ uiChartsFunctionDisplay::uiChartsFunctionDisplay( uiParent* p, const Setup& su )
     setStretch( 2, 2 );
 
     auto* chart = new uiChart;
-    chart->displayLegend( false );
+    chart->displayLegend( setup_.showlegend_ );
+    chart->setTitleBold( true );
     setChart( chart );
     setChartStyle();
 
@@ -264,9 +265,32 @@ uiChartsAxisHandler* uiChartsFunctionDisplay::yAxis( bool y2 ) const
 
 void uiChartsFunctionDisplay::makeSeries()
 {
+    if ( !yseries_ && !setup().fillbelow_ )
+    {
+	yseries_ = new uiLineSeries;
+	yseries_->setName( setup().yseriesname_ );
+	chart()->addSeries( yseries_ );
+	yseries_->attachAxis( xAxis()->axis() );
+	yseries_->attachAxis( yAxis(false)->axis() );
+	if ( setup().editable_ )
+	{
+	    //TODO?
+	}
+    }
+
+    if ( !yarea_ && setup().fillbelow_ )
+    {
+	yarea_ = new uiAreaSeries( new uiLineSeries );
+	yarea_->setName( setup().yseriesname_ );
+	chart()->addSeries( yarea_ );
+	yarea_->attachAxis( xAxis()->axis() );
+	yarea_->attachAxis( yAxis(false)->axis() );
+    }
+
     if ( !y2series_ && !setup().fillbelowy2_ )
     {
 	y2series_ = new uiLineSeries;
+	y2series_->setName( setup().y2seriesname_ );
 	chart()->addSeries( y2series_ );
 	y2series_->attachAxis( xAxis()->axis() );
 	y2series_->attachAxis( yAxis(!setup().useyscalefory2_)->axis() );
@@ -275,28 +299,10 @@ void uiChartsFunctionDisplay::makeSeries()
     if ( !y2area_ && setup().fillbelowy2_ )
     {
 	y2area_ = new uiAreaSeries( new uiLineSeries );
+	y2area_->setName( setup().y2seriesname_ );
 	chart()->addSeries( y2area_ );
 	y2area_->attachAxis( xAxis()->axis() );
 	y2area_->attachAxis( yAxis(!setup().useyscalefory2_)->axis() );
-    }
-
-    if ( !yseries_ && !setup().fillbelow_ )
-    {
-	yseries_ = new uiLineSeries;
-	chart()->addSeries( yseries_ );
-	yseries_->attachAxis( xAxis()->axis() );
-	yseries_->attachAxis( yAxis(false)->axis() );
-	if ( setup().editable_ )
-	{
-	}
-    }
-
-    if ( !yarea_ && setup().fillbelow_ )
-    {
-	yarea_ = new uiAreaSeries( new uiLineSeries );
-	chart()->addSeries( yarea_ );
-	yarea_->attachAxis( xAxis()->axis() );
-	yarea_->attachAxis( yAxis(false)->axis() );
     }
 
     if ( yseries_ && xVals().arr() && yVals().arr() )

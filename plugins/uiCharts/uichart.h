@@ -56,6 +56,7 @@ public:
     void			setPlotArea(const Geom::RectF&);
     void			setTitle(const char*);
     void			setTitle(const uiString&);
+    void			setTitleBold(bool);
     BufferString		title() const;
 
     QChart*			getQChart();

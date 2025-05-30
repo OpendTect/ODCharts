@@ -73,6 +73,7 @@ void uiChart::addAxis( uiChartAxis* axis, OD::Edge all )
 void uiChart::addSeries( uiChartSeries* series )
 {
     odchart_->addSeries( series->getQSeries() );
+    odchart_->legend()->setMarkerShape( QLegend::MarkerShapeFromSeries );
 }
 
 
@@ -225,6 +226,14 @@ void uiChart::setTitle( const uiString& title )
     QString qstr;
     title.fillQString( qstr );
     odchart_->setTitle( qstr );
+}
+
+
+void uiChart::setTitleBold( bool yn )
+{
+    QFont titlefont = odchart_->titleFont();
+    titlefont.setBold( yn );
+    odchart_->setTitleFont( titlefont );
 }
 
 
