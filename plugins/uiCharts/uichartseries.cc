@@ -19,10 +19,8 @@ ________________________________________________________________________
 #include <QLineSeries>
 #include <QScatterSeries>
 
+mUseQtnamespace
 
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-    using namespace QtCharts;
-#endif
 
 uiChartSeries::uiChartSeries( QAbstractSeries* series )
     : qabstractseries_(series)

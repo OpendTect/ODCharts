@@ -14,10 +14,7 @@ ________________________________________________________________________
 #include <QLogValueAxis>
 #include <QValueAxis>
 
-#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-    using namespace QtCharts;
-#endif
-
+mUseQtnamespace
 
 
 uiChartAxis::uiChartAxis( QAbstractAxis* axis )
