@@ -12,11 +12,11 @@ ________________________________________________________________________
 
 #include <QChart>
 
-#if QT_VERSION < x060000
-    using namespace QtCharts;
-#endif
+//! Helper class for QChart to relay Qt's messages.
 
-class i_chartMsgHandler : public  QObject
+QT_BEGIN_NAMESPACE
+
+class i_chartMsgHandler : public QObject
 {
 Q_OBJECT
 friend class uiChart;
@@ -35,10 +35,17 @@ i_chartMsgHandler( uiChart* chart, QChart* qchart )
 {}
 
 private:
+
     uiChart*		chart_;
     QChart*		qchart_;
 
 private slots:
-    void	plotAreaChanged(const QRectF&)
-		{ chart_->plotAreaChanged.trigger(); }
+
+void plotAreaChanged( const QRectF& )
+{
+    chart_->plotAreaChanged.trigger();
+}
+
 };
+
+QT_END_NAMESPACE

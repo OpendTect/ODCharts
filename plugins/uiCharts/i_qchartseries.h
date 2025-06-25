@@ -13,9 +13,9 @@ ________________________________________________________________________
 
 #include <QXYSeries>
 
-#if QT_VERSION < x060000
-    using namespace QtCharts;
-#endif
+//! Helper class for uiAction to QXYSeries Qt's messages.
+
+QT_BEGIN_NAMESPACE
 
 class i_xySeriesMsgHandler : public  QObject
 {
@@ -44,31 +44,33 @@ i_xySeriesMsgHandler( uiXYChartSeries* series, QXYSeries* qseries )
 {}
 
 private:
+
     uiXYChartSeries*	series_;
     QXYSeries*		qseries_;
 
 private slots:
-void pressed(const QPointF& p)
+
+void pressed( const QPointF& p )
 {
     series_->pressed.trigger( Geom::PointF(p.x(),p.y()) );
 }
 
-void released(const QPointF& p)
+void released( const QPointF& p )
 {
     series_->released.trigger( Geom::PointF(p.x(),p.y()) );
 }
 
-void clicked(const QPointF& p)
+void clicked( const QPointF& p )
 {
     series_->clicked.trigger( Geom::PointF(p.x(),p.y()) );
 }
 
-void doubleClicked(const QPointF& p)
+void doubleClicked( const QPointF& p )
 {
     series_->doubleClicked.trigger( Geom::PointF(p.x(),p.y()) );
 }
 
-void hovered(const QPointF& p, bool state)
+void hovered( const QPointF& p, bool state )
 {
     if ( state )
 	series_->hoverOn.trigger( Geom::PointF(p.x(),p.y()) );
@@ -77,3 +79,5 @@ void hovered(const QPointF& p, bool state)
 }
 
 };
+
+QT_END_NAMESPACE

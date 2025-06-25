@@ -12,11 +12,11 @@ ________________________________________________________________________
 
 #include <QValueAxis>
 
-#if QT_VERSION < x060000
-    using namespace QtCharts;
-#endif
+//! Helper class for QValueAxis to relay Qt's messages.
 
-class i_valueAxisMsgHandler : public  QObject
+QT_BEGIN_NAMESPACE
+
+class i_valueAxisMsgHandler : public QObject
 {
 Q_OBJECT
 friend class uiValueAxis;
@@ -35,10 +35,12 @@ i_valueAxisMsgHandler( uiValueAxis* axis, QValueAxis* qaxis )
 {}
 
 private:
+
     uiValueAxis*	axis_;
     QValueAxis*		qaxis_;
 
 private slots:
+
 void snapRange( qreal min, qreal max )
 {
     axis_->snapRange( min, max );
@@ -48,3 +50,5 @@ void snapRange( qreal min, qreal max )
 }
 
 };
+
+QT_END_NAMESPACE
