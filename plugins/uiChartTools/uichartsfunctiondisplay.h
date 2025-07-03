@@ -18,6 +18,7 @@ ________________________________________________________________________
 class uiBorder;
 class uiChartAxis;
 class uiChartSeries;
+class uiXYChartSeries;
 class uiLineSeries;
 class uiAreaSeries;
 class uiScatterSeries;
@@ -104,6 +105,44 @@ protected:
     void		pointSelectedCB(CallBacker*);
 
     bool		setSelPt(const Geom::PointF&);
+};
+
+
+mExpClass(uiChartTools) uiChartsMultiFunctionDisplay
+						: public uiMultiFuncDispBase
+						, public uiChartView
+{
+mODTextTranslationClass(uiChartsMultiFunctionDisplay)
+public:
+			uiChartsMultiFunctionDisplay(uiParent*,const Setup&);
+			~uiChartsMultiFunctionDisplay();
+
+    void		setTitle(const uiString&) override;
+    void		setEmpty() override;
+
+    Geom::PointF	mapToPosition(const Geom::PointF&) override;
+    Geom::PointF	mapToValue(const Geom::PointF&) override;
+
+    void		draw() override;
+    uiObject*		uiobj() override		{ return this; }
+
+    uiChartsAxisHandler*	xAxis() const;
+    uiChartsAxisHandler*	yAxis() const;
+
+    void		setChartStyle();
+    void		setSeriesStyle();
+
+    void		addFunction(FunctionPlotData*) override;
+    void		removeFunction(const char* nm) override;
+    void		setVisible(const char* nm,bool) override;
+
+protected:
+
+    ObjectSet<uiXYChartSeries>	series_;
+
+    uiXYChartSeries*	getSeries(int);
+
+    void		makeSeries(const FunctionPlotData&);
 };
 
 

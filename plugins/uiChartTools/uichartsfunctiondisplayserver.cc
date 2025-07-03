@@ -33,3 +33,11 @@ uiFuncDrawerBase*
 {
     return new uiChartsFunctionDrawer( p, su );
 }
+
+
+uiMultiFuncDispBase*
+	uiChartsFunctionDisplayServer::createMultiFunctionDisplay( uiParent* p,
+					const uiMultiFuncDispBase::Setup& su )
+{
+    return new uiChartsMultiFunctionDisplay( p, su );
+}

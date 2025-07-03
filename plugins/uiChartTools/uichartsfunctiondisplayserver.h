@@ -23,4 +23,6 @@ public:
 				    const uiFuncDispBase::Setup&) override;
     uiFuncDrawerBase*	createFunctionDrawer(uiParent*,
 				    const uiFuncDrawerBase::Setup&) override;
+    uiMultiFuncDispBase* createMultiFunctionDisplay(uiParent*,
+				    const uiMultiFuncDispBase::Setup&) override;
 };
