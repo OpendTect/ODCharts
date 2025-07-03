@@ -369,6 +369,190 @@ void uiChartsFunctionDisplay::setChartStyle()
 
 
 
+// uiChartsMultiFunctionDisplay
+uiChartsMultiFunctionDisplay::uiChartsMultiFunctionDisplay( uiParent* p,
+							    const Setup& su )
+    : uiMultiFuncDispBase(su)
+    , uiChartView(p,"Multi-Function Display")
+{
+    setPrefWidth( setup_.canvaswidth_ );
+    setPrefHeight( setup_.canvasheight_ );
+    setStretch( 2, 2 );
+
+    auto* chart = new uiChart;
+    chart->displayLegend( setup_.showlegend_ );
+    chart->setTitleBold( true );
+    setChart( chart );
+    setChartStyle();
+
+    uiChartsAxisHandler::Setup asu( uiRect::Bottom, setup_.canvaswidth_,
+			         setup_.canvasheight_ );
+    asu.noaxisline( setup_.noxaxis_ );
+    asu.noaxisannot( asu.noaxisline_ ? true : !setup_.annotx_ );
+    asu.nogridline( asu.noaxisline_ ? true : setup_.noxgridline_ );
+    asu.border_ = setup_.border_;
+    asu.annotinint_ = setup_.xannotinint_;
+    xax_ = new uiChartsAxisHandler( this, asu );
+
+    asu.noaxisline( setup_.noyaxis_ );
+    asu.noaxisannot( asu.noaxisline_ ? true : !setup_.annoty_ );
+    asu.nogridline( asu.noaxisline_ ? true : setup_.noygridline_ );
+    asu.side( uiRect::Left );
+    asu.annotinint_ = setup_.yannotinint_;
+    xax_->setBounds(setup_.xrg_);
+    yax_ = new uiChartsAxisHandler( this, asu );
+}
+
+
+uiChartsMultiFunctionDisplay::~uiChartsMultiFunctionDisplay()
+{
+    detachAllNotifiers();
+    delete xax_;
+    delete yax_;
+}
+
+
+void uiChartsMultiFunctionDisplay::setEmpty()
+{
+    chart()->removeAllSeries();
+    series_.setEmpty();
+    uiMultiFuncDispBase::setEmpty();
+}
+
+
+void uiChartsMultiFunctionDisplay::setTitle( const uiString& uistr )
+{
+    chart()->setTitle( uistr );
+}
+
+
+uiXYChartSeries* uiChartsMultiFunctionDisplay::getSeries( int idx )
+{
+    return series_.validIdx(idx) ? series_.get( idx ) : nullptr;
+}
+
+
+Geom::PointF uiChartsMultiFunctionDisplay::mapToPosition(
+						const Geom::PointF& pt )
+{
+    return chart()->mapToPosition( pt, nullptr );
+}
+
+
+Geom::PointF uiChartsMultiFunctionDisplay::mapToValue( const Geom::PointF& pt )
+{
+    return chart()->mapToValue( pt, nullptr );
+}
+
+
+void uiChartsMultiFunctionDisplay::setVisible( const char* nm, bool yn )
+{
+    const int index = indexOf( nm );
+    if ( series_.validIdx(index) )
+    {
+	functions_[index]->isvisible_ = yn;
+	series_[index]->setVisible( yn );
+    }
+}
+
+
+void uiChartsMultiFunctionDisplay::draw()
+{
+    if ( functions_.size() != series_.size() )
+	return;
+
+    for ( int idx=0; idx<functions_.size(); idx++ )
+    {
+	const auto& func = *functions_.get( idx );
+	mDynamicCastGet(uiXYChartSeries*,series,getSeries(idx))
+	if ( !series )
+	    continue;
+
+	series->setVisible( func.isvisible_ );
+	if ( func.isvisible_ && !func.xvals_.isEmpty() &&
+				!func.yvals_.isEmpty() )
+	    series->replace( func.xvals_.size(), func.xvals_.arr(),
+		    	     func.yvals_.arr() );
+    }
+}
+
+
+uiChartsAxisHandler* uiChartsMultiFunctionDisplay::xAxis() const
+{
+    return dCast(uiChartsAxisHandler*,xax_);
+}
+
+
+uiChartsAxisHandler* uiChartsMultiFunctionDisplay::yAxis() const
+{
+    return dCast(uiChartsAxisHandler*,yax_);
+}
+
+
+void uiChartsMultiFunctionDisplay::addFunction( FunctionPlotData* func )
+{
+    uiMultiFuncDispBase::addFunction( func );
+    makeSeries( *func );
+    gatherInfo();
+    draw();
+}
+
+
+void uiChartsMultiFunctionDisplay::removeFunction( const char* nm )
+{
+    const int index = indexOf( nm );
+    if ( index < 0 )
+	return;
+
+    chart()->removeSeries( series_.removeSingle(index) );
+    uiMultiFuncDispBase::removeFunction( nm );
+    gatherInfo();
+    draw();
+}
+
+
+void uiChartsMultiFunctionDisplay::makeSeries( const FunctionPlotData& func )
+{
+    uiXYChartSeries* series = nullptr;
+    if ( func.type_ == FunctionPlotData::Line )
+    {
+	auto* lineseries = new uiLineSeries;
+	lineseries->setLineStyle( func.linestyle_ );
+	series = lineseries;
+    }
+    else
+    {
+	auto* scatterseries = new uiScatterSeries;
+	MarkerStyle2D::Type shape = func.markerstyle_.type_;
+	//TODO: Support other shapes
+	scatterseries->setShape( shape==MarkerStyle2D::Square ?
+			uiScatterSeries::Square : uiScatterSeries::Circle );
+	scatterseries->setColor( func.markerstyle_.color_ );
+	scatterseries->setBorderColor( func.markerstyle_.color_ );
+	scatterseries->setMarkerSize( func.markerstyle_.size_ );
+	series = scatterseries;
+    }
+
+    series->setName( func.name() );
+    if ( setup().showcallout_ )
+	series->setCalloutTxt( func.callouttext_.isEmpty() ?
+				func.callouttext_.buf() : func.name().buf() );
+
+    chart()->addSeries( series );
+    series->attachAxis( xAxis()->axis() );
+    series->attachAxis( yAxis()->axis() );
+    series_.add( series );
+}
+
+
+void uiChartsMultiFunctionDisplay::setChartStyle()
+{
+    chart()->setBackgroundColor( setup().bgcol_ );
+    uiBorder b = setup().border_;
+    chart()->setMargins( b.left(), b.top(), b.right(), b.bottom() );
+}
+
+
 // uiChartsAxisHandler
 uiChartsAxisHandler::uiChartsAxisHandler( uiChartView* cv, const Setup& su )
     : uiAxisHandlerBase(su)
