@@ -375,29 +375,35 @@ uiChartsMultiFunctionDisplay::uiChartsMultiFunctionDisplay( uiParent* p,
     : uiMultiFuncDispBase(su)
     , uiChartView(p,"Multi-Function Display")
 {
-    setPrefWidth( setup_.canvaswidth_ );
-    setPrefHeight( setup_.canvasheight_ );
+    const bool isvertical = setup_.isvertical_;;
+    setPrefWidth( isvertical ? setup_.canvasheight_ : setup_.canvaswidth_ );
+    setPrefHeight( isvertical ? setup_.canvaswidth_ : setup_.canvasheight_ );
+    setZoomStyle( isvertical ? VerticalZoom : RectangleZoom );
     setStretch( 2, 2 );
 
     auto* chart = new uiChart;
     chart->displayLegend( setup_.showlegend_ );
+    chart->setLegendPos( setup_.legendpos_ );
     chart->setTitleBold( true );
     setChart( chart );
     setChartStyle();
 
-    uiChartsAxisHandler::Setup asu( uiRect::Bottom, setup_.canvaswidth_,
-			         setup_.canvasheight_ );
+    uiChartsAxisHandler::Setup asu( isvertical ? uiRect::Left : uiRect::Bottom,
+	    	isvertical ? setup_.canvasheight_ : setup_.canvaswidth_,
+		isvertical ? setup_.canvaswidth_ : setup_.canvasheight_ );
     asu.noaxisline( setup_.noxaxis_ );
     asu.noaxisannot( asu.noaxisline_ ? true : !setup_.annotx_ );
     asu.nogridline( asu.noaxisline_ ? true : setup_.noxgridline_ );
     asu.border_ = setup_.border_;
     asu.annotinint_ = setup_.xannotinint_;
-    xax_ = new uiChartsAxisHandler( this, asu );
+    auto* xax = new uiChartsAxisHandler( this, asu );
+    xax->axis()->setReverse( isvertical );
+    xax_ = xax;
 
     asu.noaxisline( setup_.noyaxis_ );
     asu.noaxisannot( asu.noaxisline_ ? true : !setup_.annoty_ );
     asu.nogridline( asu.noaxisline_ ? true : setup_.noygridline_ );
-    asu.side( uiRect::Left );
+    asu.side( isvertical ? uiRect::Top : uiRect::Left );
     asu.annotinint_ = setup_.yannotinint_;
     xax_->setBounds(setup_.xrg_);
     yax_ = new uiChartsAxisHandler( this, asu );
@@ -471,8 +477,9 @@ void uiChartsMultiFunctionDisplay::draw()
 	series->setVisible( func.isvisible_ );
 	if ( func.isvisible_ && !func.xvals_.isEmpty() &&
 				!func.yvals_.isEmpty() )
-	    series->replace( func.xvals_.size(), func.xvals_.arr(),
-		    	     func.yvals_.arr() );
+	    series->replace( func.xvals_.size(),
+		    setup_.isVertical_ ? func.yvals_.arr() : func.xvals_.arr(),
+		    setup_.isVertical_ ? func.xvals_.arr() : func.yvals_.arr());
     }
 }
 
@@ -621,6 +628,10 @@ void uiChartsAxisHandler::setBounds( Interval<float> rg )
 	const bool isrev = rg.isRev();
 	steprg = StepInterval<float>( rg ).niceInterval( 5, isrev );
     }
+
+    mDynamicCastGet(uiValueAxis*,valaxis,axis_)
+    if ( valaxis )
+	valaxis->setAxisLimits( steprg, false );
 
     setRange( steprg );
 }

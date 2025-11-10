@@ -37,6 +37,7 @@ public:
     void			addSeries(uiChartSeries*);
     OD::Color			backgroundColor() const;
     void			displayLegend(bool);
+    void			setLegendPos(OD::Edge);
     Geom::PointF		mapToPosition(const Geom::PointF&,
 					      uiChartSeries* series=nullptr);
     Geom::PointF		mapToValue(const Geom::PointF&,
