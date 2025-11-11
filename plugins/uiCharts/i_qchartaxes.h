@@ -46,6 +46,9 @@ void snapRange( qreal min, qreal max )
     axis_->snapRange( min, max );
     Interval<float> rg( axis_->range() );
     rg.sort();
+    StepInterval<float> steprg( rg );
+    steprg = steprg.niceInterval( 5, false );
+    qaxis_->setTickInterval( steprg.step_ );
     axis_->rangeChanged.trigger( rg );
 }
 

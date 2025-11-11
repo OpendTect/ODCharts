@@ -56,13 +56,22 @@ uiChart::~uiChart()
 }
 
 
+static Qt::Alignment getQtAlignmentForEdge( OD::Edge edge )
+{
+    if ( edge == OD::Bottom )
+	return Qt::AlignBottom;
+    if ( edge == OD::Left )
+	return Qt::AlignLeft;
+    if ( edge == OD::Right )
+	return Qt::AlignRight;
+    
+    return Qt::AlignTop;
+}
+
+
 void uiChart::addAxis( uiChartAxis* axis, OD::Edge all )
 {
-    Qt::Alignment qall =
-	all==OD::Top ? Qt::AlignTop
-		     : all==OD::Bottom ? Qt::AlignBottom
-				       : all==OD::Left ? Qt::AlignLeft
-						       : Qt::AlignRight;
+    Qt::Alignment qall = getQtAlignmentForEdge( all );
     odchart_->addAxis( axis->getQAxis(), qall );
     axes_ += axis;
     mAttachCB( axis->rangeChanged, uiChart::axisRangeChgCB );
@@ -87,6 +96,12 @@ OD::Color uiChart::backgroundColor() const
 void uiChart::displayLegend( bool yn )
 {
     yn ? odchart_->legend()->show() : odchart_->legend()->hide();
+}
+
+
+void uiChart::setLegendPos( OD::Edge edge )
+{
+    odchart_->legend()->setAlignment( getQtAlignmentForEdge(edge) );
 }
 
 
