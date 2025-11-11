@@ -481,6 +481,9 @@ void uiChartsMultiFunctionDisplay::draw()
 		    setup_.isvertical_ ? func.yvals_.arr() : func.xvals_.arr(),
 		    setup_.isvertical_ ? func.xvals_.arr() : func.yvals_.arr());
     }
+
+    if ( setup_.isvertical_ )
+	xAxis()->axis()->setReverse( true );
 }
 
 
