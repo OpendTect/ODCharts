@@ -478,8 +478,8 @@ void uiChartsMultiFunctionDisplay::draw()
 	if ( func.isvisible_ && !func.xvals_.isEmpty() &&
 				!func.yvals_.isEmpty() )
 	    series->replace( func.xvals_.size(),
-		    setup_.isVertical_ ? func.yvals_.arr() : func.xvals_.arr(),
-		    setup_.isVertical_ ? func.xvals_.arr() : func.yvals_.arr());
+		    setup_.isvertical_ ? func.yvals_.arr() : func.xvals_.arr(),
+		    setup_.isvertical_ ? func.xvals_.arr() : func.yvals_.arr());
     }
 }
 
