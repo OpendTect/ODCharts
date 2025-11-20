@@ -145,7 +145,7 @@ void uiLogViewTable::addWellData( const BufferStringSet& wellnms,
 	logcurves += new LogCurve;
 
     SingleLogLoader loader( wellnms.size(), wellnms, logs, logcurves );
-    loader.execute();
+    loader.executeParallel( false );
 
     for ( int vwidx=0; vwidx<wellnms.size(); vwidx++ )
     {
@@ -209,7 +209,7 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 
     uiUserShowWait uisw( this, tr("Loading") );
     MultiLogLoader loader( wellids.size(), wellids, logidxs, logcurves );
-    loader.execute();
+    loader.executeParallel( false );
 
     for ( int vwidx=0; vwidx<logcurves.size(); vwidx++ )
     {
@@ -277,7 +277,7 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 
     uiUserShowWait uisw( this, tr("Loading") );
     MultiLogLoader2 loader( wellids.size(), wellids, lognms, logcurves );
-    loader.execute();
+    loader.executeParallel( false );
 
     for ( int vwidx=0; vwidx<logcurves.size(); vwidx++ )
     {
@@ -328,7 +328,7 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 	logcurves += new LogCurve;
 
     SingleLogLoader2 loader( wellids.size(), wellids, lognms, logcurves );
-    loader.execute();
+    loader.executeParallel( false );
 
     for ( int vwidx=0; vwidx<wellids.size(); vwidx++ )
     {
