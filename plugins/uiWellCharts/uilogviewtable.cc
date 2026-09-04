@@ -10,14 +10,17 @@ ________________________________________________________________________
 #include "uilogviewtable.h"
 
 #include "logcurve.h"
-#include "paralleltask.h"
+#include "welllogset.h"
+#include "wellman.h"
+#include "wellreader.h"
+
 #include "uichartaxes.h"
 #include "uilogchart.h"
 #include "uilogview.h"
 #include "uilogviewtoolgrp.h"
 #include "uimsg.h"
+#include "uitaskrunner.h"
 #include "uitable.h"
-#include "wellman.h"
 
 
 uiLogViewTable::uiLogViewTable( uiParent* p, int nrcol, bool showtools )
@@ -140,12 +143,14 @@ void uiLogViewTable::addWellData( const BufferStringSet& wellnms,
 				  const OD::LineStyle& ls,
 				  const char* suffix )
 {
-    ObjectSet<LogCurve> logcurves;
+    ManagedObjectSet<LogCurve> logcurves;
     for ( int idx=0; idx<wellnms.size(); idx++ )
 	logcurves += new LogCurve;
 
     SingleLogLoader loader( wellnms.size(), wellnms, logs, logcurves );
-    loader.executeParallel( false );
+    uiTaskRunner taskrunner( this );
+    if ( !taskrunner.execute(loader) )
+	return;
 
     for ( int vwidx=0; vwidx<wellnms.size(); vwidx++ )
     {
@@ -153,11 +158,11 @@ void uiLogViewTable::addWellData( const BufferStringSet& wellnms,
 	if ( !chart )
 	    continue;
 
-	LogCurve* curvecopy = logcurves[vwidx]->clone();
+	PtrMan<LogCurve> curvecopy = logcurves[vwidx]->clone();
 	if ( suffix )
 	{
 	    LogCurve* logcurve_in = chart->getLogCurve( curvecopy->logName() );
-	    BufferString lognm( curvecopy->logName(), suffix );
+	    const BufferString lognm( curvecopy->logName(), suffix );
 	    curvecopy->setLogName( lognm );
 	    chart->removeLogCurve( lognm );
 	    if ( logcurve_in )
@@ -170,25 +175,44 @@ void uiLogViewTable::addWellData( const BufferStringSet& wellnms,
 	    }
 	}
 
-	chart->addLogCurve( curvecopy, ls, false, true );
+	chart->addLogCurve( curvecopy.release(), ls, false, true );
 	updateViewLabel( vwidx );
     }
 
     updatePrimaryZrangeCB( nullptr );
-    deepErase( logcurves );
 }
 
 
-mDefParallelCalc3Pars(MultiLogLoader,
+mDefParallelCalc4Pars(MultiLogLoader,
 		  od_static_tr("MultiLogLoader", "Multi log loader"),
 		      const DBKeySet&, wellids,
 		      const ManagedObjectSet<TypeSet<int>>&, logidxs,
+		      ObjectSet<Well::Data>&, wds,
 		      ManagedObjectSet<ObjectSet<LogCurve>>&, logcurves)
 mDefParallelCalcBody( ,
     const DBKey& wkey = wellids_[idx];
     const TypeSet<int>& logidx = *logidxs_[idx];
+    ConstRefMan<Well::Data> wd = wds_[idx];
+    if ( !wd )
+	return false;
+
     BufferStringSet lognms;
-    Well::Man::getLogNamesByID( wkey, lognms );
+    const Well::LogSet& logs = wd->logs();
+    for ( const auto& lidx : logidx )
+    {
+        if ( !logs.validIdx(lidx) )
+	    continue;
+
+	const BufferString lognm = logs.getLogNameByIdx( lidx );
+	if ( !logs.isLoaded(lognm.buf()) )
+	    lognms.add( logs.getLogNameByIdx(lidx) );
+    }
+    if ( !lognms.isEmpty() )
+    {
+	const Well::LoadReqs lreqs( lognms );
+	wd = Well::MGR().get( wd->multiID(), lreqs );
+    }
+
     for ( const auto& lidx : logidx )
     {
 	if ( !lognms.validIdx(lidx) )
@@ -200,16 +224,33 @@ mDefParallelCalcBody( ,
 
 
 void uiLogViewTable::addWellData( const DBKeySet& wellids,
-				const ManagedObjectSet<TypeSet<int>>& logidxs )
+				  const ManagedObjectSet<TypeSet<int>>& logidxs,
+				  const BufferStringSet* mrknms )
 {
+    Well::LoadReqs lreqs( Well::LogInfos );
+    if ( mrknms )
+	lreqs.include( Well::Mrkrs );
+
+    RefObjectSet<Well::Data> wds;
+    MultiWellReader rdr( wellids, wds, lreqs );
+    uiTaskRunner taskrunner( this );
+    if ( !taskrunner.execute(rdr) )
+    {
+	uiMSG().errorWithDetails( rdr.details(), rdr.uiMessage() );
+	return;
+    }
+
+    if ( rdr.hasFails() )
+	uiMSG().messageWithDetails( rdr.details(), rdr.uiMessage() );
+
     setNumViews( wellids.size() );
     ManagedObjectSet<ObjectSet<LogCurve>> logcurves;
     for ( int idx=0; idx<wellids.size(); idx++ )
-	logcurves += new ObjectSet<LogCurve>();
+	logcurves += new ManagedObjectSet<LogCurve>();
 
-    uiUserShowWait uisw( this, tr("Loading") );
-    MultiLogLoader loader( wellids.size(), wellids, logidxs, logcurves );
-    loader.executeParallel( false );
+    MultiLogLoader loader( wellids.size(), wellids, logidxs, wds, logcurves );
+    if ( !taskrunner.execute(loader) )
+	return;
 
     for ( int vwidx=0; vwidx<logcurves.size(); vwidx++ )
     {
@@ -225,31 +266,16 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 	    curvecopy += curve->clone();
 
 	chart->addLogCurves( curvecopy, false, true );
-	updateViewLabel( vwidx );
-	deepErase( *logcurves[vwidx] );
-	uisw.setMessage(
-		tr("Display: %1 %").arg(int((vwidx+1)/logcurves.size()*100.f)) );
+	if ( mrknms )
+	{
+	    for ( const auto* mrknm : *mrknms )
+		chart->addMarker( wellids[vwidx], *mrknm, false );
+	}
 
+	updateViewLabel( vwidx );
     }
 
     updatePrimaryZrangeCB( nullptr );
-}
-
-
-void uiLogViewTable::addWellData( const DBKeySet& wellids,
-				  const ManagedObjectSet<TypeSet<int>>& logidxs,
-				  const BufferStringSet& mrknms )
-{
-    addWellData( wellids, logidxs );
-    for ( int vwidx=0; vwidx<size(); vwidx++ )
-    {
-	uiLogChart* chart = getLogChart( vwidx );
-	if ( !chart )
-	    continue;
-
-	for ( const auto* mrknm : mrknms )
-	    chart->addMarker( wellids[vwidx], *mrknm, false );
-    }
 }
 
 
@@ -270,14 +296,27 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 				  const BufferStringSet& lognms,
 				  const BufferStringSet& mrknms )
 {
+    const Well::LoadReqs lreqs( lognms );
+    RefObjectSet<Well::Data> wds;
+    MultiWellReader rdr( wellids, wds, lreqs );
+    uiTaskRunner taskrunner( this );
+    if ( !taskrunner.execute(rdr) )
+    {
+	uiMSG().errorWithDetails( rdr.details(), rdr.uiMessage() );
+	return;
+    }
+
+    if ( rdr.hasFails() )
+	uiMSG().messageWithDetails( rdr.details(), rdr.uiMessage() );
+
     setNumViews( wellids.size() );
     ManagedObjectSet<ObjectSet<LogCurve>> logcurves;
     for ( int idx=0; idx<wellids.size(); idx++ )
-	logcurves += new ObjectSet<LogCurve>();
+	logcurves += new ManagedObjectSet<LogCurve>();
 
-    uiUserShowWait uisw( this, tr("Loading") );
     MultiLogLoader2 loader( wellids.size(), wellids, lognms, logcurves );
-    loader.executeParallel( false );
+    if ( !taskrunner.execute(loader) )
+	return;
 
     for ( int vwidx=0; vwidx<logcurves.size(); vwidx++ )
     {
@@ -294,14 +333,9 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 
 	chart->addLogCurves( curvecopy, false, true );
 	updateViewLabel( vwidx );
-	deepErase( *logcurves[vwidx] );
 	for ( const auto* mrknm : mrknms )
 	    chart->addMarker( wellids[vwidx], *mrknm, false );
-
-	uisw.setMessage(
-		tr("Display: %1%").arg(int((vwidx+1)/logcurves.size()*100.f)) );
     }
-
 
     updatePrimaryZrangeCB( nullptr );
 }
@@ -323,12 +357,26 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
 				  const BufferStringSet& lognms,
 				  const OD::LineStyle& ls )
 {
-    ObjectSet<LogCurve> logcurves;
+    const Well::LoadReqs lreqs( lognms );
+    RefObjectSet<Well::Data> wds;
+    MultiWellReader rdr( wellids, wds, lreqs );
+    uiTaskRunner taskrunner( this );
+    if ( !taskrunner.execute(rdr) )
+    {
+	uiMSG().errorWithDetails( rdr.details(), rdr.uiMessage() );
+	return;
+    }
+
+    if ( rdr.hasFails() )
+	uiMSG().messageWithDetails( rdr.details(), rdr.uiMessage() );
+
+    ManagedObjectSet<LogCurve> logcurves;
     for ( int idx=0; idx<wellids.size(); idx++ )
 	logcurves += new LogCurve;
 
     SingleLogLoader2 loader( wellids.size(), wellids, lognms, logcurves );
-    loader.executeParallel( false );
+    if ( !taskrunner.execute(loader) )
+	return;
 
     for ( int vwidx=0; vwidx<wellids.size(); vwidx++ )
     {
@@ -342,7 +390,6 @@ void uiLogViewTable::addWellData( const DBKeySet& wellids,
     }
 
     updatePrimaryZrangeCB( nullptr );
-    deepErase( logcurves );
 }
 
 

@@ -12,12 +12,10 @@ ________________________________________________________________________
 #include "draw.h"
 #include "logcurve.h"
 #include "uibuttongroup.h"
-#include "uigeninput.h"
 #include "uilogchart.h"
 #include "uilogview.h"
 #include "uilogviewpropdlg.h"
 #include "uisellinest.h"
-#include "uitabstack.h"
 #include "uitoolbutton.h"
 
 #include "welldisp.h"
@@ -82,20 +80,19 @@ void uiChartsLogDisplayGrp::update()
 	return;
 
     const Well::SubSelData* logsel = logdatas_[wellidx_];
-    const Well::LogSet& logs = logsel->logs();
+    const BufferStringSet& logs = logsel->lognms();
     OD::LineStyle ls;
-    for ( int idx=0; idx<logs.size(); idx++ )
+    for ( const auto& lognm : logs )
     {
-	const auto& log = logs.getLog( idx );
-	if ( !specstyles_.isEmpty() && specstyles_.isPresent(log.name()) )
+	if ( !specstyles_.isEmpty() && specstyles_.isPresent(lognm->buf()) )
 	{
-	    const int sidx = specstyles_.indexOf( log.name() );
+	    const int sidx = specstyles_.indexOf( lognm->buf() );
 	    ls.fromString( specstyles_.get(sidx).second() );
 	}
 	else
 	    ls = normstyle_;
 
-	auto* lcurve = new LogCurve( logsel->wellName(), log );
+	auto* lcurve = new LogCurve( logsel->wellName(), lognm->buf() );
 	if ( !disprange_.isUdf() )
 	    lcurve->setDisplayRange( disprange_ );
 

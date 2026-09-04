@@ -13,13 +13,13 @@ ________________________________________________________________________
 #include "mnemonics.h"
 #include "multiid.h"
 #include "ranges.h"
+#include "unitofmeasure.h"
 #include "welldata.h"
-#include "welllog.h"
+#include "welllogset.h"
 #include "wellman.h"
 
 LogData::LogData()
     : WellData()
-    , logname_(BufferString::empty())
 {}
 
 
@@ -38,36 +38,36 @@ LogData::~LogData()
 
 bool LogData::initLog()
 {
-    if ( !wd_ )
-	return false;
-
-    const Well::Log* log = wd_->getLog( logname_ );
-    if ( !log )
-	return false;
-
-    return initLog( *log );
+    return initLog( logname_.buf() );
 }
 
 
-bool LogData::initLog( const char* wellnm, const Well::Log& log )
+bool LogData::initLog( const char* wellnm, const char* logname )
 {
     if ( !initWell(wellnm) )
 	return false;
 
-    return initLog( log );
+    return initLog( logname );
 }
 
-bool LogData::initLog( const Well::Log& log )
+bool LogData::initLog( const char* logname )
 {
-    logname_ = log.name();
-    uomlbl_ = log.unitMeasLabel();
-    mnemlbl_ = log.mnemonicLabel();
-    dahrange_ = log.dahRange();
+    if ( !wd_ )
+	return false;
+
+    const Well::LogSet& logs = wd_->logs();
+    if ( !logs.isPresent(logname) )
+	return false;
+
+    logname_ = logname;
+    uomlbl_ = logs.getUnitOfMeasureLblOfLog( logname );
+    mnemlbl_ = logs.getMnemonicLblOfLog( logname );
+    dahrange_ = logs.getDahRangeForLog( logname );
     zrange_ = dahToZ( dahrange_, ztype_ );
-    valrange_ = log.valueRange();
+    valrange_ = logs.getValueRangeForLog( logname );
     disprange_.setUdf();
-    logmnem_ = log.mnemonic();
-    loguom_ = log.unitOfMeasure();
+    logmnem_ = logs.getMnemonicOfLog( logname );
+    loguom_ = logs.getUnitOfMeasureOfLog( logname );
     if ( logmnem_ )
 	dispuom_ = logmnem_->getDisplayInfo( dispscale_, disprange_, displbl_,
 					     linestyle_ );
@@ -78,12 +78,16 @@ bool LogData::initLog( const Well::Log& log )
 	disprange_.start_ = valrange_.start_;
         disprange_.stop_ = valrange_.stop_;
     }
+
     return true;
 }
 
 
-void LogData::copyFrom( const LogData& oth )
+LogData& LogData::copyFrom( const LogData& oth )
 {
+    if ( &oth == this )
+	return *this;
+
     WellData::copyFrom( oth );
     uomlbl_ = oth.uomlbl_;
     logname_ = oth.logname_;
@@ -98,6 +102,7 @@ void LogData::copyFrom( const LogData& oth )
     displbl_ = oth.displbl_;
     disprange_ = oth.disprange_;
     linestyle_ = oth.linestyle_;
+    return *this;
 }
 
 

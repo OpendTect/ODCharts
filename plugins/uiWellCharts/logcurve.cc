@@ -24,6 +24,7 @@ ________________________________________________________________________
 #include "welld2tmodel.h"
 #include "welldata.h"
 #include "welllog.h"
+#include "welllogset.h"
 #include "welltrack.h"
 
 using namespace uiWellCharts;
@@ -36,17 +37,17 @@ LogCurve::LogCurve()
 LogCurve::LogCurve( const MultiID& wellid, const char* lognm )
     : LogData(wellid,lognm)
 {
-    const Well::Log* log = wd_ ? wd_->getLog( logname_ ) : nullptr;
-    if ( log )
-	addLog( *log );
+    const Well::LogSet& logs = wd_->logs();
+    if ( logs.isPresent(logname_.buf()) && logs.isLoaded(logname_.buf()) )
+	addLog( *logs.getLog( logname_.buf() ) );
 }
 
 
 LogCurve::LogCurve( const char* wellnm, const Well::Log& log )
     : LogData()
 {
-    initLog( wellnm, log );
-    addLog( log );
+    if ( initLog(wellnm,log.name().buf()) )
+	addLog( log );
 }
 
 
@@ -110,8 +111,7 @@ LogCurve* LogCurve::clone() const
 
 void LogCurve::addTo( uiLogChart& logchart, bool show_wellnm, bool show_uom )
 {
-    const Well::Log* log = wd_ ? wd_->getLog( logname_ ) : nullptr;
-    if ( !log )
+    if ( !wd_ || !wd_->logs().isLoaded(logname_.buf()) )
 	return;
 
     addTo( logchart, linestyle_, show_wellnm, show_uom );
@@ -473,7 +473,7 @@ BufferString LogCurve::getFillPar( bool left ) const
 		hascurve ? uiWellCharts::Curve
 			 : (mIsUdf(baseval) ? uiWellCharts::Track
 					    : uiWellCharts::Baseline);
-    fms += toString( flim );
+    fms += uiWellCharts::toString( flim );
 
     if ( flim==uiWellCharts::Baseline )
 	fms += baseval;
@@ -512,7 +512,7 @@ void LogCurve::setFillPar( const char* fillstr, bool left )
 
     fill->setBaseLine( mUdf(float), false );
 
-    FileMultiString fms( fillstr );
+    const FileMultiString fms( fillstr );
     uiChartFillx::FillType ftype;
     uiChartFillx::parseEnum( fms[0], ftype );
     fill->setFillType( ftype, false );
@@ -534,15 +534,15 @@ void LogCurve::setFillPar( const char* fillstr, bool left )
 
     if ( ftype==uiChartFillx::ColorFill )
     {
-	FileMultiString colfms( fms.from(next) );
+	const FileMultiString colfms( fms.from(next) );
 	OD::Color col;
 	col.use( colfms );
 	fill->setColor( col, false );
     }
     else if ( ftype==uiChartFillx::GradientFill )
     {
-	FileMultiString gradfms( fms.from(next) );
-	LogGradient* lg = new LogGradient( wellID() );
+	const FileMultiString gradfms( fms.from(next) );
+	auto* lg = new LogGradient( wellID() );
 	lg->fromString( gradfms );
 	fill->setGradientImg( lg, false );
     }
@@ -554,9 +554,8 @@ void LogCurve::usePar( const IOPar& par, bool styleonly )
     LogData::usePar( par, styleonly );
     if ( !styleonly )
     {
-	const Well::Log* log = wd_ ? wd_->getLog( logname_ ) : nullptr;
-	if ( log )
-	    addLog( *log );
+	if ( wd_ && wd_->logs().isLoaded(logname_.buf()) )
+	    addLog( *wd_->logs().getLog( logname_.buf() ) );
     }
 
     BufferString lsstr;

@@ -37,10 +37,8 @@ public:
 					    const OD::LineStyle&,
 					    const char* lognmsuffix=nullptr);
     void			addWellData(const DBKeySet&,
-					const ManagedObjectSet<TypeSet<int>>&);
-    void			addWellData(const DBKeySet&,
 					const ManagedObjectSet<TypeSet<int>>&,
-					    const BufferStringSet& mrknms);
+					    const BufferStringSet* mrknms);
     void			addWellData(const DBKeySet&,
 					    const BufferStringSet& lognms,
 					    const BufferStringSet& mrknms);

@@ -115,7 +115,7 @@ uiWellChartsLogToolWinGrp::uiWellChartsLogToolWinGrp( uiParent* p,
 {
     int nrvw = 0;
     for ( const auto* logdata : logdatas_ )
-	nrvw += logdata->inpLogs().size();
+	nrvw += logdata->lognms().size();
 
     logviewtbl_ = new uiLogViewTable( this, nrvw, true );
     logviewtbl_->attachObj()->setPrefWidth( cPrefWidth );
@@ -133,15 +133,30 @@ void uiWellChartsLogToolWinGrp::displayLogs()
 {
     OD::LineStyle ls;
     BufferStringSet wellnms;
-    ObjectSet<const Well::Log> inplogs;
-    ObjectSet<const Well::Log> outplogs;
+    ObjectSet<const Well::Log> inplogs, outplogs;
     for ( const auto* logdata : logdatas_ )
     {
-	for ( const auto* log : logdata->inpLogs() )
+	BufferStringSet inplognms;
+	for ( const auto* lognm : logdata->lognms() )
 	{
 	    wellnms.add( logdata->wellName() );
-	    inplogs += log;
+	    inplognms.add( lognm->buf() );
 	}
+
+	const MultiID wellid = logdata->wellID();
+	const Well::LoadReqs lreqs( inplognms );
+	ConstRefMan<Well::Data> wd = Well::MGR().get( wellid, lreqs );
+	if ( !wd )
+	    continue;
+
+	const Well::LogSet& logs = wd->logs();
+	for ( const auto* lognm : inplognms )
+	{
+	    const Well::Log* log = logs.getLog( lognm->buf() );
+	    if ( log )
+		inplogs += log;
+	}
+
 	for ( const auto* log : logdata->outpLogs() )
 	    outplogs += log;
     }
@@ -150,7 +165,7 @@ void uiWellChartsLogToolWinGrp::displayLogs()
     if ( !chart )
 	return;
 
-    if ( !chart->getLogCurve(inplogs[0]->name()) )
+    if ( !chart->getLogCurve(inplogs.first()->name()) )
     {
 	ls.color_ = OD::Color::stdDrawColor( 0 );
 	logviewtbl_->addWellData( wellnms, inplogs, ls );

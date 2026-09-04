@@ -39,6 +39,7 @@ ________________________________________________________________________
 #include "survinfo.h"
 #include "welldata.h"
 #include "wellextractdata.h"
+#include "welllogset.h"
 #include "wellman.h"
 #include "welltrack.h"
 #include "zdomain.h"
@@ -152,7 +153,7 @@ void uiLogViewWinBase::clearAll()
 void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
 				const ManagedObjectSet<TypeSet<int>>& logidxs )
 {
-    logviewtbl_->addWellData( wellids, logidxs );
+    logviewtbl_->addWellData( wellids, logidxs, nullptr );
 }
 
 
@@ -160,7 +161,7 @@ void uiLogViewWinBase::addWellData( const DBKeySet& wellids,
 				const ManagedObjectSet<TypeSet<int>>& logidxs,
 				const BufferStringSet& mrknms )
 {
-    logviewtbl_->addWellData( wellids, logidxs, mrknms );
+    logviewtbl_->addWellData( wellids, logidxs, &mrknms );
 }
 
 
@@ -272,12 +273,14 @@ void uiLogViewWinBase::usePar( const IOPar& iop )
     for ( int idx=nitems-1; idx>=0; idx-- )
     {
 	logviewtbl_->addTrackCB( nullptr );
-	IOPar* tmp = iop.subselect( IOPar::compKey(sKey::ID(),idx) );
 	uiLogChart* chart = logviewtbl_->getCurrentLogChart();
 	if ( !chart )
 	    return;
 
-	chart->usePar( *tmp );
+	PtrMan<IOPar> tmp = iop.subselect( IOPar::compKey(sKey::ID(),idx) );
+	if ( tmp )
+	    chart->usePar( *tmp );
+
 	logviewtbl_->updateViewLabel( logviewtbl_->currentView() );
     }
 }
@@ -533,6 +536,7 @@ void uiLockedLogViewWin::dataChgCB( CallBacker* )
 	closePropertiesDlg();
 	if ( !checkSave() )
 	    return;
+
 	selwells_ = wellids;
 	sellogs_ = lognms;
 	selmrkrs_ = mrknms;
@@ -618,6 +622,7 @@ void uiLockedLogViewWin::showSettingsCB( CallBacker* )
 	uiMSG().message( tr("Please select a log chart") );
 	return;
     }
+
     if ( !propdlg_ )
     {
 	propdlg_ = new uiLogViewPropDlg( this, logchart, true );
@@ -645,6 +650,7 @@ void uiLockedLogViewWin::applySettingsCB( CallBacker* )
 	auto* logchart = logviewtbl_->getLogChart( idx );
 	if ( !logchart || logchart==curlogchart )
 	    continue;
+
 	logchart->usePar( settings, true );
 	uisw.setMessage(
 	    tr("Working: %1 %").arg(int((idx+1)/logviewtbl_->size()*100.f)) );
@@ -807,11 +813,16 @@ void uiLogViewWin::addWellData( const DBKeySet& wellids,
 }
 
 
-void uiLogViewWin::add( int idx, const MultiID& wellkey,
-			const BufferStringSet& lognms )
+void uiLogViewWin::addLogs( int idx, const MultiID& wellkey,
+			    const BufferStringSet& lognms )
 {
     uiLogChart* chart = logviewtbl_->getLogChart( idx );
     if ( !chart )
+	return;
+
+    const Well::LoadReqs lreqs( lognms );
+    ConstRefMan<Well::Data> wd = Well::MGR().get( wellkey, lreqs );
+    if ( !wd )
 	return;
 
     for ( auto* lognm : lognms )
@@ -819,8 +830,7 @@ void uiLogViewWin::add( int idx, const MultiID& wellkey,
 }
 
 
-void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
-			   const BufferString& lognm )
+void uiLogViewWin::addLog( int idx, const MultiID& wellkey, const char* lognm )
 {
     uiLogChart* chart = logviewtbl_->getLogChart( idx );
     if ( !chart )
@@ -831,14 +841,18 @@ void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
 
     Interval<float> rg = chart->getZAxis()->range();
     rg.sort();
+    Well::LoadReqs lreqs( Well::Trck );
+    lreqs.addLog( lognm );
+    ConstRefMan<Well::Data> wd = Well::MGR().get( wellkey, lreqs );
+    if ( !wd )
+	return;
+
     chart->addLogCurve( wellkey, lognm );
     LogCurve* log = chart->getLogCurve( wellkey, lognm );
     PtrMan<IOPar> logpar = logstyles_.subselect( lognm );
     if ( logpar )
 	log->usePar( *logpar, true );
 
-    Well::LoadReqs lreq( Well::Trck );
-    RefMan<Well::Data> wd = Well::MGR().get( wellkey, lreq );
     logviewtbl_->updateViewLabel( idx );
     if ( logviewtbl_->primaryZRange().includes(wd->track().zRange()) )
 	chart->getZAxis()->setAxisLimits( logviewtbl_->primaryZRange() );
@@ -850,8 +864,7 @@ void uiLogViewWin::addLog( int idx, const MultiID& wellkey,
 }
 
 
-void uiLogViewWin::rmvLog( int idx, const MultiID& wellkey,
-			   const BufferString& lognm )
+void uiLogViewWin::rmvLog( int idx, const MultiID& wellkey, const char* lognm )
 {
     uiLogChart* chart = logviewtbl_->getLogChart( idx );
     if ( !chart )
@@ -902,30 +915,23 @@ void uiLogViewWin::removeLogCB( CallBacker* cb )
 
 
 void uiLogViewWin::addMarker( int idx, const MultiID& wellkey,
-			   const BufferString& markernm )
+			      const char* markernm )
 {
     uiLogChart* chart = logviewtbl_->getLogChart( idx );
-    if ( !chart )
-	return;
-
-    if ( chart->hasMarker(wellkey, markernm) )
+    if ( !chart || chart->hasMarker(wellkey,markernm) )
 	return;
 
     chart->addMarker( wellkey, markernm );
-
     logviewtbl_->updateViewLabel( idx );
     needsave_ = true;
 }
 
 
 void uiLogViewWin::rmMarker( int idx, const MultiID& wellkey,
-			     const BufferString& markernm )
+			     const char* markernm )
 {
     uiLogChart* chart = logviewtbl_->getLogChart( idx );
-    if ( !chart )
-	return;
-
-    if ( !chart->hasMarker(wellkey, markernm) )
+    if ( !chart || !chart->hasMarker(wellkey, markernm) )
 	return;
 
     chart->removeMarker( wellkey, markernm );
@@ -977,14 +983,19 @@ void uiLogViewWin::addWell( const DBKey& wellkey, const TypeSet<int>& logs )
 
 
 void uiLogViewWin::addWell( int vwidx, const DBKey& wellkey,
-			    const TypeSet<int>& logs )
+			    const TypeSet<int>& logidxs )
 {
     if ( !logviewtbl_->validIdx(vwidx) )
 	return;
 
+    const Well::LoadReqs lreqs( Well::LogInfos );
+    ConstRefMan<Well::Data> wd = Well::MGR().get( wellkey, lreqs );
+    if ( !wd )
+	return;
+
     BufferStringSet lognms;
-    Well::Man::getLogNamesByID( wellkey, lognms );
-    for ( const auto& lidx : logs )
+    wd->logs().getNames( lognms );
+    for ( const auto& lidx : logidxs )
     {
 	if ( !lognms.validIdx(lidx) )
 	    continue;
@@ -1006,11 +1017,11 @@ void uiLogViewWin::loadWells( const BufferStringSet& wellids,
 	wellkey.fromString( wellids.get(idx).buf() );
 	BufferStringSet lognums;
 	lognums.unCat( logids.get(idx), "," );
-	TypeSet<int> logs;
+	TypeSet<int> logidxs;
 	for ( const auto* logid : lognums )
-	    logs += logid->toInt();
+	    logidxs += logid->toInt();
 
-	addWell( wellkey, logs );
+	addWell( wellkey, logidxs );
     }
 }
 
@@ -1043,7 +1054,7 @@ void uiLogViewWin::selTrackChgCB( CallBacker* )
     if ( !logchart )
 	return;
 
-    DBKeySet wellids = logchart->wellIDs();
+    const DBKeySet wellids = logchart->wellIDs();
     for ( const auto& wellid : wellids )
     {
 	const BufferStringSet logs = logchart->getDispLogsForID( *wellid );

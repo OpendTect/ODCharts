@@ -179,12 +179,12 @@ protected:
     void		addApplicationToolBar() override;
 
     void		clearAll() override;
-    void		add(int,const MultiID&,const BufferStringSet&);
-    void		addLog(int,const MultiID&,const BufferString&);
-    void		rmvLog(int,const MultiID&,const BufferString&);
+    void		addLogs(int,const MultiID&,const BufferStringSet&);
+    void		addLog(int,const MultiID&,const char*);
+    void		rmvLog(int,const MultiID&,const char*);
 
-    void		addMarker(int,const MultiID&,const BufferString&);
-    void		rmMarker(int,const MultiID&,const BufferString&);
+    void		addMarker(int,const MultiID&,const char*);
+    void		rmMarker(int,const MultiID&,const char*);
 
     void		uiInitCB(CallBacker*) override;
     void		addLogCB(CallBacker*);

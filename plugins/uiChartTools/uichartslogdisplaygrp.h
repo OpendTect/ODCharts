@@ -10,7 +10,6 @@ ________________________________________________________________________
 
 #include "uicharttoolsmod.h"
 
-#include "uidialog.h"
 #include "uiwelldisplayserver.h"
 #include "draw.h"
 

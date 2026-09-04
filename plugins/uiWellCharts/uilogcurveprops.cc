@@ -146,7 +146,7 @@ void uiLogFillProps::setLogFill( int lcidx )
 					    filldir_==uiChartFillx::Left) );
     }
 
-    Well::Man::getLogNamesByID( logcurve_->wellID(), lognms, false );
+    Well::Man::getLogNamesByID( logcurve_->wellID(), lognms );
     if ( lognms.isEmpty() )
     {
 	filltypefld_->setValue( uiChartFillx::ColorFill );

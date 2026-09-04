@@ -25,7 +25,7 @@ public:
 			LogData();
 			LogData(const MultiID&,const char*);
 			LogData(const LogData&) = delete;
-    virtual		~LogData();
+			~LogData();
     void		operator=(const LogData&) = delete;
 
     BufferString	logName() const		{ return logname_; }
@@ -44,9 +44,9 @@ public:
 
 protected:
     bool		initLog();
-    bool		initLog(const Well::Log&);
-    bool		initLog(const char*,const Well::Log&);
-    void		copyFrom(const LogData&);
+    bool		initLog(const char* logname);
+    bool		initLog(const char* wellnm,const char* logname);
+    LogData&		copyFrom(const LogData&);
 
     const Mnemonic*		logmnem_ = nullptr;
     const UnitOfMeasure*	loguom_ = nullptr;
