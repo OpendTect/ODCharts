@@ -13,6 +13,7 @@ ________________________________________________________________________
 #include "chartutils.h"
 #include "logdata.h"
 #include "welllog.h"
+#include "welllogset.h"
 
 #include <QImage>
 
@@ -115,7 +116,7 @@ void LogGradient::fromString( const FileMultiString& str )
 
 void LogGradient::update()
 {
-    const Well::Log* log = wd_ ? wd_->getLog( logname_ ) : nullptr;
+    const Well::Log* log = wd_ ? wd_->logs().getLog( logname_.buf() ) : nullptr;
     if ( !qimg_ || !log || imgzrange_==StepInterval<float>() )
 	return;
 
