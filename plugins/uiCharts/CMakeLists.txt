@@ -21,4 +21,9 @@ set( OD_MODULE_SOURCES
 	chartutils.cc
 )
 
+if ( BUILD_JKQtPlotter )
+    include( "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/ODJKQtPlotterUtils.cmake" )
+    OD_SETUP_JKQTPLOTTER()
+endif()
+
 OD_INIT_MODULE()

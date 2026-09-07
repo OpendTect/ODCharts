@@ -5,7 +5,7 @@
 #________________________________________________________________________
 #
 
-cmake_minimum_required (VERSION 3.14)
+cmake_minimum_required (VERSION 3.24)
 project(ODCharts)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -25,6 +25,12 @@ endif()
 #Find OpendTect
 list(APPEND CMAKE_MODULE_PATH "${OpendTect_DIR}/CMakeModules")
 find_package( OpendTect )
+
+option( BUILD_JKQtPlotter "Build JKQtPlotter" OFF )
+if ( BUILD_JKQtPlotter )
+    include( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ODJKQtPlotterUtils.cmake" )
+    OD_FIND_JKQTPLOTTER()
+endif()
 
 #Setup the modules
 set( PLUGINS
