@@ -10,6 +10,7 @@ ________________________________________________________________________
 #include "uichartaxes.h"
 #include "i_qchartaxes.h"
 #include "chartutils.h"
+#include "math2.h"
 
 #include <QLogValueAxis>
 #include <QValueAxis>
@@ -277,12 +278,23 @@ int uiChartAxis::getTickCount() const
 void uiChartAxis::setDynamicTicks( float step, float anchor )
 {
     auto* qvalueaxis = qobject_cast<QValueAxis*>(qabstractaxis_);
-    if ( qvalueaxis )
+    if ( !qvalueaxis )
+	return;
+
+    // Qt Charts TicksDynamic walks value += interval with no cap. A zero or
+    // tiny interval (or a stale interval vs a much larger range) never returns.
+    const qreal span = qAbs( qvalueaxis->max() - qvalueaxis->min() );
+    if ( !Math::IsNormalNumber(step) || step <= 0.f ||
+	 !Math::IsNormalNumber(anchor) ||
+	 (span > 0. && qreal(step) < span / 100.) )
     {
-	qvalueaxis->setTickAnchor( anchor );
-	qvalueaxis->setTickInterval( step );
-	qvalueaxis->setTickType( QValueAxis::TicksDynamic );
+	setTickCount( 5 );
+	return;
     }
+
+    qvalueaxis->setTickAnchor( anchor );
+    qvalueaxis->setTickInterval( step );
+    qvalueaxis->setTickType( QValueAxis::TicksDynamic );
 }
 
 
@@ -368,7 +380,8 @@ void uiValueAxis::setAxisLimits( const Interval<float>& range, bool include )
     else
        axislimits_ = range;
 
-    setRange( axislimits_.start_, axislimits_.stop_ );
+    setTickCount( 5 );
+    setRange( axislimits_ );
 }
 
 

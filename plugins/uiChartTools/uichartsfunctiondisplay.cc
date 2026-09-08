@@ -10,6 +10,7 @@ ________________________________________________________________________
 #include "uichartsfunctiondisplay.h"
 
 #include "chartutils.h"
+#include "math2.h"
 #include "scaler.h"
 
 #include "uichart.h"
@@ -616,20 +617,52 @@ void uiChartsAxisHandler::setRange( const StepInterval<float>& rg,
     if ( !axis_ )
 	return;
 
-    axis_->setDynamicTicks( rg.step_, astart ? *astart : rg.start_ );
+    axis_->setTickCount( 5 );
     axis_->setRange( rg );
+
+    const float span = Math::Abs( rg.stop_ - rg.start_ );
+    const float step = rg.step_;
+    static const int maxticks = 50;
+    if ( Math::IsNormalNumber(step) && step > 0.f &&
+	 Math::IsNormalNumber(span) && span / step <= maxticks )
+	axis_->setDynamicTicks( step, astart ? *astart : rg.start_ );
 }
 
 
 void uiChartsAxisHandler::setBounds( Interval<float> rg )
 {
     StepInterval<float> steprg;
+    const bool isrev = rg.isRev();
     if ( rg.isUdf() )
-	steprg.set( 0.f, 1.f, 1.f);
+	steprg.set( 0.f, 1.f, 1.f );
     else
     {
-	const bool isrev = rg.isRev();
 	steprg = StepInterval<float>( rg ).niceInterval( 5, isrev );
+	if ( steprg.isUdf() || !Math::IsNormalNumber(steprg.step_) ||
+	     mIsZero(steprg.step_, mDefEpsF) )
+	{
+	    float mn = rg.start_;
+	    float mx = rg.stop_;
+	    if ( !Math::IsNormalNumber(mn) )
+		mn = 0.f;
+	    if ( !Math::IsNormalNumber(mx) )
+		mx = 1.f;
+	    if ( mn > mx )
+		{ const float tmp = mn; mn = mx; mx = tmp; }
+	    if ( mIsZero(mx-mn, mDefEpsF) )
+	    {
+		const float pad = mIsZero(mn, mDefEpsF) ? 1.f
+							 : 0.1f*Math::Abs(mn);
+		mn -= pad;
+		mx += pad;
+	    }
+
+	    const float step = (mx-mn) / 5.f;
+	    if ( isrev )
+		steprg.set( mx, mn, step );
+	    else
+		steprg.set( mn, mx, step );
+	}
     }
 
     mDynamicCastGet(uiValueAxis*,valaxis,axis_)
